@@ -3,8 +3,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { stats } from "@/data/site";
-import { siteAssets } from "@/lib/site-assets";
+import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
+import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
@@ -47,10 +48,17 @@ export function Hero() {
           transition={{ duration: 0.75, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="hero-orbit" />
-          <picture className="hero-picture">
-            <source media="(max-width: 820px)" srcSet={siteAssets.hero.mobile} />
-            <img src={siteAssets.hero.desktop} alt="Kho hàng và nguyên liệu Hưng Phát" fetchPriority="high" />
-          </picture>
+          <ResponsiveAssetPicture
+            className="hero-picture"
+            imgClassName="hero-picture-img"
+            alt="Kho hàng và nguyên liệu Hưng Phát"
+            desktopSrc={siteAssets.hero.desktop}
+            desktopFallbackSrc={siteAssetFallbacks.hero.desktop}
+            mobileSrc={siteAssets.hero.mobile}
+            mobileFallbackSrc={siteAssetFallbacks.hero.mobile}
+            priority
+            imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+          />
           <div className="hero-badge">
             <span>Since</span>
             <strong>2016</strong>

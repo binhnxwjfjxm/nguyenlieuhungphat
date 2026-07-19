@@ -1,4 +1,4 @@
-type AssetEntry = {
+﻿type AssetEntry = {
   path: string;
   fallback: string;
 };
@@ -36,28 +36,53 @@ export function getSiteAssetUrl(path: string, fallback: string) {
 
 const asset = (path: string, fallback: string) => getSiteAssetUrl(path, fallback);
 
-export const siteAssets = {
+export const siteAssetFallbacks = {
   hero: {
-    desktop: asset("hung-phat/web-site/01-hero-desktop.webp", "/images/hero-materials.svg"),
-    mobile: asset("hung-phat/web-site/02-hero-mobile.webp", "/images/hero-materials.svg"),
+    desktop: "/images/hero-materials.svg",
+    mobile: "/images/hero-materials.svg",
   },
   categories: {
-    industrial: asset("hung-phat/web-site/03-category-industrial.webp", "/images/category-industrial.svg"),
-    chemical: asset("hung-phat/web-site/04-category-chemical.webp", "/images/category-chemical.svg"),
-    food: asset("hung-phat/web-site/05-category-food.webp", "/images/category-food.svg"),
-    packaging: asset("hung-phat/web-site/06-category-packaging.webp", "/images/category-packaging.svg"),
+    industrial: "/images/category-industrial.svg",
+    chemical: "/images/category-chemical.svg",
+    food: "/images/category-food.svg",
+    packaging: "/images/category-packaging.svg",
   },
   warehouse: {
-    one: asset("hung-phat/web-site/07-warehouse-01.webp", "/images/hero-materials.svg"),
-    two: asset("hung-phat/web-site/08-warehouse-02.webp", "/images/hero-materials.svg"),
-    capability: asset("hung-phat/web-site/09-company-capability.webp", "/images/hero-materials.svg"),
+    one: "/images/hero-materials.svg",
+    two: "/images/hero-materials.svg",
+    capability: "/images/hero-materials.svg",
   },
   quote: {
-    desktop: asset("hung-phat/web-site/10-quote-banner.webp", "/images/hero-materials.svg"),
-    mobile: asset("hung-phat/web-site/11-quote-mobile.webp", "/images/hero-materials.svg"),
+    desktop: "/images/hero-materials.svg",
+    mobile: "/images/hero-materials.svg",
   },
   seo: {
-    og: asset("hung-phat/web-site/12-og-hung-phat.webp", "/images/hero-materials.svg"),
+    og: "/images/hero-materials.svg",
+  },
+} as const;
+
+export const siteAssets = {
+  hero: {
+    desktop: asset("web-site/01-hero-desktop.webp", "/images/hero-materials.svg"),
+    mobile: asset("web-site/02-hero-mobile.webp", "/images/hero-materials.svg"),
+  },
+  categories: {
+    industrial: asset("web-site/03-category-industrial.webp", "/images/category-industrial.svg"),
+    chemical: asset("web-site/04-category-chemical.webp", "/images/category-chemical.svg"),
+    food: asset("web-site/05-category-food.webp", "/images/category-food.svg"),
+    packaging: asset("web-site/06-category-packaging.webp", "/images/category-packaging.svg"),
+  },
+  warehouse: {
+    one: asset("web-site/07-warehouse-01.webp", "/images/hero-materials.svg"),
+    two: asset("web-site/08-warehouse-02.webp", "/images/hero-materials.svg"),
+    capability: asset("web-site/09-company-capability.webp", "/images/hero-materials.svg"),
+  },
+  quote: {
+    desktop: asset("web-site/10-quote-banner.webp", "/images/hero-materials.svg"),
+    mobile: asset("web-site/11-quote-mobile.webp", "/images/hero-materials.svg"),
+  },
+  seo: {
+    og: asset("web-site/12-og-hung-phat.webp", "/images/hero-materials.svg"),
   },
 } as const;
 

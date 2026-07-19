@@ -520,13 +520,28 @@
   display: block;
   width: min(100%, 700px);
   margin-inline: auto;
+  aspect-ratio: 1.08;
+  overflow: hidden;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 234, 0.2), rgba(255, 248, 234, 0)),
+    var(--surface-soft);
+  box-shadow: 0 26px 50px rgba(58, 36, 24, 0.14);
 }
 
-.hero-picture img {
+.hero-picture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 248, 234, 0.08), rgba(58, 36, 24, 0.08));
+  pointer-events: none;
+}
+
+.hero-picture-img {
   display: block;
   width: 100%;
-  height: auto;
-  filter: drop-shadow(0 26px 50px rgba(58, 36, 24, 0.14));
+  height: 100%;
+  object-fit: cover;
 }
 
 .company-capability-section {
@@ -576,13 +591,21 @@
   min-height: 220px;
 }
 
-.capability-image-wrap img {
+.capability-picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.capability-picture-img {
   object-fit: cover;
   object-position: center;
   transition: transform 500ms ease;
 }
 
-.capability-card:hover .capability-image-wrap img {
+.capability-card:hover .capability-picture-img {
   transform: scale(1.03);
 }
 
@@ -653,12 +676,23 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: var(--quote-banner-desktop);
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  overflow: hidden;
   opacity: 0.22;
   transform: scale(1.02);
+}
+
+.quote-banner-picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.quote-banner-picture-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .quote-banner::before {
@@ -777,8 +811,6 @@
 
   .quote-banner-media {
     opacity: 0.26;
-    background-image: var(--quote-banner-mobile);
-    background-position: center top;
   }
 
   .quote-banner-copy {

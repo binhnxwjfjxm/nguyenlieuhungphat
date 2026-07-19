@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { ArrowUpRight, Factory, Warehouse } from "lucide-react";
+import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { Reveal } from "./reveal";
-import { siteAssets } from "@/lib/site-assets";
+import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 import { QuoteButton } from "./quote-trigger";
 
 export function CompanyCapabilitySection() {
@@ -18,10 +18,7 @@ export function CompanyCapabilitySection() {
                 hàng, chuẩn bị đơn và hỗ trợ báo giá nhanh.
               </p>
             </div>
-            <QuoteButton
-              className="text-link desktop-only-link capability-quote-link"
-              seed={{ source: "capability-section" }}
-            >
+            <QuoteButton className="text-link desktop-only-link capability-quote-link" seed={{ source: "capability-section" }}>
               Nhận báo giá <ArrowUpRight size={17} />
             </QuoteButton>
           </div>
@@ -31,11 +28,14 @@ export function CompanyCapabilitySection() {
           <Reveal>
             <article className="capability-card capability-card-large">
               <div className="capability-image-wrap">
-                <Image
-                  src={siteAssets.warehouse.capability}
+                <ResponsiveAssetPicture
+                  className="capability-picture"
+                  imgClassName="capability-picture-img"
                   alt="Không gian năng lực vận hành của Hưng Phát"
-                  fill
-                  sizes="(max-width: 900px) 100vw, 50vw"
+                  desktopSrc={siteAssets.warehouse.capability}
+                  desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
+                  priority={false}
+                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                 />
               </div>
               <div className="capability-copy">
@@ -52,11 +52,13 @@ export function CompanyCapabilitySection() {
             <Reveal delay={0.04}>
               <article className="capability-card capability-card-small">
                 <div className="capability-image-wrap">
-                  <Image
-                    src={siteAssets.warehouse.one}
+                  <ResponsiveAssetPicture
+                    className="capability-picture"
+                    imgClassName="capability-picture-img"
                     alt="Kho hàng Hưng Phát với nguyên liệu sẵn sàng xuất"
-                    fill
-                    sizes="(max-width: 900px) 100vw, 25vw"
+                    desktopSrc={siteAssets.warehouse.one}
+                    desktopFallbackSrc={siteAssetFallbacks.warehouse.one}
+                    imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
                 </div>
               </article>
@@ -64,11 +66,13 @@ export function CompanyCapabilitySection() {
             <Reveal delay={0.08}>
               <article className="capability-card capability-card-small">
                 <div className="capability-image-wrap">
-                  <Image
-                    src={siteAssets.warehouse.two}
+                  <ResponsiveAssetPicture
+                    className="capability-picture"
+                    imgClassName="capability-picture-img"
                     alt="Hoạt động kho vận và sắp xếp hàng hóa của Hưng Phát"
-                    fill
-                    sizes="(max-width: 900px) 100vw, 25vw"
+                    desktopSrc={siteAssets.warehouse.two}
+                    desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
+                    imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
                 </div>
                 <div className="capability-mini-copy">
@@ -83,4 +87,3 @@ export function CompanyCapabilitySection() {
     </section>
   );
 }
-
