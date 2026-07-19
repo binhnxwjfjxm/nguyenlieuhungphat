@@ -6,13 +6,13 @@ import { ArrowUpRight, Heart, MapPin } from "lucide-react";
 import { useState } from "react";
 import type { Product } from "@/data/products";
 import { HapticLink } from "./haptic-link";
+import { QuoteButton } from "./quote-trigger";
 
 function vibrate() {
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
     navigator.vibrate(12);
   }
 }
-
 export function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
   const [saved, setSaved] = useState(false);
   const reduceMotion = useReducedMotion();
@@ -56,15 +56,26 @@ export function ProductCard({ product, compact = false }: { product: Product; co
       </button>
 
       <div className="product-card-body">
-        <p className="product-origin"><MapPin size={13} /> {product.origin}</p>
+        <p className="product-origin">
+          <MapPin size={13} /> {product.origin}
+        </p>
         <h3>
           <HapticLink href={`/san-pham/${product.slug}`}>{product.name}</HapticLink>
         </h3>
         <p className="product-english-name">{product.englishName}</p>
         {!compact ? <p className="product-summary">{product.shortDescription}</p> : null}
-        <HapticLink href={`/san-pham/${product.slug}`} className="product-link">
-          Xem chi tiết <ArrowUpRight size={16} />
-        </HapticLink>
+
+        <div className="product-card-actions">
+          <HapticLink href={`/san-pham/${product.slug}`} className="product-link">
+            Xem chi tiết <ArrowUpRight size={16} />
+          </HapticLink>
+          <QuoteButton
+            className="product-quote-button"
+            seed={{ product: product.name, usage: product.name, source: "product-card", pathname: `/san-pham/${product.slug}` }}
+          >
+            Nhận báo giá
+          </QuoteButton>
+        </div>
       </div>
     </motion.article>
   );

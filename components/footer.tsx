@@ -1,5 +1,6 @@
 import { Globe2, Mail, MapPin, Phone, Play, Share2 } from "lucide-react";
 import { Logo } from "./logo";
+import { QuoteButton } from "./quote-trigger";
 
 const footerGroups = [
   {
@@ -46,7 +47,17 @@ export function Footer() {
         {footerGroups.map((group) => (
           <div className="footer-group desktop-footer-group" key={group.title}>
             <h3>{group.title}</h3>
-            {group.links.map((link) => <a href={link.href} key={link.label}>{link.label}</a>)}
+            {group.links.map((link) =>
+              link.label === "Yêu cầu báo giá" ? (
+                <QuoteButton className="footer-link-button" key={link.label}>
+                  {link.label}
+                </QuoteButton>
+              ) : (
+                <a href={link.href} key={link.label}>
+                  {link.label}
+                </a>
+              ),
+            )}
           </div>
         ))}
 

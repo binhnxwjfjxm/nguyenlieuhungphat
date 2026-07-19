@@ -6,6 +6,7 @@ import { useState } from "react";
 import { navigation } from "@/data/site";
 import { HapticLink } from "./haptic-link";
 import { Logo } from "./logo";
+import { QuoteButton } from "./quote-trigger";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -27,12 +28,9 @@ export function Header() {
           <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
             <Search size={19} />
           </HapticLink>
-          <HapticLink className="button button-ghost" href="/#lien-he">
-            Đăng nhập
-          </HapticLink>
-          <HapticLink className="button button-primary" href="/#bao-gia">
+          <QuoteButton className="button button-primary">
             Nhận báo giá
-          </HapticLink>
+          </QuoteButton>
         </div>
 
         <div className="mobile-actions">
@@ -66,9 +64,9 @@ export function Header() {
                   {item.label}
                 </a>
               ))}
-              <HapticLink className="button button-primary mobile-quote" href="/#bao-gia">
+              <QuoteButton className="button button-primary mobile-quote" onClick={() => setOpen(false)}>
                 Nhận báo giá
-              </HapticLink>
+              </QuoteButton>
             </nav>
           </motion.div>
         ) : null}

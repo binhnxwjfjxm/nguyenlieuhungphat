@@ -3,6 +3,7 @@
 import { Home, MessageCircleMore, PackageSearch, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HapticLink } from "./haptic-link";
+import { QuoteButton } from "./quote-trigger";
 
 const items = [
   { label: "Trang chủ", href: "/", icon: Home },
@@ -19,8 +20,18 @@ export function MobileBottomNav() {
       {items.map((item) => {
         const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
         const Icon = item.icon;
+
+        if (item.label === "Báo giá") {
+          return (
+            <QuoteButton className={`mobile-bottom-nav-item${active ? " active" : ""}`} key={item.label}>
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </QuoteButton>
+          );
+        }
+
         return (
-          <HapticLink className={active ? "active" : ""} href={item.href} key={item.label}>
+          <HapticLink className={`mobile-bottom-nav-item${active ? " active" : ""}`} href={item.href} key={item.label}>
             <Icon size={20} />
             <span>{item.label}</span>
           </HapticLink>

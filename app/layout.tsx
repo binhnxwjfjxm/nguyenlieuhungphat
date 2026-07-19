@@ -1,11 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Chatbot } from "@/components/chatbot";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { QuoteProvider } from "@/components/quote-provider";
+import { ToastProvider } from "@/components/toast-provider";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 import "./sprint2.css";
+import "./sprint3.css";
 
-const siteUrl = "https://nguyenlieuhungphat.com";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -48,10 +53,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="vi">
       <body>
-        <Header />
-        {children}
-        <Footer />
-        <MobileBottomNav />
+        <ToastProvider>
+          <QuoteProvider>
+            <Header />
+            {children}
+            <Footer />
+            <MobileBottomNav />
+            <Chatbot />
+          </QuoteProvider>
+        </ToastProvider>
       </body>
     </html>
   );
