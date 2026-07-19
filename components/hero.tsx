@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import Image from "next/image";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { stats } from "@/data/site";
+import { siteAssets } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
 
 export function Hero() {
@@ -27,8 +27,8 @@ export function Hero() {
             Thịnh vượng lâu dài
           </h1>
           <p className="hero-description">
-            Kết nối nguồn nguyên liệu chất lượng, tối ưu lưu thông hàng hóa và xây dựng nền tảng
-            đồng bộ cho hoạt động sản xuất của doanh nghiệp.
+            Kết nối nguồn nguyên liệu chất lượng, tối ưu lưu thông hàng hóa và xây dựng nền tảng đồng bộ cho hoạt
+            động sản xuất của doanh nghiệp.
           </p>
           <div className="hero-actions">
             <HapticLink className="button button-primary button-large" href="#san-pham">
@@ -47,13 +47,10 @@ export function Hero() {
           transition={{ duration: 0.75, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="hero-orbit" />
-          <Image
-            src="/images/hero-materials.svg"
-            alt="Minh họa các nhóm nguyên liệu Hưng Phát"
-            width={760}
-            height={620}
-            priority
-          />
+          <picture className="hero-picture">
+            <source media="(max-width: 820px)" srcSet={siteAssets.hero.mobile} />
+            <img src={siteAssets.hero.desktop} alt="Kho hàng và nguyên liệu Hưng Phát" fetchPriority="high" />
+          </picture>
           <div className="hero-badge">
             <span>Since</span>
             <strong>2016</strong>

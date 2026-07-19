@@ -28,7 +28,12 @@ export function CategorySection() {
               <Reveal key={category.title} delay={index * 0.05}>
                 <HapticLink className="category-card" href={`/san-pham?category=${category.slug}`}>
                   <div className="category-image-wrap">
-                    <Image src={category.image} alt="" fill sizes="(max-width: 720px) 78vw, 25vw" />
+                    <Image
+                      src={category.image}
+                      alt={`Ảnh minh họa danh mục ${category.title}`}
+                      fill
+                      sizes="(max-width: 720px) 78vw, 25vw"
+                    />
                   </div>
                   <div className="category-content">
                     <span className="category-icon">

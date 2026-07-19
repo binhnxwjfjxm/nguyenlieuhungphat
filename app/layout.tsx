@@ -6,6 +6,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { QuoteProvider } from "@/components/quote-provider";
 import { ToastProvider } from "@/components/toast-provider";
 import { getSiteUrl } from "@/lib/site";
+import { siteAssets } from "@/lib/site-assets";
 import "./globals.css";
 import "./sprint2.css";
 import "./sprint3.css";
@@ -35,11 +36,20 @@ export const metadata: Metadata = {
     siteName: "Nguyên Liệu Hưng Phát",
     title: "Hưng Phát | Nguyên liệu chất lượng",
     description: "Nguồn nguyên liệu chất lượng, nền tảng cho phát triển bền vững.",
+    images: [
+      {
+        url: siteAssets.seo.og,
+        width: 1200,
+        height: 630,
+        alt: "Hưng Phát - nguyên liệu chất lượng",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hưng Phát | Nguyên liệu chất lượng",
     description: "Nguồn nguyên liệu chất lượng, nền tảng cho phát triển bền vững.",
+    images: [siteAssets.seo.og],
   },
 };
 

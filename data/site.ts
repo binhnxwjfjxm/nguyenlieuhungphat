@@ -8,6 +8,7 @@ import {
   Truck,
   Users,
 } from "lucide-react";
+import { siteAssets } from "@/lib/site-assets";
 
 export const navigation = [
   { label: "Trang chủ", href: "/#trang-chu" },
@@ -17,7 +18,6 @@ export const navigation = [
   { label: "Tin tức", href: "/#tin-tuc" },
   { label: "Liên hệ", href: "/#lien-he" },
 ];
-
 export const stats = [
   { value: "2016", label: "Thành lập từ năm" },
   { value: "500+", label: "Sản phẩm đa dạng" },
@@ -54,7 +54,7 @@ export const categories = [
     title: "Nguyên liệu công nghiệp",
     count: "120+ sản phẩm",
     description: "Hạt nhựa, khoáng chất và nguyên liệu nền.",
-    image: "/images/category-industrial.svg",
+    image: siteAssets.categories.industrial,
     icon: Factory,
   },
   {
@@ -62,7 +62,7 @@ export const categories = [
     title: "Hóa chất & phụ gia",
     count: "80+ sản phẩm",
     description: "Giải pháp hỗ trợ tối ưu quy trình sản xuất.",
-    image: "/images/category-chemical.svg",
+    image: siteAssets.categories.chemical,
     icon: Beaker,
   },
   {
@@ -70,7 +70,7 @@ export const categories = [
     title: "Nguyên liệu thực phẩm",
     count: "150+ sản phẩm",
     description: "Nguyên liệu được chọn theo nhu cầu ứng dụng.",
-    image: "/images/category-food.svg",
+    image: siteAssets.categories.food,
     icon: Leaf,
   },
   {
@@ -78,7 +78,7 @@ export const categories = [
     title: "Vật tư & bao bì",
     count: "60+ sản phẩm",
     description: "Giải pháp đóng gói và lưu thông hàng hóa.",
-    image: "/images/category-packaging.svg",
+    image: siteAssets.categories.packaging,
     icon: Boxes,
   },
 ];
