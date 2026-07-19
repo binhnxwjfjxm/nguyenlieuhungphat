@@ -24,21 +24,21 @@ export function Header() {
         </nav>
 
         <div className="desktop-actions">
-          <button className="icon-button" type="button" aria-label="Tìm kiếm">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
             <Search size={19} />
-          </button>
-          <HapticLink className="button button-ghost" href="#lien-he">
+          </HapticLink>
+          <HapticLink className="button button-ghost" href="/#lien-he">
             Đăng nhập
           </HapticLink>
-          <HapticLink className="button button-primary" href="#bao-gia">
+          <HapticLink className="button button-primary" href="/#bao-gia">
             Nhận báo giá
           </HapticLink>
         </div>
 
         <div className="mobile-actions">
-          <button className="icon-button" type="button" aria-label="Tìm kiếm">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
             <Search size={20} />
-          </button>
+          </HapticLink>
           <button
             className="icon-button"
             type="button"
@@ -66,7 +66,7 @@ export function Header() {
                   {item.label}
                 </a>
               ))}
-              <HapticLink className="button button-primary mobile-quote" href="#bao-gia">
+              <HapticLink className="button button-primary mobile-quote" href="/#bao-gia">
                 Nhận báo giá
               </HapticLink>
             </nav>

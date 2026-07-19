@@ -4,15 +4,28 @@ import { Logo } from "./logo";
 const footerGroups = [
   {
     title: "Về chúng tôi",
-    links: ["Giới thiệu", "Tầm nhìn - Sứ mệnh", "Giá trị cốt lõi", "Năng lực doanh nghiệp"],
+    links: [
+      { label: "Giới thiệu", href: "/#gioi-thieu" },
+      { label: "Tầm nhìn - Sứ mệnh", href: "/#gioi-thieu" },
+      { label: "Giá trị cốt lõi", href: "/#gioi-thieu" },
+    ],
   },
   {
     title: "Sản phẩm",
-    links: ["Nguyên liệu công nghiệp", "Hóa chất & phụ gia", "Nguyên liệu thực phẩm", "Vật tư & bao bì"],
+    links: [
+      { label: "Nguyên liệu công nghiệp", href: "/san-pham?category=nguyen-lieu-cong-nghiep" },
+      { label: "Hóa chất & phụ gia", href: "/san-pham?category=hoa-chat-phu-gia" },
+      { label: "Nguyên liệu thực phẩm", href: "/san-pham?category=nguyen-lieu-thuc-pham" },
+      { label: "Tất cả sản phẩm", href: "/san-pham" },
+    ],
   },
   {
     title: "Hỗ trợ",
-    links: ["Chính sách chất lượng", "Chính sách vận chuyển", "Yêu cầu báo giá", "Câu hỏi thường gặp"],
+    links: [
+      { label: "Yêu cầu báo giá", href: "/#bao-gia" },
+      { label: "Liên hệ tư vấn", href: "/#lien-he" },
+      { label: "Gọi hotline", href: "tel:0900123456" },
+    ],
   },
 ];
 
@@ -22,10 +35,7 @@ export function Footer() {
       <div className="container footer-grid">
         <div className="footer-brand-column">
           <Logo />
-          <p>
-            Nền tảng vững chắc từ nguồn nguyên liệu chất lượng, không ngừng phát triển và vươn tới
-            thịnh vượng bền vững.
-          </p>
+          <p>Nền tảng vững chắc từ nguồn nguyên liệu chất lượng, không ngừng phát triển và vươn tới thịnh vượng bền vững.</p>
           <div className="social-row">
             <a href="#" aria-label="Facebook"><Globe2 size={18} /></a>
             <a href="#" aria-label="LinkedIn"><Share2 size={18} /></a>
@@ -36,9 +46,7 @@ export function Footer() {
         {footerGroups.map((group) => (
           <div className="footer-group desktop-footer-group" key={group.title}>
             <h3>{group.title}</h3>
-            {group.links.map((link) => (
-              <a href="#" key={link}>{link}</a>
-            ))}
+            {group.links.map((link) => <a href={link.href} key={link.label}>{link.label}</a>)}
           </div>
         ))}
 
@@ -53,11 +61,7 @@ export function Footer() {
           {footerGroups.map((group) => (
             <details key={group.title}>
               <summary>{group.title}</summary>
-              <div>
-                {group.links.map((link) => (
-                  <a href="#" key={link}>{link}</a>
-                ))}
-              </div>
+              <div>{group.links.map((link) => <a href={link.href} key={link.label}>{link.label}</a>)}</div>
             </details>
           ))}
         </div>

@@ -1,0 +1,541 @@
+diff --git a/app/layout.tsx b/app/layout.tsx
+index 8776548..cab1d73 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -1,10 +1,41 @@
+ import type { Metadata, Viewport } from "next";
++import { Footer } from "@/components/footer";
++import { Header } from "@/components/header";
++import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+ import "./globals.css";
++import "./sprint2.css";
++
++const siteUrl = "https://nguyenlieuhungphat.com";
+ 
+ export const metadata: Metadata = {
+-  title: "Hưng Phát | Nguyên liệu chất lượng",
++  metadataBase: new URL(siteUrl),
++  title: {
++    default: "Hưng Phát | Nguyên liệu chất lượng",
++    template: "%s | Hưng Phát",
++  },
+   description:
+-    "Công ty TNHH TM Nguyên Liệu Hưng Phát - nguồn nguyên liệu chất lượng, nền tảng cho phát triển bền vững.",
++    "Công ty TNHH TM Nguyên Liệu Hưng Phát cung ứng nguyên liệu công nghiệp, thực phẩm, hóa chất và phụ gia cho doanh nghiệp.",
++  keywords: [
++    "nguyên liệu Hưng Phát",
++    "nguyên liệu công nghiệp",
++    "hóa chất phụ gia",
++    "nguyên liệu thực phẩm",
++    "báo giá nguyên liệu",
++  ],
++  alternates: { canonical: "/" },
++  openGraph: {
++    type: "website",
++    locale: "vi_VN",
++    url: siteUrl,
++    siteName: "Nguyên Liệu Hưng Phát",
++    title: "Hưng Phát | Nguyên liệu chất lượng",
++    description: "Nguồn nguyên liệu chất lượng, nền tảng cho phát triển bền vững.",
++  },
++  twitter: {
++    card: "summary_large_image",
++    title: "Hưng Phát | Nguyên liệu chất lượng",
++    description: "Nguồn nguyên liệu chất lượng, nền tảng cho phát triển bền vững.",
++  },
+ };
+ 
+ export const viewport: Viewport = {
+@@ -16,7 +47,12 @@ export const viewport: Viewport = {
+ export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+   return (
+     <html lang="vi">
+-      <body>{children}</body>
++      <body>
++        <Header />
++        {children}
++        <Footer />
++        <MobileBottomNav />
++      </body>
+     </html>
+   );
+ }
+diff --git a/app/page.tsx b/app/page.tsx
+index b9ccffe..bb597e8 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -1,23 +1,15 @@
+ import { CategorySection } from "@/components/category-section";
+-import { Footer } from "@/components/footer";
+-import { Header } from "@/components/header";
+ import { Hero } from "@/components/hero";
+-import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+ import { ProductSection } from "@/components/product-section";
+ import { TrustSection } from "@/components/trust-section";
+ 
+ export default function HomePage() {
+   return (
+-    <>
+-      <Header />
+-      <main>
+-        <Hero />
+-        <TrustSection />
+-        <CategorySection />
+-        <ProductSection />
+-      </main>
+-      <Footer />
+-      <MobileBottomNav />
+-    </>
++    <main>
++      <Hero />
++      <TrustSection />
++      <CategorySection />
++      <ProductSection />
++    </main>
+   );
+ }
+diff --git a/components/category-section.tsx b/components/category-section.tsx
+index 5be66a0..30bd160 100644
+--- a/components/category-section.tsx
++++ b/components/category-section.tsx
+@@ -15,7 +15,7 @@ export function CategorySection() {
+               <h2>Danh mục sản phẩm</h2>
+               <p>Danh mục được tổ chức rõ ràng để khách hàng tìm đúng nguyên liệu nhanh hơn.</p>
+             </div>
+-            <HapticLink className="text-link desktop-only-link" href="#san-pham">
++            <HapticLink className="text-link desktop-only-link" href="/san-pham">
+               Xem tất cả <ArrowUpRight size={17} />
+             </HapticLink>
+           </div>
+@@ -26,7 +26,7 @@ export function CategorySection() {
+             const Icon = category.icon;
+             return (
+               <Reveal key={category.title} delay={index * 0.05}>
+-                <HapticLink className="category-card" href="#san-pham">
++                <HapticLink className="category-card" href={`/san-pham?category=${category.slug}`}>
+                   <div className="category-image-wrap">
+                     <Image src={category.image} alt="" fill sizes="(max-width: 720px) 78vw, 25vw" />
+                   </div>
+diff --git a/components/footer.tsx b/components/footer.tsx
+index 524cc69..2d93b14 100644
+--- a/components/footer.tsx
++++ b/components/footer.tsx
+@@ -4,15 +4,28 @@ import { Logo } from "./logo";
+ const footerGroups = [
+   {
+     title: "Về chúng tôi",
+-    links: ["Giới thiệu", "Tầm nhìn - Sứ mệnh", "Giá trị cốt lõi", "Năng lực doanh nghiệp"],
++    links: [
++      { label: "Giới thiệu", href: "/#gioi-thieu" },
++      { label: "Tầm nhìn - Sứ mệnh", href: "/#gioi-thieu" },
++      { label: "Giá trị cốt lõi", href: "/#gioi-thieu" },
++    ],
+   },
+   {
+     title: "Sản phẩm",
+-    links: ["Nguyên liệu công nghiệp", "Hóa chất & phụ gia", "Nguyên liệu thực phẩm", "Vật tư & bao bì"],
++    links: [
++      { label: "Nguyên liệu công nghiệp", href: "/san-pham?category=nguyen-lieu-cong-nghiep" },
++      { label: "Hóa chất & phụ gia", href: "/san-pham?category=hoa-chat-phu-gia" },
++      { label: "Nguyên liệu thực phẩm", href: "/san-pham?category=nguyen-lieu-thuc-pham" },
++      { label: "Tất cả sản phẩm", href: "/san-pham" },
++    ],
+   },
+   {
+     title: "Hỗ trợ",
+-    links: ["Chính sách chất lượng", "Chính sách vận chuyển", "Yêu cầu báo giá", "Câu hỏi thường gặp"],
++    links: [
++      { label: "Yêu cầu báo giá", href: "/#bao-gia" },
++      { label: "Liên hệ tư vấn", href: "/#lien-he" },
++      { label: "Gọi hotline", href: "tel:0900123456" },
++    ],
+   },
+ ];
+ 
+@@ -22,10 +35,7 @@ export function Footer() {
+       <div className="container footer-grid">
+         <div className="footer-brand-column">
+           <Logo />
+-          <p>
+-            Nền tảng vững chắc từ nguồn nguyên liệu chất lượng, không ngừng phát triển và vươn tới
+-            thịnh vượng bền vững.
+-          </p>
++          <p>Nền tảng vững chắc từ nguồn nguyên liệu chất lượng, không ngừng phát triển và vươn tới thịnh vượng bền vững.</p>
+           <div className="social-row">
+             <a href="#" aria-label="Facebook"><Globe2 size={18} /></a>
+             <a href="#" aria-label="LinkedIn"><Share2 size={18} /></a>
+@@ -36,9 +46,7 @@ export function Footer() {
+         {footerGroups.map((group) => (
+           <div className="footer-group desktop-footer-group" key={group.title}>
+             <h3>{group.title}</h3>
+-            {group.links.map((link) => (
+-              <a href="#" key={link}>{link}</a>
+-            ))}
++            {group.links.map((link) => <a href={link.href} key={link.label}>{link.label}</a>)}
+           </div>
+         ))}
+ 
+@@ -53,11 +61,7 @@ export function Footer() {
+           {footerGroups.map((group) => (
+             <details key={group.title}>
+               <summary>{group.title}</summary>
+-              <div>
+-                {group.links.map((link) => (
+-                  <a href="#" key={link}>{link}</a>
+-                ))}
+-              </div>
++              <div>{group.links.map((link) => <a href={link.href} key={link.label}>{link.label}</a>)}</div>
+             </details>
+           ))}
+         </div>
+diff --git a/components/header.tsx b/components/header.tsx
+index 96ad34b..d4d4e9e 100644
+--- a/components/header.tsx
++++ b/components/header.tsx
+@@ -24,21 +24,21 @@ export function Header() {
+         </nav>
+ 
+         <div className="desktop-actions">
+-          <button className="icon-button" type="button" aria-label="Tìm kiếm">
++          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
+             <Search size={19} />
+-          </button>
+-          <HapticLink className="button button-ghost" href="#lien-he">
++          </HapticLink>
++          <HapticLink className="button button-ghost" href="/#lien-he">
+             Đăng nhập
+           </HapticLink>
+-          <HapticLink className="button button-primary" href="#bao-gia">
++          <HapticLink className="button button-primary" href="/#bao-gia">
+             Nhận báo giá
+           </HapticLink>
+         </div>
+ 
+         <div className="mobile-actions">
+-          <button className="icon-button" type="button" aria-label="Tìm kiếm">
++          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
+             <Search size={20} />
+-          </button>
++          </HapticLink>
+           <button
+             className="icon-button"
+             type="button"
+@@ -66,7 +66,7 @@ export function Header() {
+                   {item.label}
+                 </a>
+               ))}
+-              <HapticLink className="button button-primary mobile-quote" href="#bao-gia">
++              <HapticLink className="button button-primary mobile-quote" href="/#bao-gia">
+                 Nhận báo giá
+               </HapticLink>
+             </nav>
+diff --git a/components/mobile-bottom-nav.tsx b/components/mobile-bottom-nav.tsx
+index afff85a..c73fb4e 100644
+--- a/components/mobile-bottom-nav.tsx
++++ b/components/mobile-bottom-nav.tsx
+@@ -1,22 +1,26 @@
+ "use client";
+ 
+-import { Home, Newspaper, PackageSearch, UserRound } from "lucide-react";
++import { Home, MessageCircleMore, PackageSearch, UserRound } from "lucide-react";
++import { usePathname } from "next/navigation";
+ import { HapticLink } from "./haptic-link";
+ 
+ const items = [
+-  { label: "Trang chủ", href: "#trang-chu", icon: Home },
+-  { label: "Sản phẩm", href: "#san-pham", icon: PackageSearch },
+-  { label: "Tin tức", href: "#tin-tuc", icon: Newspaper },
+-  { label: "Tài khoản", href: "#lien-he", icon: UserRound },
++  { label: "Trang chủ", href: "/", icon: Home },
++  { label: "Sản phẩm", href: "/san-pham", icon: PackageSearch },
++  { label: "Báo giá", href: "/#bao-gia", icon: MessageCircleMore },
++  { label: "Liên hệ", href: "/#lien-he", icon: UserRound },
+ ];
+ 
+ export function MobileBottomNav() {
++  const pathname = usePathname();
++
+   return (
+     <nav className="mobile-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
+-      {items.map((item, index) => {
++      {items.map((item) => {
++        const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+         const Icon = item.icon;
+         return (
+-          <HapticLink className={index === 0 ? "active" : ""} href={item.href} key={item.label}>
++          <HapticLink className={active ? "active" : ""} href={item.href} key={item.label}>
+             <Icon size={20} />
+             <span>{item.label}</span>
+           </HapticLink>
+diff --git a/components/product-card.tsx b/components/product-card.tsx
+index b27dfa4..512b9c9 100644
+--- a/components/product-card.tsx
++++ b/components/product-card.tsx
+@@ -2,15 +2,10 @@
+ 
+ import { motion, useReducedMotion } from "framer-motion";
+ import Image from "next/image";
+-import { ArrowUpRight, Heart } from "lucide-react";
++import { ArrowUpRight, Heart, MapPin } from "lucide-react";
+ import { useState } from "react";
+-
+-export type ProductCardData = {
+-  name: string;
+-  englishName: string;
+-  category: string;
+-  image: string;
+-};
++import type { Product } from "@/data/products";
++import { HapticLink } from "./haptic-link";
+ 
+ function vibrate() {
+   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+@@ -18,37 +13,58 @@ function vibrate() {
+   }
+ }
+ 
+-export function ProductCard({ product }: { product: ProductCardData }) {
++export function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
+   const [saved, setSaved] = useState(false);
+   const reduceMotion = useReducedMotion();
+ 
++  function toggleSaved() {
++    const savedProducts = JSON.parse(localStorage.getItem("hungphat-saved-products") ?? "[]") as string[];
++    const nextSaved = savedProducts.includes(product.slug)
++      ? savedProducts.filter((slug) => slug !== product.slug)
++      : [...savedProducts, product.slug];
++
++    localStorage.setItem("hungphat-saved-products", JSON.stringify(nextSaved));
++    setSaved(nextSaved.includes(product.slug));
++    vibrate();
++  }
++
+   return (
+     <motion.article
+-      className="product-card"
++      className={`product-card${compact ? " product-card-compact" : ""}`}
+       whileHover={reduceMotion ? undefined : { y: -6 }}
+       whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+       transition={{ duration: 0.2 }}
+-      onPointerDown={vibrate}
+     >
+-      <div className="product-image-wrap">
+-        <Image src={product.image} alt={product.name} fill sizes="(max-width: 720px) 50vw, 25vw" />
++      <HapticLink className="product-image-wrap" href={`/san-pham/${product.slug}`}>
++        <Image
++          src={product.image}
++          alt={product.name}
++          fill
++          sizes="(max-width: 720px) 50vw, (max-width: 1080px) 33vw, 25vw"
++        />
+         <span className="product-tag">{product.category}</span>
+-        <button
+-          className={`save-button${saved ? " is-saved" : ""}`}
+-          type="button"
+-          aria-label={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+-          aria-pressed={saved}
+-          onClick={() => setSaved((value) => !value)}
+-        >
+-          <Heart size={18} fill={saved ? "currentColor" : "none"} />
+-        </button>
+-      </div>
++      </HapticLink>
++
++      <button
++        className={`save-button${saved ? " is-saved" : ""}`}
++        type="button"
++        aria-label={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
++        aria-pressed={saved}
++        onClick={toggleSaved}
++      >
++        <Heart size={18} fill={saved ? "currentColor" : "none"} />
++      </button>
++
+       <div className="product-card-body">
+-        <h3>{product.name}</h3>
+-        <p>{product.englishName}</p>
+-        <a href="#bao-gia" className="product-link">
++        <p className="product-origin"><MapPin size={13} /> {product.origin}</p>
++        <h3>
++          <HapticLink href={`/san-pham/${product.slug}`}>{product.name}</HapticLink>
++        </h3>
++        <p className="product-english-name">{product.englishName}</p>
++        {!compact ? <p className="product-summary">{product.shortDescription}</p> : null}
++        <HapticLink href={`/san-pham/${product.slug}`} className="product-link">
+           Xem chi tiết <ArrowUpRight size={16} />
+-        </a>
++        </HapticLink>
+       </div>
+     </motion.article>
+   );
+diff --git a/components/product-section.tsx b/components/product-section.tsx
+index fc7ff71..4499723 100644
+--- a/components/product-section.tsx
++++ b/components/product-section.tsx
+@@ -1,11 +1,10 @@
+ import { ArrowRight } from "lucide-react";
+-import { products } from "@/data/site";
++import { featuredProducts, productCategories } from "@/data/products";
+ import { HapticLink } from "./haptic-link";
+ import { ProductCard } from "./product-card";
++import { QuoteCta } from "./quote-cta";
+ import { Reveal } from "./reveal";
+ 
+-const filters = ["Tất cả", "Công nghiệp", "Thực phẩm", "Hóa chất", "Phụ gia"];
+-
+ export function ProductSection() {
+   return (
+     <section className="section product-section" id="san-pham">
+@@ -16,39 +15,31 @@ export function ProductSection() {
+               <p className="eyebrow">SẢN PHẨM NỔI BẬT</p>
+               <h2>Nguồn nguyên liệu cho nhiều lĩnh vực</h2>
+             </div>
+-            <HapticLink className="text-link desktop-only-link" href="#san-pham">
++            <HapticLink className="text-link desktop-only-link" href="/san-pham">
+               Xem tất cả <ArrowRight size={17} />
+             </HapticLink>
+           </div>
+         </Reveal>
+ 
+-        <div className="filter-row" aria-label="Bộ lọc sản phẩm">
+-          {filters.map((filter, index) => (
+-            <button className={index === 0 ? "filter-chip active" : "filter-chip"} type="button" key={filter}>
+-              {filter}
+-            </button>
++        <div className="filter-row" aria-label="Danh mục sản phẩm">
++          <HapticLink className="filter-chip active" href="/san-pham">Tất cả</HapticLink>
++          {productCategories.slice(0, 3).map((category) => (
++            <HapticLink className="filter-chip" href={`/san-pham?category=${category.slug}`} key={category.slug}>
++              {category.title}
++            </HapticLink>
+           ))}
+         </div>
+ 
+         <div className="product-grid">
+-          {products.map((product, index) => (
+-            <Reveal key={product.name} delay={index * 0.06}>
+-              <ProductCard product={product} />
++          {featuredProducts.map((product, index) => (
++            <Reveal key={product.slug} delay={index * 0.06}>
++              <ProductCard product={product} compact />
+             </Reveal>
+           ))}
+         </div>
+ 
+         <Reveal>
+-          <section className="quote-banner" id="bao-gia">
+-            <div>
+-              <p className="eyebrow light-eyebrow">HƯNG PHÁT ĐỒNG HÀNH CÙNG DOANH NGHIỆP</p>
+-              <h2>Anh đang cần nguồn nguyên liệu phù hợp?</h2>
+-              <p>Gửi nhu cầu, đội ngũ Hưng Phát sẽ liên hệ tư vấn và phản hồi báo giá nhanh chóng.</p>
+-            </div>
+-            <HapticLink className="button button-cream button-large" href="#lien-he">
+-              Gửi yêu cầu báo giá <ArrowRight size={18} />
+-            </HapticLink>
+-          </section>
++          <QuoteCta />
+         </Reveal>
+       </div>
+     </section>
+diff --git a/data/site.ts b/data/site.ts
+index d6b6b95..f2e17db 100644
+--- a/data/site.ts
++++ b/data/site.ts
+@@ -10,12 +10,12 @@ import {
+ } from "lucide-react";
+ 
+ export const navigation = [
+-  { label: "Trang chủ", href: "#trang-chu" },
+-  { label: "Giới thiệu", href: "#gioi-thieu" },
+-  { label: "Sản phẩm", href: "#san-pham" },
+-  { label: "Lĩnh vực", href: "#danh-muc" },
+-  { label: "Tin tức", href: "#tin-tuc" },
+-  { label: "Liên hệ", href: "#lien-he" },
++  { label: "Trang chủ", href: "/#trang-chu" },
++  { label: "Giới thiệu", href: "/#gioi-thieu" },
++  { label: "Sản phẩm", href: "/san-pham" },
++  { label: "Lĩnh vực", href: "/#danh-muc" },
++  { label: "Tin tức", href: "/#tin-tuc" },
++  { label: "Liên hệ", href: "/#lien-he" },
+ ];
+ 
+ export const stats = [
+@@ -50,6 +50,7 @@ export const trustItems = [
+ 
+ export const categories = [
+   {
++    slug: "nguyen-lieu-cong-nghiep",
+     title: "Nguyên liệu công nghiệp",
+     count: "120+ sản phẩm",
+     description: "Hạt nhựa, khoáng chất và nguyên liệu nền.",
+@@ -57,6 +58,7 @@ export const categories = [
+     icon: Factory,
+   },
+   {
++    slug: "hoa-chat-phu-gia",
+     title: "Hóa chất & phụ gia",
+     count: "80+ sản phẩm",
+     description: "Giải pháp hỗ trợ tối ưu quy trình sản xuất.",
+@@ -64,6 +66,7 @@ export const categories = [
+     icon: Beaker,
+   },
+   {
++    slug: "nguyen-lieu-thuc-pham",
+     title: "Nguyên liệu thực phẩm",
+     count: "150+ sản phẩm",
+     description: "Nguyên liệu được chọn theo nhu cầu ứng dụng.",
+@@ -71,6 +74,7 @@ export const categories = [
+     icon: Leaf,
+   },
+   {
++    slug: "vat-tu-bao-bi",
+     title: "Vật tư & bao bì",
+     count: "60+ sản phẩm",
+     description: "Giải pháp đóng gói và lưu thông hàng hóa.",
+@@ -78,30 +82,3 @@ export const categories = [
+     icon: Boxes,
+   },
+ ];
+-
+-export const products = [
+-  {
+-    name: "Hạt nhựa PP",
+-    englishName: "Polypropylene",
+-    category: "Nguyên liệu công nghiệp",
+-    image: "/images/product-pp.svg",
+-  },
+-  {
+-    name: "Bột đá CaCO₃",
+-    englishName: "Calcium Carbonate",
+-    category: "Khoáng chất",
+-    image: "/images/product-caco3.svg",
+-  },
+-  {
+-    name: "Đường tinh luyện",
+-    englishName: "Refined Sugar",
+-    category: "Nguyên liệu thực phẩm",
+-    image: "/images/product-sugar.svg",
+-  },
+-  {
+-    name: "Axit Citric",
+-    englishName: "Citric Acid",
+-    category: "Hóa chất & phụ gia",
+-    image: "/images/product-citric.svg",
+-  },
+-];
+diff --git a/package.json b/package.json
+index e811fb1..efa4b3b 100644
+--- a/package.json
++++ b/package.json
+@@ -3,9 +3,9 @@
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+-    "dev": "next dev",
++    "dev": "next dev -p 3100",
+     "build": "next build",
+-    "start": "next start",
++    "start": "next start -p 3100",
+     "lint": "eslint ."
+   },
+   "dependencies": {

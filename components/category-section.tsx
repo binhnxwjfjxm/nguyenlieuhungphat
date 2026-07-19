@@ -15,7 +15,7 @@ export function CategorySection() {
               <h2>Danh mục sản phẩm</h2>
               <p>Danh mục được tổ chức rõ ràng để khách hàng tìm đúng nguyên liệu nhanh hơn.</p>
             </div>
-            <HapticLink className="text-link desktop-only-link" href="#san-pham">
+            <HapticLink className="text-link desktop-only-link" href="/san-pham">
               Xem tất cả <ArrowUpRight size={17} />
             </HapticLink>
           </div>
@@ -26,7 +26,7 @@ export function CategorySection() {
             const Icon = category.icon;
             return (
               <Reveal key={category.title} delay={index * 0.05}>
-                <HapticLink className="category-card" href="#san-pham">
+                <HapticLink className="category-card" href={`/san-pham?category=${category.slug}`}>
                   <div className="category-image-wrap">
                     <Image src={category.image} alt="" fill sizes="(max-width: 720px) 78vw, 25vw" />
                   </div>
