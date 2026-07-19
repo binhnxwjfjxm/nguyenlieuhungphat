@@ -18,8 +18,8 @@
   --radius-md: 22px;
   --radius-lg: 34px;
   --container: 1240px;
-  --font-sans: "Segoe UI", Arial, Helvetica, sans-serif;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-be-vietnam-pro), "Segoe UI", Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-be-vietnam-pro), "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
 * {
@@ -29,15 +29,17 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 92px;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--text);
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
 }
 
 a {
@@ -52,6 +54,13 @@ a {
 
 button {
   color: inherit;
+  font: inherit;
+}
+
+input,
+textarea,
+select,
+option {
   font: inherit;
 }
 
@@ -286,7 +295,7 @@ img {
 .hero h1,
 .section-heading h2,
 .quote-banner h2 {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif);
 }
 
 .hero h1 {
@@ -405,7 +414,7 @@ img {
 }
 
 .hero-badge strong {
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif);
   font-size: 1.4rem;
 }
 
@@ -444,7 +453,7 @@ img {
 
 .stat-item strong {
   color: var(--brown-dark);
-  font-family: var(--font-serif), serif;
+  font-family: var(--font-serif);
   font-size: 1.42rem;
 }
 
@@ -570,7 +579,7 @@ img {
 
 .category-scroller {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 

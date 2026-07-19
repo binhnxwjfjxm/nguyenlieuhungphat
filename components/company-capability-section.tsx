@@ -1,4 +1,4 @@
-import { ArrowUpRight, Factory, Warehouse } from "lucide-react";
+import { ArrowUpRight, Building2, Route, Warehouse } from "lucide-react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { Reveal } from "./reveal";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
@@ -11,11 +11,11 @@ export function CompanyCapabilitySection() {
         <Reveal>
           <div className="section-heading split-heading">
             <div>
-              <p className="eyebrow">NĂNG LỰC DOANH NGHIỆP</p>
-              <h2>Kho vận, năng lực xử lý và hỗ trợ triển khai</h2>
+              <p className="eyebrow">NĂNG LỰC THƯƠNG MẠI VÀ PHÂN PHỐI</p>
+              <h2>Hỗ trợ nhập hàng, báo giá và giao nhận linh hoạt</h2>
               <p>
-                Hình ảnh kho hàng và năng lực vận hành giúp khách hàng nhìn rõ hơn về cách Hưng Phát tổ chức nguồn
-                hàng, chuẩn bị đơn và hỗ trợ báo giá nhanh.
+                Hưng Phát kết nối nguồn hàng, tổ chức danh mục và hỗ trợ giao nhận để phục vụ nhu cầu nhập hàng của cửa
+                hàng, đại lý và đối tác kinh doanh.
               </p>
             </div>
             <QuoteButton className="text-link desktop-only-link capability-quote-link" seed={{ source: "capability-section" }}>
@@ -31,7 +31,7 @@ export function CompanyCapabilitySection() {
                 <ResponsiveAssetPicture
                   className="capability-picture"
                   imgClassName="capability-picture-img"
-                  alt="Không gian năng lực vận hành của Hưng Phát"
+                  alt="Hình ảnh giới thiệu năng lực thương mại và phân phối của Hưng Phát"
                   desktopSrc={siteAssets.warehouse.capability}
                   desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
                   priority={false}
@@ -40,10 +40,13 @@ export function CompanyCapabilitySection() {
               </div>
               <div className="capability-copy">
                 <span className="capability-icon">
-                  <Factory size={18} />
+                  <Building2 size={18} />
                 </span>
-                <h3>Năng lực doanh nghiệp</h3>
-                <p>Giới thiệu tổng quan về năng lực nguồn hàng, tổ chức kho và phương án phục vụ khách hàng.</p>
+                <h3>Năng lực thương mại và phân phối</h3>
+                <p>
+                  Danh mục tập trung theo ngành hàng, hỗ trợ lựa chọn theo mô hình kinh doanh và phối hợp báo giá theo
+                  nhu cầu thực tế.
+                </p>
               </div>
             </article>
           </Reveal>
@@ -55,11 +58,15 @@ export function CompanyCapabilitySection() {
                   <ResponsiveAssetPicture
                     className="capability-picture"
                     imgClassName="capability-picture-img"
-                    alt="Kho hàng Hưng Phát với nguyên liệu sẵn sàng xuất"
+                    alt="Kho hàng và khu vực lưu trữ phục vụ giao nhận"
                     desktopSrc={siteAssets.warehouse.one}
                     desktopFallbackSrc={siteAssetFallbacks.warehouse.one}
                     imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
+                </div>
+                <div className="capability-mini-copy">
+                  <Warehouse size={17} />
+                  <span>Tiếp nhận số lượng và khu vực giao hàng</span>
                 </div>
               </article>
             </Reveal>
@@ -69,15 +76,15 @@ export function CompanyCapabilitySection() {
                   <ResponsiveAssetPicture
                     className="capability-picture"
                     imgClassName="capability-picture-img"
-                    alt="Hoạt động kho vận và sắp xếp hàng hóa của Hưng Phát"
+                    alt="Hình ảnh phối hợp đơn hàng và luồng giao nhận"
                     desktopSrc={siteAssets.warehouse.two}
                     desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
                     imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
                 </div>
                 <div className="capability-mini-copy">
-                  <Warehouse size={17} />
-                  <span>Kho vận và kiểm soát hàng hóa</span>
+                  <Route size={17} />
+                  <span>Phối hợp báo giá và giao nhận</span>
                 </div>
               </article>
             </Reveal>

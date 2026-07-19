@@ -61,6 +61,7 @@ export function ProductCatalog({
   }, [application, category, origin, products, query, sort]);
 
   const hasFilters = Boolean(query || category || origin || application || sort !== "featured");
+  const isEmptyCatalog = products.length === 0;
 
   function resetFilters() {
     setQuery("");
@@ -77,12 +78,14 @@ export function ProductCatalog({
           <Search size={19} />
           <input
             type="search"
-            placeholder="Tìm tên sản phẩm, ứng dụng..."
+            placeholder="Tìm ngành hàng, nhu cầu..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
           {query ? (
-            <button type="button" aria-label="Xóa từ khóa" onClick={() => setQuery("")}><X size={17} /></button>
+            <button type="button" aria-label="Xóa từ khóa" onClick={() => setQuery("")}>
+              <X size={17} />
+            </button>
           ) : null}
         </label>
         <button className="button button-ghost catalog-filter-toggle" type="button" onClick={() => setMobileFiltersOpen((value) => !value)}>
@@ -91,7 +94,9 @@ export function ProductCatalog({
       </div>
 
       <div className="catalog-category-row" aria-label="Lọc theo danh mục">
-        <button className={`filter-chip${category === "" ? " active" : ""}`} type="button" onClick={() => setCategory("")}>Tất cả</button>
+        <button className={`filter-chip${category === "" ? " active" : ""}`} type="button" onClick={() => setCategory("")}>
+          Tất cả
+        </button>
         {categories.map((item) => (
           <button
             className={`filter-chip${category === item.slug ? " active" : ""}`}
@@ -115,7 +120,11 @@ export function ProductCatalog({
             <span>Xuất xứ</span>
             <select value={origin} onChange={(event) => setOrigin(event.target.value)}>
               <option value="">Tất cả xuất xứ</option>
-              {origins.map((item) => <option value={item} key={item}>{item}</option>)}
+              {origins.map((item) => (
+                <option value={item} key={item}>
+                  {item}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -123,7 +132,11 @@ export function ProductCatalog({
             <span>Ứng dụng</span>
             <select value={application} onChange={(event) => setApplication(event.target.value)}>
               <option value="">Tất cả ứng dụng</option>
-              {applications.map((item) => <option value={item} key={item}>{item}</option>)}
+              {applications.map((item) => (
+                <option value={item} key={item}>
+                  {item}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -131,28 +144,40 @@ export function ProductCatalog({
             <span>Sắp xếp</span>
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
               <option value="featured">Nổi bật trước</option>
-              <option value="name-asc">Tên A–Z</option>
-              <option value="name-desc">Tên Z–A</option>
+              <option value="name-asc">Tên A-Z</option>
+              <option value="name-desc">Tên Z-A</option>
             </select>
           </label>
         </aside>
 
         <section className="catalog-results">
           <div className="catalog-result-header">
-            <p><strong>{filteredProducts.length}</strong> sản phẩm phù hợp</p>
+            <p>
+              <strong>{filteredProducts.length}</strong> sản phẩm phù hợp
+            </p>
             {hasFilters ? <button type="button" onClick={resetFilters}>Xóa bộ lọc</button> : null}
           </div>
 
-          {filteredProducts.length ? (
+          {isEmptyCatalog ? (
+            <div className="catalog-empty">
+              <Search size={34} />
+              <h2>Danh mục đang được cập nhật</h2>
+              <p>Vui lòng gửi nhu cầu để nhận tư vấn đúng ngành hàng và báo giá phù hợp.</p>
+            </div>
+          ) : filteredProducts.length ? (
             <div className="product-grid catalog-grid">
-              {filteredProducts.map((product) => <ProductCard product={product} key={product.slug} />)}
+              {filteredProducts.map((product) => (
+                <ProductCard product={product} key={product.slug} />
+              ))}
             </div>
           ) : (
             <div className="catalog-empty">
               <Search size={34} />
               <h2>Chưa tìm thấy sản phẩm phù hợp</h2>
               <p>Thử đổi từ khóa hoặc bỏ bớt điều kiện lọc.</p>
-              <button className="button button-primary" type="button" onClick={resetFilters}>Xem tất cả sản phẩm</button>
+              <button className="button button-primary" type="button" onClick={resetFilters}>
+                Xem tất cả sản phẩm
+              </button>
             </div>
           )}
         </section>

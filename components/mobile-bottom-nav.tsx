@@ -1,15 +1,15 @@
 "use client";
 
-import { Home, MessageCircleMore, PackageSearch, UserRound } from "lucide-react";
+import { Home, MessageCircleMore, PackageSearch, Tag } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HapticLink } from "./haptic-link";
 import { QuoteButton } from "./quote-trigger";
 
 const items = [
   { label: "Trang chủ", href: "/", icon: Home },
+  { label: "Ngành hàng", href: "/#danh-muc", icon: Tag },
   { label: "Sản phẩm", href: "/san-pham", icon: PackageSearch },
   { label: "Báo giá", href: "/#bao-gia", icon: MessageCircleMore },
-  { label: "Liên hệ", href: "/#lien-he", icon: UserRound },
 ];
 
 export function MobileBottomNav() {

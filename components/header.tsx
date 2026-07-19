@@ -25,16 +25,14 @@ export function Header() {
         </nav>
 
         <div className="desktop-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm ngành hàng">
             <Search size={19} />
           </HapticLink>
-          <QuoteButton className="button button-primary">
-            Nhận báo giá
-          </QuoteButton>
+          <QuoteButton className="button button-primary">Nhận báo giá</QuoteButton>
         </div>
 
         <div className="mobile-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm kiếm sản phẩm">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm ngành hàng">
             <Search size={20} />
           </HapticLink>
           <button
@@ -53,7 +51,7 @@ export function Header() {
         {open ? (
           <motion.div
             className="mobile-menu"
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 1, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}

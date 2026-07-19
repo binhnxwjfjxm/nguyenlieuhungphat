@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 export type FieldErrors<T extends string = string> = Partial<Record<T, string>>;
 
 export type QuoteRequestInput = {
@@ -54,7 +56,8 @@ function cleanupControlCharacters(value: string) {
 
 export function sanitizeText(value: unknown, maxLength = Number.POSITIVE_INFINITY) {
   const stringValue = typeof value === "string" ? value : value == null ? "" : String(value);
-  const collapsed = cleanupControlCharacters(stringValue).replace(/\s+/g, " ").trim();
+  const normalized = stringValue.normalize("NFC");
+  const collapsed = cleanupControlCharacters(normalized).replace(/\s+/g, " ").trim();
   return collapsed.slice(0, maxLength);
 }
 
@@ -63,13 +66,11 @@ export function normalizePhone(value: unknown) {
   if (!raw) return "";
 
   if (raw.startsWith("+84")) {
-    const rest = raw.slice(3);
-    return `0${rest}`;
+    return `0${raw.slice(3)}`;
   }
 
   if (raw.startsWith("84")) {
-    const rest = raw.slice(2);
-    return `0${rest}`;
+    return `0${raw.slice(2)}`;
   }
 
   return raw;
@@ -111,11 +112,7 @@ export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationR
     return { ok: false, code: "BOT_DETECTED", error: "Yêu cầu không hợp lệ." };
   }
 
-  if (data.name.length < 2) {
-    fieldErrors.name = "Họ tên phải từ 2 đến 80 ký tự.";
-  }
-
-  if (data.name.length > 80) {
+  if (data.name.length < 2 || data.name.length > 80) {
     fieldErrors.name = "Họ tên phải từ 2 đến 80 ký tự.";
   }
 
@@ -255,5 +252,4 @@ export function formatVietnamDateTime(now = new Date()) {
 export function makeFingerprint(parts: string[]) {
   return parts.map((part) => sanitizeText(part, 256).toLowerCase()).join("|");
 }
-import { randomBytes } from "node:crypto";
 

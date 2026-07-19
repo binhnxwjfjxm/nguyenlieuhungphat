@@ -12,6 +12,7 @@ import {
 } from "react";
 import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { DEFAULT_SITE_URL } from "@/lib/site";
 import { QuoteForm } from "./quote-form";
 
 type QuoteSeed = {
@@ -52,7 +53,7 @@ export function QuoteProvider({ children }: PropsWithChildren) {
       setSeed({
         source: nextSeed.source ?? "quote-form",
         pathname: nextSeed.pathname ?? pathname ?? "/",
-        website: nextSeed.website ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3100",
+        website: nextSeed.website ?? process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
         ...nextSeed,
       });
       setVersion((current) => current + 1);
@@ -69,14 +70,26 @@ export function QuoteProvider({ children }: PropsWithChildren) {
 
     document.body.style.overflow = "hidden";
     const previous = document.activeElement as HTMLElement | null;
-    const focusTarget = panelRef.current?.querySelector<HTMLElement>("input, textarea, button, select, [tabindex]:not([tabindex='-1'])");
+    const focusTarget = panelRef.current?.querySelector<HTMLElement>(
+      "input, textarea, button, select, [tabindex]:not([tabindex='-1'])",
+    );
     focusTarget?.focus();
 
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeQuote();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+
     return () => {
+      window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
       previous?.focus?.();
     };
-  }, [isOpen]);
+  }, [closeQuote, isOpen]);
 
   const contextValue = useMemo(
     () => ({
@@ -100,22 +113,6 @@ export function QuoteProvider({ children }: PropsWithChildren) {
             aria-modal="true"
             aria-label="Form báo giá"
             onMouseDown={(event) => event.stopPropagation()}
-            onKeyDown={(event) => {
-              if (event.key !== "Tab") return;
-              const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
-                "input, textarea, button, select, [tabindex]:not([tabindex='-1'])",
-              );
-              if (!focusable?.length) return;
-              const first = focusable[0];
-              const last = focusable[focusable.length - 1];
-              if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-              } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-              }
-            }}
           >
             <div className="quote-dialog-header">
               <div>
@@ -126,12 +123,7 @@ export function QuoteProvider({ children }: PropsWithChildren) {
                 <X size={20} />
               </button>
             </div>
-            <QuoteForm
-              key={version}
-              inline={false}
-              initialValues={seed}
-              onClose={closeQuote}
-            />
+            <QuoteForm key={version} inline={false} initialValues={seed} onClose={closeQuote} />
           </div>
         </div>
       ) : null}

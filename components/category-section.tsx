@@ -6,21 +6,17 @@ import { Reveal } from "./reveal";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 const categoryAssetBySlug = {
-  "nguyen-lieu-cong-nghiep": {
+  "nguyen-lieu-pha-che": {
     src: siteAssets.categories.industrial,
     fallback: siteAssetFallbacks.categories.industrial,
   },
-  "hoa-chat-phu-gia": {
+  "nguyen-lieu-mi-cay": {
     src: siteAssets.categories.chemical,
     fallback: siteAssetFallbacks.categories.chemical,
   },
-  "nguyen-lieu-thuc-pham": {
+  "hang-dong-lanh": {
     src: siteAssets.categories.food,
     fallback: siteAssetFallbacks.categories.food,
-  },
-  "vat-tu-bao-bi": {
-    src: siteAssets.categories.packaging,
-    fallback: siteAssetFallbacks.categories.packaging,
   },
 } as const;
 
@@ -32,8 +28,8 @@ export function CategorySection() {
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">DANH MỤC</p>
-              <h2>Danh mục sản phẩm</h2>
-              <p>Danh mục được tổ chức rõ ràng để khách hàng tìm đúng nguyên liệu nhanh hơn.</p>
+              <h2>Ba ngành hàng chính</h2>
+              <p>Danh mục được sắp xếp rõ ràng để khách hàng tìm đúng nhóm nhu cầu nhanh hơn.</p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/san-pham">
               Xem tất cả <ArrowUpRight size={17} />

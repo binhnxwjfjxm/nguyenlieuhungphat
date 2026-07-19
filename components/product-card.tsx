@@ -13,6 +13,7 @@ function vibrate() {
     navigator.vibrate(12);
   }
 }
+
 export function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
   const [saved, setSaved] = useState(false);
   const reduceMotion = useReducedMotion();

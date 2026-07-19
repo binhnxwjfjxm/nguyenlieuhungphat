@@ -17,41 +17,41 @@ export function Hero() {
       <div className="container hero-grid">
         <motion.div
           className="hero-copy"
-          initial={reduceMotion ? false : { opacity: 0, x: -24 }}
+          initial={reduceMotion ? false : { opacity: 1, x: -18 }}
           animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <p className="eyebrow">CÔNG TY TNHH TM NGUYÊN LIỆU HƯNG PHÁT</p>
           <h1>
-            Vững nền tảng
-            <span>Phát triển bền vững</span>
-            Thịnh vượng lâu dài
+            Nguồn hàng phù hợp
+            <span>Phân phối linh hoạt</span>
+            Đồng hành cùng kinh doanh
           </h1>
           <p className="hero-description">
-            Kết nối nguồn nguyên liệu chất lượng, tối ưu lưu thông hàng hóa và xây dựng nền tảng đồng bộ cho hoạt
-            động sản xuất của doanh nghiệp.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng,
+            đại lý và đối tác kinh doanh.
           </p>
           <div className="hero-actions">
-            <HapticLink className="button button-primary button-large" href="#san-pham">
-              Khám phá sản phẩm <ArrowRight size={18} />
+            <HapticLink className="button button-primary button-large" href="#danh-muc">
+              Xem ngành hàng <ArrowRight size={18} />
             </HapticLink>
             <HapticLink className="button button-secondary button-large" href="#bao-gia">
-              <MessageCircle size={18} /> Tư vấn miễn phí
+              <MessageCircle size={18} /> Nhận báo giá
             </HapticLink>
           </div>
         </motion.div>
 
         <motion.div
           className="hero-visual"
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+          initial={reduceMotion ? false : { opacity: 1, scale: 0.98 }}
           animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
-          transition={{ duration: 0.75, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.65, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="hero-orbit" />
           <ResponsiveAssetPicture
             className="hero-picture"
             imgClassName="hero-picture-img"
-            alt="Kho hàng và nguyên liệu Hưng Phát"
+            alt="Hình ảnh minh họa không gian trưng bày và kho hàng Hưng Phát"
             desktopSrc={siteAssets.hero.desktop}
             desktopFallbackSrc={siteAssetFallbacks.hero.desktop}
             mobileSrc={siteAssets.hero.mobile}

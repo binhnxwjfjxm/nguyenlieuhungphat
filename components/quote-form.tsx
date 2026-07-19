@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Check, LoaderCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useToast } from "./toast-provider";
+import { DEFAULT_SITE_URL } from "@/lib/site";
 import {
   type FieldErrors,
   type QuoteRequestInput,
@@ -32,7 +33,7 @@ const EMPTY_FORM: QuoteRequestInput = {
   note: "",
   source: "quote-form",
   pathname: "/",
-  website: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3100",
+  website: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
   honeypot: "",
 };
 
@@ -99,7 +100,7 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
     try {
       const response = await fetch("/api/telegram/quote", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json; charset=utf-8" },
         body: JSON.stringify(validated.data),
       });
       const payload = (await response.json()) as {
@@ -149,7 +150,9 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
           <Check size={18} />
           <div>
             <strong>Đã nhận yêu cầu</strong>
-            <p>Mã lead: <code>{leadId}</code></p>
+            <p>
+              Mã lead: <code>{leadId}</code>
+            </p>
           </div>
         </div>
       ) : null}
@@ -176,17 +179,17 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
           {errors.email ? <em>{errors.email}</em> : null}
         </label>
         <label className="field">
-          <span>Sản phẩm</span>
+          <span>Sản phẩm hoặc nhu cầu</span>
           <input value={form.product} onChange={(event) => updateField("product", event.target.value)} placeholder="Tên sản phẩm cần báo giá" />
           {errors.product ? <em>{errors.product}</em> : null}
         </label>
         <label className="field">
-          <span>Số lượng</span>
+          <span>Số lượng dự kiến</span>
           <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} placeholder="Ví dụ: 2 tấn" />
           {errors.quantity ? <em>{errors.quantity}</em> : null}
         </label>
         <label className="field">
-          <span>Khu vực</span>
+          <span>Khu vực giao hàng</span>
           <input value={form.area} onChange={(event) => updateField("area", event.target.value)} placeholder="TP.HCM, Bình Dương..." />
           {errors.area ? <em>{errors.area}</em> : null}
         </label>

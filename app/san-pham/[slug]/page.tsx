@@ -13,6 +13,7 @@ import { getProductBySlug, getRelatedProducts, products } from "@/data/products"
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
 }
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = getProductBySlug(slug);
@@ -26,8 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: "website",
       title: `${product.name} | Hưng Phát`,
       description: product.shortDescription,
-      url: `/san-pham/${product.slug}`,
-      images: [{ url: product.image, alt: product.name }],
+      url: getAbsoluteUrl(`/san-pham/${product.slug}`),
+      images: [{ url: getAbsoluteUrl(product.image), alt: product.name }],
     },
   };
 }
@@ -47,7 +48,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     description: product.shortDescription,
     category: product.category,
     brand: { "@type": "Brand", name: "Hưng Phát" },
-    manufacturer: { "@type": "Organization", name: "Công ty TNHH TM Nguyên Liệu Hưng Phát" },
   };
 
   return (
@@ -59,7 +59,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <nav className="breadcrumbs" aria-label="Đường dẫn">
             <Link href="/">Trang chủ</Link>
             <span>/</span>
-            <Link href="/san-pham">Sản phẩm</Link>
+            <Link href="/san-pham">Ngành hàng</Link>
             <span>/</span>
             <span>{product.name}</span>
           </nav>
@@ -131,7 +131,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </div>
               ))}
             </dl>
-            <small>Thông số cụ thể được xác nhận theo lô hàng và yêu cầu sử dụng.</small>
+            <small>Thông số cụ thể được xác nhận theo lô hàng và nhu cầu sử dụng.</small>
           </aside>
         </div>
       </section>
@@ -140,7 +140,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="container">
           <div className="section-heading">
             <p className="eyebrow">ỨNG DỤNG</p>
-            <h2>Phù hợp cho nhiều nhu cầu sản xuất</h2>
+            <h2>Phù hợp cho nhiều nhu cầu kinh doanh</h2>
           </div>
           <div className="application-list">
             {product.applications.map((application) => (
@@ -155,12 +155,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">BÁO GIÁ NHANH</p>
-              <h2>Điền sẵn thông tin sản phẩm này</h2>
+              <h2>Điền sẵn thông tin ngành hàng này</h2>
             </div>
-            <QuoteButton
-              className="button button-secondary"
-              seed={{ product: product.name, usage: product.name, source: "product-inline" }}
-            >
+            <QuoteButton className="button button-secondary" seed={{ product: product.name, usage: product.name, source: "product-inline" }}>
               Mở form báo giá
             </QuoteButton>
           </div>

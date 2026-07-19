@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSiteUrl } from "@/lib/site";
 import { checkQuoteRateLimit } from "@/lib/rate-limit";
+import { createLeadCode, formatVietnamDateTime, makeFingerprint, validateQuoteInput } from "@/lib/validation";
 import {
-  createLeadCode,
-  formatVietnamDateTime,
-  makeFingerprint,
-  validateQuoteInput,
-} from "@/lib/validation";
-import { escapeHtml, getTelegramTopics, sendTelegramMessage, TelegramConfigError } from "@/lib/telegram";
+  escapeHtml,
+  getTelegramDestinations,
+  normalizeTelegramText,
+  sendTelegramMessage,
+  TelegramConfigError,
+  TelegramRequestError,
+} from "@/lib/telegram";
 import type { FieldErrors } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -86,46 +88,62 @@ export async function POST(request: NextRequest) {
       return jsonError(429, rateLimit.code, rateLimit.error, rateLimit.retryAfter);
     }
 
-    const topics = getTelegramTopics();
-    const message = [
-      "<b>Báo giá website mới</b>",
-      `<b>Mã lead:</b> <code>${escapeHtml(leadId)}</code>`,
-      `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
-      "",
-      "<b>Khách hàng</b>",
-      `<b>Họ tên:</b> ${escapeHtml(data.name)}`,
-      `<b>Điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
-      data.email ? `<b>Email:</b> ${escapeHtml(data.email)}` : undefined,
-      data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
-      "",
-      "<b>Nhu cầu</b>",
-      data.product ? `<b>Sản phẩm:</b> ${escapeHtml(data.product)}` : undefined,
-      data.usage ? `<b>Nhu cầu:</b> ${escapeHtml(data.usage)}` : undefined,
-      data.quantity ? `<b>Số lượng:</b> ${escapeHtml(data.quantity)}` : undefined,
-      data.area ? `<b>Khu vực:</b> ${escapeHtml(data.area)}` : undefined,
-      data.note ? `<b>Ghi chú:</b> ${escapeHtml(data.note)}` : undefined,
-      "",
-      "<b>Thông tin kỹ thuật</b>",
-      `<b>Nguồn:</b> ${escapeHtml(data.source || "quote-form")}`,
-      `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
-      `<b>Website:</b> ${escapeHtml(website)}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const destinations = getTelegramDestinations();
+    const message = normalizeTelegramText(
+      [
+        "<b>BÁO GIÁ WEBSITE</b>",
+        `<b>Mã yêu cầu:</b> <code>${escapeHtml(leadId)}</code>`,
+        `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
+        "",
+        `<b>Họ và tên:</b> ${escapeHtml(data.name)}`,
+        `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
+        data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
+        data.email ? `<b>Email:</b> ${escapeHtml(data.email)}` : undefined,
+        `<b>Ngành hàng:</b> ${escapeHtml(data.usage || data.product || "Chưa xác định")}`,
+        data.product ? `<b>Sản phẩm hoặc nhu cầu:</b> ${escapeHtml(data.product)}` : undefined,
+        data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
+        data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
+        data.note ? `<b>Nội dung cần hỗ trợ:</b> ${escapeHtml(data.note)}` : undefined,
+        "",
+        `<b>Nguồn gửi:</b> ${escapeHtml(data.source || "quote-form")}`,
+        `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
+        `<b>Website:</b> ${escapeHtml(website)}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
 
     try {
-      await sendTelegramMessage({
+      const telegram = await sendTelegramMessage({
+        chatId: destinations.quoteChatId,
         text: message,
-        topicId: topics.quoteTopicId,
       });
+
+      return NextResponse.json(
+        {
+          ok: true,
+          leadId,
+          telegram: {
+            chatId: telegram.result?.chat?.id ?? destinations.quoteChatId,
+            messageId: telegram.result?.message_id ?? null,
+          },
+        },
+        { status: 200 },
+      );
     } catch (error) {
       if (error instanceof TelegramConfigError) {
         return jsonError(503, "MISSING_CONFIG", "Thiếu cấu hình Telegram.");
       }
+      if (error instanceof TelegramRequestError) {
+        return jsonError(
+          error.status === 429 ? 429 : 503,
+          error.status === 429 ? "TELEGRAM_RATE_LIMITED" : "TELEGRAM_UNAVAILABLE",
+          error.message,
+          error.retryAfter,
+        );
+      }
       return jsonError(503, "TELEGRAM_UNAVAILABLE", "Không thể gửi báo giá lúc này.");
     }
-
-    return NextResponse.json({ ok: true, leadId }, { status: 200 });
   } catch {
     return jsonError(500, "INTERNAL_ERROR", "Đã xảy ra lỗi không mong muốn.");
   }

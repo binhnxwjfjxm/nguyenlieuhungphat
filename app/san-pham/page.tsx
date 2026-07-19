@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
 import { ProductCatalog } from "@/components/product-catalog";
 import { QuoteCta } from "@/components/quote-cta";
-import {
-  productApplications,
-  productCategories,
-  productOrigins,
-  products,
-} from "@/data/products";
+import { productApplications, productCategories, productOrigins, products } from "@/data/products";
+import { getAbsoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Danh mục sản phẩm",
-  description: "Khám phá danh mục nguyên liệu công nghiệp, thực phẩm, hóa chất và phụ gia do Hưng Phát cung ứng.",
+  title: "Ngành hàng",
+  description:
+    "Khám phá các ngành hàng của Hưng Phát gồm nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.",
   alternates: { canonical: "/san-pham" },
   openGraph: {
-    title: "Danh mục sản phẩm Hưng Phát",
-    description: "Tìm kiếm và lọc nguồn nguyên liệu phù hợp với nhu cầu sản xuất.",
-    url: "/san-pham",
+    title: "Ngành hàng Hưng Phát",
+    description: "Tìm kiếm và lọc theo ngành hàng phù hợp với nhu cầu kinh doanh.",
+    url: getAbsoluteUrl("/san-pham"),
   },
 };
 
@@ -30,9 +27,12 @@ export default async function ProductsPage({
     <main className="catalog-page">
       <section className="catalog-hero">
         <div className="container catalog-hero-inner">
-          <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
-          <h1>Tìm đúng nguyên liệu cho nhu cầu sản xuất</h1>
-          <p>Tìm kiếm theo tên, nhóm sản phẩm, xuất xứ hoặc ứng dụng. Thông tin hiện tại là dữ liệu giới thiệu và sẽ được cập nhật theo nguồn hàng thực tế.</p>
+          <p className="eyebrow">NGÀNH HÀNG</p>
+          <h1>Tìm đúng ngành hàng cho nhu cầu kinh doanh</h1>
+          <p>
+            Tìm kiếm theo tên ngành hàng hoặc nhu cầu. Nếu danh mục chưa có dữ liệu thật phù hợp, vui lòng gửi yêu cầu để
+            được tư vấn trực tiếp.
+          </p>
         </div>
       </section>
 
