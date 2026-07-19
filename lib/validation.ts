@@ -186,12 +186,12 @@ export function validateChatInput(raw: Partial<ChatRequestInput>): ValidationRes
     return { ok: false, code: "BOT_DETECTED", error: "Yêu cầu không hợp lệ." };
   }
 
-  if (data.name.length < 2 || data.name.length > 80) {
+  if (data.name && (data.name.length < 2 || data.name.length > 80)) {
     fieldErrors.name = "Họ tên phải từ 2 đến 80 ký tự.";
   }
 
   data.phoneNormalized = normalizePhone(data.phone);
-  if (!isValidVietnamPhone(data.phoneNormalized)) {
+  if (data.phone && !isValidVietnamPhone(data.phoneNormalized)) {
     fieldErrors.phone = "Số điện thoại phải đúng định dạng Việt Nam.";
   }
 
@@ -211,8 +211,8 @@ export function validateChatInput(raw: Partial<ChatRequestInput>): ValidationRes
     fieldErrors.area = "Khu vực tối đa 80 ký tự.";
   }
 
-  if (data.transcript.length < 20) {
-    fieldErrors.transcript = "Transcript quá ngắn.";
+  if (data.transcript.length < 1) {
+    fieldErrors.transcript = "Nội dung trao đổi không được để trống.";
   }
 
   if (!data.sessionId) {
@@ -252,4 +252,3 @@ export function formatVietnamDateTime(now = new Date()) {
 export function makeFingerprint(parts: string[]) {
   return parts.map((part) => sanitizeText(part, 256).toLowerCase()).join("|");
 }
-

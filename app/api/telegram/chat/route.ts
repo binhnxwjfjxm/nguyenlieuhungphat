@@ -63,11 +63,12 @@ export async function POST(request: NextRequest) {
     const data = validated.data;
     const website = data.website || getSiteUrl();
     const sessionId = data.sessionId || createLeadCode("CHAT");
+    const rateLimitPhone = data.phoneNormalized || sessionId;
     const ip = getRequestIp(request);
     const fingerprint = makeFingerprint([
       sessionId,
       data.name,
-      data.phoneNormalized,
+      rateLimitPhone,
       data.company,
       data.product,
       data.quantity,
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     const rateLimit = checkChatRateLimit({
       ip,
-      phone: data.phoneNormalized,
+      phone: rateLimitPhone,
       fingerprint,
     });
 
@@ -91,20 +92,19 @@ export async function POST(request: NextRequest) {
     const destinations = getTelegramDestinations();
     const message = normalizeTelegramText(
       [
-        "<b>YÊU CẦU TƯ VẤN TỪ CHATBOT</b>",
+        "<b>YÊU CẦU TỪ CHATBOT</b>",
         `<b>Mã phiên:</b> <code>${escapeHtml(sessionId)}</code>`,
         `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
         "",
-        `<b>Họ và tên:</b> ${escapeHtml(data.name)}`,
-        `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
+        data.name ? `<b>Họ và tên:</b> ${escapeHtml(data.name)}` : undefined,
+        data.phoneNormalized ? `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}` : undefined,
         data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
-        `<b>Ngành hàng:</b> ${escapeHtml(data.product || "Chưa xác định")}`,
-        data.product ? `<b>Nhu cầu:</b> ${escapeHtml(data.product)}` : undefined,
+        data.product ? `<b>Ngành hàng:</b> ${escapeHtml(data.product)}` : undefined,
         data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
         data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
-        `<b>Yêu cầu gọi lại:</b> ${data.requestCallback ? "Có" : "Không"}`,
+        data.requestCallback ? `<b>Yêu cầu gọi lại:</b> Có` : undefined,
         "",
-        `<b>Nội dung trao đổi:</b>`,
+        "<b>Nội dung trao đổi:</b>",
         escapeHtml(data.transcript).replace(/\n/g, "<br>"),
         "",
         `<b>Website:</b> ${escapeHtml(website)}`,

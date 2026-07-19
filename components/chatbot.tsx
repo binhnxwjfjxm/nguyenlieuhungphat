@@ -1,17 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { MessageSquareMore, Minimize2, RefreshCcw, Search, Sparkles, X } from "lucide-react";
-import Link from "next/link";
+import { LoaderCircle, MessageSquareMore, Minimize2, RefreshCcw, SendHorizontal, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { categories } from "@/data/site";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { DEFAULT_SITE_URL } from "@/lib/site";
-import { normalizeSearchText } from "@/lib/search";
-import { createLeadCode, validateChatInput } from "@/lib/validation";
-import { QuoteButton } from "./quote-trigger";
-import { useQuote } from "./quote-provider";
+import { createLeadCode } from "@/lib/validation";
 import { useToast } from "./toast-provider";
 import chatbotAvatar from "../avatar-chat-bot.jpg";
 
@@ -21,57 +16,22 @@ type Message = {
   text: string;
 };
 
-type Mode = "home" | "search" | "quote" | "callback";
-
-type LeadDraft = {
-  product: string;
-  quantity: string;
-  area: string;
-  name: string;
-  phone: string;
-  company: string;
-  note: string;
-};
-
-type SessionState = {
+type ChatState = {
   sessionId: string;
-  mode: Mode;
-  minimized: boolean;
   open: boolean;
+  minimized: boolean;
   messages: Message[];
-  draft: LeadDraft;
-  searchQuery: string;
-  requestCallback: boolean;
-  sentSignature: string;
+  draft: string;
 };
 
 const STORAGE_KEY = "hungphat-chatbot-state";
 
-const DEFAULT_STATE: SessionState = {
+const DEFAULT_STATE: ChatState = {
   sessionId: "",
-  mode: "home",
-  minimized: false,
   open: false,
-  messages: [
-    {
-      id: 1,
-      role: "assistant",
-      text:
-        "Xin chào, tôi là trợ lý trực tuyến của Hưng Phát. Tôi có thể hỗ trợ tìm ngành hàng, tiếp nhận nhu cầu báo giá hoặc chuyển yêu cầu đến nhân viên phụ trách.",
-    },
-  ],
-  draft: {
-    product: "",
-    quantity: "",
-    area: "",
-    name: "",
-    phone: "",
-    company: "",
-    note: "",
-  },
-  searchQuery: "",
-  requestCallback: false,
-  sentSignature: "",
+  minimized: false,
+  messages: [],
+  draft: "",
 };
 
 function createSessionId() {
@@ -84,52 +44,37 @@ function vibrate() {
   }
 }
 
-function makeTranscript(messages: Message[], draft: LeadDraft, requestCallback: boolean) {
-  const conversation = messages
-    .map((message) => `${message.role === "assistant" ? "Trợ lý" : "Khách"}: ${message.text}`)
-    .join("\n");
-  const summary = [
-    `Ngành hàng / nhu cầu: ${draft.product || "Chưa xác định"}`,
-    `Số lượng dự kiến: ${draft.quantity || "Chưa xác định"}`,
-    `Khu vực giao hàng: ${draft.area || "Chưa xác định"}`,
-    `Họ và tên: ${draft.name || "Chưa xác định"}`,
-    `Số điện thoại: ${draft.phone || "Chưa xác định"}`,
-    draft.company ? `Công ty: ${draft.company}` : null,
-    draft.note ? `Nội dung trao đổi: ${draft.note}` : null,
-    `Yêu cầu gọi lại: ${requestCallback ? "Có" : "Không"}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  return `--- Hội thoại ---\n${conversation}\n\n--- Tóm tắt ---\n${summary}`.slice(0, 2800);
-}
-
-function parseStoredState(value: string | null): SessionState {
+function parseStoredState(value: string | null): ChatState {
   if (!value) return { ...DEFAULT_STATE, sessionId: createSessionId() };
   try {
-    const parsed = JSON.parse(value) as Partial<SessionState>;
+    const parsed = JSON.parse(value) as Partial<ChatState>;
     return {
       ...DEFAULT_STATE,
       ...parsed,
       sessionId: parsed.sessionId || createSessionId(),
-      messages: parsed.messages?.length ? parsed.messages : DEFAULT_STATE.messages,
-      draft: { ...DEFAULT_STATE.draft, ...(parsed.draft ?? {}) },
+      messages: [],
+      draft: parsed.draft ?? "",
     };
   } catch {
     return { ...DEFAULT_STATE, sessionId: createSessionId() };
   }
 }
 
+function buildTranscript(messages: Message[], nextText: string) {
+  return [...messages, { id: 0, role: "user" as const, text: nextText }]
+    .map((message) => `${message.role === "assistant" ? "Trợ lý" : "Khách"}: ${message.text}`)
+    .join("\n");
+}
+
 export function Chatbot() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const { openQuote } = useQuote();
   const toast = useToast();
-  const [state, setState] = useState<SessionState>(DEFAULT_STATE);
+  const [state, setState] = useState<ChatState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [busy, setBusy] = useState(false);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const nextMessageId = useRef(2);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
+  const nextMessageId = useRef(1);
 
   useEffect(() => {
     const stored = parseStoredState(sessionStorage.getItem(STORAGE_KEY));
@@ -147,180 +92,132 @@ export function Chatbot() {
   }, [hydrated, state]);
 
   useEffect(() => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [state.messages, state.mode]);
+    if (!messagesRef.current) return;
+    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  }, [state.messages, busy]);
 
-  const searchResults = useMemo(() => {
-    const query = normalizeSearchText(state.searchQuery);
-    if (!query) {
-      return categories;
-    }
-
-    return categories.filter((category) => {
-      const searchable = normalizeSearchText([category.title, category.description].join(" "));
-      return searchable.includes(query);
-    });
-  }, [state.searchQuery]);
-
-  function persist(next: Partial<SessionState>) {
-    setState((current) => ({ ...current, ...next }));
+  function updateDraft(value: string) {
+    setState((current) => ({ ...current, draft: value }));
   }
 
-  function addMessage(role: Message["role"], text: string) {
-    setState((current) => ({
-      ...current,
-      messages: [...current.messages, { id: nextMessageId.current++, role, text }],
-    }));
-  }
-
-  function openPanel(mode: Mode) {
+  function openChat() {
     vibrate();
     setState((current) => ({
       ...current,
       open: true,
       minimized: false,
-      mode,
     }));
-    if (mode === "home") {
-      addMessage("assistant", "Anh muốn tìm ngành hàng, lấy báo giá hay cần nhân viên gọi lại?");
-    }
   }
 
   function resetChat() {
-    const fresh: SessionState = {
+    const fresh: ChatState = {
       ...DEFAULT_STATE,
       open: true,
       sessionId: createSessionId(),
-      messages: [
-        {
-          id: 1,
-          role: "assistant",
-          text:
-            "Xin chào, tôi là trợ lý trực tuyến của Hưng Phát. Tôi có thể hỗ trợ tìm ngành hàng, tiếp nhận nhu cầu báo giá hoặc chuyển yêu cầu đến nhân viên phụ trách.",
-        },
-      ],
+      messages: [],
+      draft: "",
     };
-    nextMessageId.current = 2;
+    nextMessageId.current = 1;
     setState(fresh);
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
   }
 
-  function updateDraft<K extends keyof LeadDraft>(key: K, value: LeadDraft[K]) {
-    setState((current) => ({
-      ...current,
-      draft: { ...current.draft, [key]: value },
-    }));
-  }
+  async function sendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
 
-  function startSearch(query?: string) {
-    setState((current) => ({
-      ...current,
-      open: true,
-      minimized: false,
-      mode: "search",
-      searchQuery: query ?? current.searchQuery,
-    }));
-    addMessage("assistant", "Em đang lọc theo ngành hàng phù hợp cho anh.");
-  }
+    const text = state.draft.trim();
+    if (!text) return;
 
-  function startQuote() {
-    setState((current) => ({
-      ...current,
-      open: true,
-      minimized: false,
-      mode: "quote",
-      requestCallback: false,
-    }));
-    addMessage("assistant", "Anh điền nhanh nhu cầu, em sẽ mở form báo giá sẵn để gửi tiếp.");
-  }
-
-  function startCallback() {
-    setState((current) => ({
-      ...current,
-      open: true,
-      minimized: false,
-      mode: "callback",
-      requestCallback: true,
-    }));
-    addMessage("assistant", "Anh để lại thông tin, em sẽ chuyển yêu cầu cho nhân viên phụ trách.");
-  }
-
-  function addQuickReply(message: string) {
-    addMessage("user", message);
-  }
-
-  async function sendCallback() {
-    const draft = state.draft;
-    const transcript = makeTranscript(state.messages, draft, true);
-    const payload = {
-      sessionId: state.sessionId || createSessionId(),
-      name: draft.name,
-      phone: draft.phone,
-      company: draft.company,
-      product: draft.product,
-      quantity: draft.quantity,
-      area: draft.area,
-      transcript,
-      requestCallback: true,
-      source: "chatbot",
-      pathname,
-      website: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
-      honeypot: "",
+    const userMessage: Message = {
+      id: nextMessageId.current++,
+      role: "user",
+      text,
     };
 
-    const validated = validateChatInput(payload);
-    if (!validated.ok) {
-      toast.error(validated.error);
-      addMessage("assistant", "Thông tin còn thiếu hoặc chưa đúng. Anh kiểm tra lại giúp em.");
-      return;
-    }
+    const nextMessages = [...state.messages, userMessage];
+    const transcript = buildTranscript(state.messages, text);
 
-    const signature = `${validated.data.phoneNormalized}|${validated.data.transcript}`;
-    if (state.sentSignature === signature) {
-      toast.info("Transcript này đã được gửi rồi.");
-      return;
-    }
-
+    setState((current) => ({
+      ...current,
+      messages: nextMessages,
+      draft: "",
+      open: true,
+      minimized: false,
+    }));
     setBusy(true);
+
     try {
       const response = await fetch("/api/telegram/chat", {
         method: "POST",
         headers: { "content-type": "application/json; charset=utf-8" },
-        body: JSON.stringify(validated.data),
+        body: JSON.stringify({
+          sessionId: state.sessionId || createSessionId(),
+          name: "",
+          phone: "",
+          company: "",
+          product: "",
+          quantity: "",
+          area: "",
+          transcript,
+          requestCallback: false,
+          source: "chatbot",
+          pathname,
+          website: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
+          honeypot: "",
+        }),
       });
+
       const result = (await response.json()) as { ok: boolean; sessionId?: string; error?: string; retryAfter?: number };
       if (!response.ok || !result.ok) {
-        toast.error(
-          result.retryAfter ? `${result.error ?? "Không gửi được."} Thử lại sau ${result.retryAfter}s.` : result.error ?? "Không gửi được.",
-        );
+        const errorMessage = result.retryAfter
+          ? `${result.error ?? "Không gửi được."} Thử lại sau ${result.retryAfter}s.`
+          : result.error ?? "Không gửi được.";
+        toast.error(errorMessage);
+        setState((current) => ({
+          ...current,
+          messages: [
+            ...current.messages,
+            {
+              id: nextMessageId.current++,
+              role: "assistant",
+              text: "Chưa gửi được nội dung. Anh thử lại giúp em nhé.",
+            },
+          ],
+        }));
         return;
       }
 
-      const nextSessionId = result.sessionId ?? validated.data.sessionId;
-      persist({
+      const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
+      setState((current) => ({
+        ...current,
         sessionId: nextSessionId,
-        sentSignature: signature,
-        mode: "home",
-      });
-      addMessage("assistant", `Đã gửi cho nhân viên. Mã phiên ${nextSessionId}.`);
-      toast.success(`Đã chuyển yêu cầu. Mã phiên ${nextSessionId}.`);
+        messages: [
+          ...current.messages,
+          {
+            id: nextMessageId.current++,
+            role: "assistant",
+            text: "Đã gửi nội dung cho nhân viên phụ trách. Anh chờ em một chút nhé.",
+          },
+        ],
+      }));
+      toast.success("Đã chuyển nội dung cho nhân viên phụ trách.");
     } catch {
       toast.error("Lỗi mạng hoặc máy chủ bận.");
+      setState((current) => ({
+        ...current,
+        messages: [
+          ...current.messages,
+          {
+            id: nextMessageId.current++,
+            role: "assistant",
+            text: "Lỗi mạng hoặc máy chủ bận. Anh gửi lại giúp em nhé.",
+          },
+        ],
+      }));
     } finally {
       setBusy(false);
     }
-  }
-
-  function openQuoteFromChat(categoryTitle: string) {
-    openQuote({
-      product: categoryTitle,
-      usage: categoryTitle,
-      source: "chatbot",
-      pathname,
-    });
-    addQuickReply(`Mở form báo giá cho ${categoryTitle}`);
-    toast.success("Đã mở form báo giá.");
   }
 
   return (
@@ -336,9 +233,9 @@ export function Chatbot() {
             transition={{ duration: 0.22 }}
             type="button"
             aria-label="Mở Hưng Phát Assistant"
-            onClick={() => openPanel("home")}
+            onClick={openChat}
           >
-            <Sparkles size={18} />
+            <MessageSquareMore size={18} />
           </motion.button>
         ) : null}
       </AnimatePresence>
@@ -387,215 +284,54 @@ export function Chatbot() {
 
             {!state.minimized ? (
               <div className="chatbot-body">
-                <div className="chatbot-messages" ref={scrollRef}>
-                  {state.messages.map((message) => (
-                    <div className={`chatbot-message ${message.role}`} key={message.id}>
-                      <p>{message.text}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="chatbot-actions">
-                  <button
-                    className="chip-button"
-                    type="button"
-                    onClick={() => {
-                      addQuickReply("Tìm nguyên liệu pha chế");
-                      startSearch("Nguyên liệu pha chế");
-                    }}
-                  >
-                    Tìm nguyên liệu pha chế
-                  </button>
-                  <button
-                    className="chip-button"
-                    type="button"
-                    onClick={() => {
-                      addQuickReply("Tìm nguyên liệu mì cay");
-                      startSearch("Nguyên liệu mì cay");
-                    }}
-                  >
-                    Tìm nguyên liệu mì cay
-                  </button>
-                  <button
-                    className="chip-button"
-                    type="button"
-                    onClick={() => {
-                      addQuickReply("Tìm hàng đông lạnh");
-                      startSearch("Hàng đông lạnh");
-                    }}
-                  >
-                    Tìm hàng đông lạnh
-                  </button>
-                  <button
-                    className="chip-button"
-                    type="button"
-                    onClick={() => {
-                      addQuickReply("Nhận báo giá");
-                      startQuote();
-                    }}
-                  >
-                    Nhận báo giá
-                  </button>
-                  <button
-                    className="chip-button"
-                    type="button"
-                    onClick={() => {
-                      addQuickReply("Gặp nhân viên");
-                      startCallback();
-                    }}
-                  >
-                    Gặp nhân viên
-                  </button>
-                </div>
-
-                {state.mode === "search" ? (
-                  <section className="chatbot-panel-section">
-                    <label className="chatbot-search">
-                      <Search size={18} />
-                      <input
-                        value={state.searchQuery}
-                        onChange={(event) => {
-                          persist({ searchQuery: event.target.value });
-                        }}
-                        placeholder="Nhập ngành hàng hoặc nhu cầu..."
-                      />
-                    </label>
-
-                    {searchResults.length ? (
-                      <div className="chatbot-results">
-                        {searchResults.map((category) => (
-                          <article className="chatbot-result" key={category.slug}>
-                            <strong>{category.title}</strong>
-                            <p>{category.description}</p>
-                            <div className="chatbot-result-actions">
-                              <Link className="button button-ghost" href={`/san-pham?category=${category.slug}`}>
-                                Xem ngành hàng
-                              </Link>
-                              <QuoteButton
-                                className="button button-primary"
-                                seed={{ product: category.title, usage: category.title, source: "chatbot", pathname }}
-                              >
-                                Nhận báo giá
-                              </QuoteButton>
-                            </div>
-                          </article>
-                        ))}
+                <div className="chatbot-messages" ref={messagesRef}>
+                  {state.messages.length ? (
+                    state.messages.map((message) => (
+                      <div className={`chatbot-message ${message.role}`} key={message.id}>
+                        <p>{message.text}</p>
                       </div>
-                    ) : (
-                      <p className="chatbot-empty">Danh mục đang được cập nhật. Vui lòng gửi nhu cầu để nhận tư vấn.</p>
-                    )}
-                  </section>
-                ) : null}
-
-                {state.mode === "quote" || state.mode === "callback" ? (
-                  <section className="chatbot-panel-section chatbot-form-panel">
-                    <div className="form-grid chatbot-form-grid">
-                      <label className="field">
-                        <span>Nhu cầu / sản phẩm *</span>
-                        <input
-                          value={state.draft.product}
-                          onChange={(event) => updateDraft("product", event.target.value)}
-                          placeholder="Tên ngành hàng hoặc nhu cầu"
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Số lượng</span>
-                        <input
-                          value={state.draft.quantity}
-                          onChange={(event) => updateDraft("quantity", event.target.value)}
-                          placeholder="Ví dụ: 2 tấn"
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Khu vực</span>
-                        <input
-                          value={state.draft.area}
-                          onChange={(event) => updateDraft("area", event.target.value)}
-                          placeholder="TP.HCM..."
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Họ tên *</span>
-                        <input
-                          value={state.draft.name}
-                          onChange={(event) => updateDraft("name", event.target.value)}
-                          placeholder="Họ tên liên hệ"
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Số điện thoại *</span>
-                        <input
-                          value={state.draft.phone}
-                          onChange={(event) => updateDraft("phone", event.target.value)}
-                          placeholder="0912345678"
-                          inputMode="tel"
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Công ty</span>
-                        <input
-                          value={state.draft.company}
-                          onChange={(event) => updateDraft("company", event.target.value)}
-                          placeholder="Không bắt buộc"
-                        />
-                      </label>
-                      <label className="field field-wide">
-                        <span>Nội dung cần hỗ trợ</span>
-                        <textarea
-                          value={state.draft.note}
-                          onChange={(event) => updateDraft("note", event.target.value)}
-                          rows={3}
-                          placeholder="Mô tả thêm yêu cầu"
-                        />
-                      </label>
+                    ))
+                  ) : (
+                    <div className="chatbot-empty-state">
+                      <p>Gõ nội dung cần hỗ trợ bên dưới, em sẽ chuyển cho nhân viên phụ trách.</p>
                     </div>
-
-                    <div className="chatbot-summary">
-                      <strong>Xác nhận trước khi gửi</strong>
+                  )}
+                  {busy ? (
+                    <div className="chatbot-message assistant chatbot-message-loading" aria-live="polite">
                       <p>
-                        {state.draft.name || "Chưa có tên"} · {state.draft.phone || "Chưa có số"}
-                      </p>
-                      <p>
-                        {state.draft.product || "Chưa có nhu cầu"} · {state.draft.quantity || "Chưa có số lượng"} ·{" "}
-                        {state.draft.area || "Chưa có khu vực"}
+                        <span className="chatbot-typing" aria-hidden="true">
+                          <span />
+                          <span />
+                          <span />
+                        </span>
                       </p>
                     </div>
+                  ) : null}
+                </div>
 
-                    <div className="chatbot-result-actions">
-                      {state.mode === "quote" ? (
-                        <button
-                          className="button button-primary"
-                          type="button"
-                          onClick={() => {
-                            if (!state.draft.product) {
-                              toast.error("Anh nhập nhu cầu hoặc ngành hàng trước nhé.");
-                              return;
-                            }
-                            addQuickReply("Mở form báo giá đã điền sẵn");
-                            openQuoteFromChat(state.draft.product);
-                          }}
-                        >
-                          Mở form báo giá
-                        </button>
-                      ) : null}
-                      <button
-                        className="button button-secondary"
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          addQuickReply("Yêu cầu nhân viên gọi lại");
-                          sendCallback();
-                        }}
-                      >
-                        {busy ? "Đang gửi..." : "Yêu cầu nhân viên gọi lại"}
-                      </button>
-                    </div>
-                  </section>
-                ) : null}
+                <form className="chatbot-compose" onSubmit={sendMessage}>
+                  <label className="field chatbot-compose-field">
+                    <span>Nội dung chat</span>
+                    <textarea
+                      value={state.draft}
+                      onChange={(event) => updateDraft(event.target.value)}
+                      placeholder="Nhập nội dung cần hỗ trợ..."
+                      rows={3}
+                    />
+                  </label>
+
+                  <div className="chatbot-compose-actions">
+                    <small className="chatbot-compose-hint">Nhấn Enter để gửi, Shift+Enter để xuống dòng.</small>
+                    <button className="button button-primary" type="submit" disabled={busy || !state.draft.trim()}>
+                      {busy ? <LoaderCircle className="spinner" size={18} /> : <SendHorizontal size={18} />}
+                      {busy ? "Đang gửi..." : "Gửi"}
+                    </button>
+                  </div>
+                </form>
 
                 <div className="chatbot-footer-note">
                   <MessageSquareMore size={16} />
-                  <span>Em chỉ gửi khi anh xác nhận thông tin hoặc bấm gọi lại.</span>
+                  <span>Em chỉ chuyển nội dung anh nhập cho nhân viên phụ trách.</span>
                 </div>
               </div>
             ) : null}
