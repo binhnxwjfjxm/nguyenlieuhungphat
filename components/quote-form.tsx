@@ -54,6 +54,7 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [leadId, setLeadId] = useState("");
+  const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -90,12 +91,14 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
     const validated = validateQuoteInput(normalized);
     if (!validated.ok) {
       setErrors(validated.fieldErrors ?? {});
+      setStatus({ tone: "error", text: validated.error });
       toast.error(validated.error);
       return;
     }
 
     setIsSubmitting(true);
     setErrors({});
+    setStatus({ tone: "info", text: "Đang gửi báo giá..." });
 
     try {
       const response = await fetch("/api/telegram/quote", {
@@ -120,12 +123,14 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
           payload.code === "RATE_LIMITED" && payload.retryAfter
             ? `${payload.error ?? "Bị giới hạn gửi."} Thử lại sau ${payload.retryAfter}s.`
             : payload.error ?? "Không thể gửi báo giá.";
+        setStatus({ tone: "error", text: message });
         toast.error(message);
         return;
       }
 
       const nextLeadId = payload.leadId ?? "";
       setLeadId(nextLeadId);
+      setStatus({ tone: "success", text: `Báo giá đã gửi. Mã lead ${nextLeadId}.` });
       toast.success(`Báo giá đã gửi. Mã lead ${nextLeadId}.`);
       onSuccess?.(nextLeadId);
       setForm({
@@ -137,7 +142,9 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
         website: validated.data.website,
       });
     } catch {
-      toast.error("Lỗi mạng hoặc máy chủ bận. Vui lòng thử lại.");
+      const message = "Lỗi mạng hoặc máy chủ bận. Vui lòng thử lại.";
+      setStatus({ tone: "error", text: message });
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -145,6 +152,11 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
 
   return (
     <form className={`quote-form${inline ? " quote-form-inline" : ""}`} onSubmit={handleSubmit}>
+      {status ? (
+        <div className={`quote-form-status quote-form-status-${status.tone}`} aria-live="polite">
+          {status.text}
+        </div>
+      ) : null}
       {leadId ? (
         <div className="success-banner" aria-live="polite">
           <Check size={18} />

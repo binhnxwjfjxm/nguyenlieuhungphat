@@ -87,6 +87,15 @@
 
 .quote-dialog-close {
   flex: 0 0 auto;
+  border-color: rgba(107, 64, 39, 0.16);
+  background: rgba(255, 253, 248, 0.98);
+  color: var(--brown-dark);
+  box-shadow: 0 10px 20px rgba(58, 36, 24, 0.08);
+}
+
+.quote-dialog-close:hover {
+  border-color: rgba(107, 64, 39, 0.28);
+  background: #fff;
 }
 
 .quote-form {
@@ -166,6 +175,57 @@
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.quote-form-status {
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.quote-form-status-info {
+  border: 1px solid rgba(107, 64, 39, 0.16);
+  background: rgba(255, 248, 236, 0.88);
+  color: var(--brown-dark);
+}
+
+.quote-form-status-success {
+  border: 1px solid rgba(102, 122, 79, 0.22);
+  background: rgba(232, 237, 220, 0.78);
+  color: var(--green-dark);
+}
+
+.quote-form-status-error {
+  border: 1px solid rgba(160, 68, 43, 0.22);
+  background: rgba(245, 220, 213, 0.82);
+  color: #a0442b;
+}
+
+.chatbot-status {
+  margin: 0 14px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.chatbot-status-info {
+  border: 1px solid rgba(107, 64, 39, 0.16);
+  background: rgba(255, 248, 236, 0.9);
+  color: var(--brown-dark);
+}
+
+.chatbot-status-success {
+  border: 1px solid rgba(102, 122, 79, 0.22);
+  background: rgba(232, 237, 220, 0.8);
+  color: var(--green-dark);
+}
+
+.chatbot-status-error {
+  border: 1px solid rgba(160, 68, 43, 0.22);
+  background: rgba(245, 220, 213, 0.84);
+  color: #a0442b;
 }
 
 .success-banner {

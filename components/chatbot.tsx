@@ -73,6 +73,7 @@ export function Chatbot() {
   const [state, setState] = useState<ChatState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const nextMessageId = useRef(1);
 
@@ -160,6 +161,7 @@ export function Chatbot() {
       open: true,
       minimized: false,
     }));
+    setStatus({ tone: "info", text: "Đang gửi nội dung cho nhân viên phụ trách..." });
     setBusy(true);
 
     try {
@@ -188,6 +190,7 @@ export function Chatbot() {
         const errorMessage = result.retryAfter
           ? `${result.error ?? "Không gửi được."} Thử lại sau ${result.retryAfter}s.`
           : result.error ?? "Không gửi được.";
+        setStatus({ tone: "error", text: errorMessage });
         toast.error(errorMessage);
         setState((current) => ({
           ...current,
@@ -204,6 +207,7 @@ export function Chatbot() {
       }
 
       const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
+      setStatus({ tone: "success", text: "Đã chuyển nội dung cho nhân viên phụ trách." });
       setState((current) => ({
         ...current,
         sessionId: nextSessionId,
@@ -218,7 +222,9 @@ export function Chatbot() {
       }));
       toast.success("Đã chuyển nội dung cho nhân viên phụ trách.");
     } catch {
-      toast.error("Lỗi mạng hoặc máy chủ bận.");
+      const message = "Lỗi mạng hoặc máy chủ bận.";
+      setStatus({ tone: "error", text: message });
+      toast.error(message);
       setState((current) => ({
         ...current,
         messages: [
@@ -310,6 +316,11 @@ export function Chatbot() {
 
             {!state.minimized ? (
               <div className="chatbot-body">
+                {status ? (
+                  <div className={`chatbot-status chatbot-status-${status.tone}`} aria-live="polite">
+                    {status.text}
+                  </div>
+                ) : null}
                 <div className="chatbot-messages" ref={messagesRef}>
                   {state.messages.length ? (
                     state.messages.map((message) => (
