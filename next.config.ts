@@ -17,6 +17,7 @@ if (r2AssetUrl) {
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  serverExternalPackages: ["pg-cloudflare"],
   images: {
     remotePatterns: r2Hostname
       ? [
