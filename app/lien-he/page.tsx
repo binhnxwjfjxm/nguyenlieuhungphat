@@ -23,11 +23,8 @@ export default function LienHePage() {
       <section className="page-hero">
         <div className="container page-hero-inner">
           <p className="eyebrow">LIÊN HỆ</p>
-          <h1>Gửi nhu cầu để nhận tư vấn và báo giá phù hợp</h1>
-          <p>
-            Anh chỉ cần để lại ngành hàng, sản phẩm hoặc nhu cầu, số lượng dự kiến và khu vực giao hàng. Hưng Phát sẽ phản hồi theo cách
-            phù hợp với nhu cầu kinh doanh thực tế.
-          </p>
+          <h1 className="gradient-heading">Gửi nhu cầu để nhận tư vấn</h1>
+          <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng. Hưng Phát sẽ phản hồi sớm.</p>
         </div>
       </section>
 
@@ -35,7 +32,7 @@ export default function LienHePage() {
         <div className="container contact-grid">
           <div className="contact-card">
             <p className="eyebrow">THÔNG TIN LIÊN HỆ</p>
-            <h2>Công ty TNHH TM Nguyên Liệu Hưng Phát</h2>
+            <h2 className="gradient-heading">Công ty TNHH TM Nguyên Liệu Hưng Phát</h2>
             <a href="tel:0900123456">
               <Phone size={18} /> 0900 123 456
             </a>
@@ -49,7 +46,7 @@ export default function LienHePage() {
 
           <div className="contact-card contact-form-card">
             <p className="eyebrow">BÁO GIÁ</p>
-            <h2>Điền nhanh form để gửi yêu cầu</h2>
+            <h2 className="gradient-heading">Điền form để gửi yêu cầu</h2>
             <QuoteForm inline initialValues={{ source: "lien-he", pathname: "/lien-he" }} />
           </div>
         </div>

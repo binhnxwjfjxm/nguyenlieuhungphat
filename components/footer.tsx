@@ -36,8 +36,7 @@ export function Footer() {
         <div className="footer-brand-column">
           <Logo />
           <p>
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối
-            tác kinh doanh.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác.
           </p>
           <div className="social-row">
             <a href="#" aria-label="Facebook">
@@ -99,7 +98,7 @@ export function Footer() {
       </div>
       <div className="container footer-bottom">
         <span>© 2026 Hưng Phát. All rights reserved.</span>
-        <span>Nguồn hàng phù hợp · Phân phối linh hoạt</span>
+        <span>Nguồn hàng đúng nhu cầu · Phân phối linh hoạt</span>
       </div>
     </footer>
   );

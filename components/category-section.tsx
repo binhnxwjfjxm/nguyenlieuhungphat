@@ -28,8 +28,8 @@ export function CategorySection() {
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">DANH MỤC</p>
-              <h2>Ba ngành hàng chính</h2>
-              <p>Danh mục được sắp xếp rõ ràng để khách hàng tìm đúng nhóm nhu cầu nhanh hơn.</p>
+              <h2 className="gradient-heading">3 ngành hàng chính</h2>
+              <p>Danh mục được sắp xếp gọn để khách vào đúng nhóm nhanh hơn.</p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/nganh-hang">
               Xem tất cả <ArrowUpRight size={17} />

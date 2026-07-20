@@ -161,8 +161,8 @@ export function ProductCatalog({
           {isEmptyCatalog ? (
             <div className="catalog-empty">
               <Search size={34} />
-              <h2>Danh mục đang được cập nhật</h2>
-              <p>Vui lòng gửi nhu cầu để nhận tư vấn đúng ngành hàng và báo giá phù hợp.</p>
+              <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
+              <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
             </div>
           ) : filteredProducts.length ? (
             <div className="product-grid catalog-grid">
@@ -173,8 +173,8 @@ export function ProductCatalog({
           ) : (
             <div className="catalog-empty">
               <Search size={34} />
-              <h2>Chưa tìm thấy sản phẩm phù hợp</h2>
-              <p>Thử đổi từ khóa hoặc bỏ bớt điều kiện lọc.</p>
+              <h2 className="gradient-heading">Chưa tìm thấy sản phẩm phù hợp</h2>
+              <p>Thử đổi từ khóa hoặc bỏ bớt bộ lọc.</p>
               <button className="button button-primary" type="button" onClick={resetFilters}>
                 Xem tất cả sản phẩm
               </button>

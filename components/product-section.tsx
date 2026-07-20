@@ -15,7 +15,7 @@ export function ProductSection() {
           <div className="section-heading split-heading product-heading">
             <div>
               <p className="eyebrow">SẢN PHẨM NỔI BẬT</p>
-              <h2>Danh mục đang được cập nhật theo nhu cầu thực tế</h2>
+              <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/san-pham">
               Xem tất cả <ArrowRight size={17} />
@@ -45,8 +45,8 @@ export function ProductSection() {
         ) : (
           <div className="catalog-empty product-empty-state">
             <Search size={34} />
-            <h2>Danh mục đang được cập nhật</h2>
-            <p>Vui lòng gửi nhu cầu để nhận tư vấn đúng ngành hàng và báo giá phù hợp.</p>
+            <h2 className="gradient-heading">Danh mục đang được cập nhật</h2>
+            <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng và báo giá phù hợp.</p>
           </div>
         )}
 

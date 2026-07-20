@@ -20,17 +20,16 @@ export function QuoteCta({ productName }: { productName?: string }) {
         />
       </div>
       <div className="quote-banner-copy">
-        <p className="eyebrow light-eyebrow">HƯNG PHÁT ĐỒNG HÀNH CÙNG DOANH NGHIỆP</p>
-        <h2>{productName ? `Cần báo giá ${productName}?` : "Cần nguồn hàng cho cửa hàng hoặc đại lý?"}</h2>
+        <p className="eyebrow light-eyebrow">BÁO GIÁ NHANH</p>
+        <h2 className="gradient-heading">{productName ? `Báo giá ${productName}?` : "Cần nguồn hàng?"}</h2>
         <p>
-          Gửi ngành hàng, sản phẩm cần tìm, số lượng dự kiến và khu vực giao hàng. Hưng Phát sẽ tiếp nhận và phản hồi báo
-          giá phù hợp.
+          Gửi ngành hàng, sản phẩm, số lượng dự kiến và khu vực giao hàng. Hưng Phát sẽ phản hồi sớm.
         </p>
       </div>
       <div className="quote-actions">
         <QuoteButton
           className="button button-cream button-large"
-          seed={{ product: productName ?? "", usage: productName ?? "", source: "quote-banner" }}
+          seed={{ product: productName ?? "", source: "quote-banner" }}
         >
           Nhận báo giá <ArrowRight size={18} />
         </QuoteButton>

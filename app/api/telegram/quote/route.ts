@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSiteUrl } from "@/lib/site";
 import { checkQuoteRateLimit } from "@/lib/rate-limit";
-import { createLeadCode, formatVietnamDateTime, makeFingerprint, validateQuoteInput } from "@/lib/validation";
+import {
+  createLeadCode,
+  formatVietnamDateTime,
+  makeFingerprint,
+  quoteDeliveryAreaOptions,
+  quoteNeedOptions,
+  validateQuoteInput,
+} from "@/lib/validation";
 import {
   escapeHtml,
   getTelegramDestinations,
@@ -16,6 +23,10 @@ import type { FieldErrors } from "@/lib/validation";
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 16 * 1024;
+
+function getOptionLabel(options: readonly { value: string; label: string }[], value: string) {
+  return options.find((option) => option.value === value)?.label ?? value;
+}
 
 function getRequestIp(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -62,6 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     const data = validated.data;
+    const usageLabel = getOptionLabel(quoteNeedOptions, data.usage);
+    const areaLabel = getOptionLabel(quoteDeliveryAreaOptions, data.area);
     const website = data.website || getSiteUrl();
     const leadId = createLeadCode("HP");
     const ip = getRequestIp(request);
@@ -101,10 +114,10 @@ export async function POST(request: NextRequest) {
           `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
           data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
           data.email ? `<b>Email:</b> ${escapeHtml(data.email)}` : undefined,
-          `<b>Ngành hàng:</b> ${escapeHtml(data.usage || data.product || "Chưa xác định")}`,
-          data.product ? `<b>Sản phẩm hoặc nhu cầu:</b> ${escapeHtml(data.product)}` : undefined,
+          `<b>Nhu cầu chính:</b> ${escapeHtml(usageLabel)}`,
+          data.product ? `<b>Sản phẩm cần tìm / nhu cầu cụ thể:</b> ${escapeHtml(data.product)}` : undefined,
           data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
-          data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
+          `<b>Khu vực giao hàng:</b> ${escapeHtml(areaLabel)}`,
           data.note ? `<b>Nội dung cần hỗ trợ:</b> ${escapeHtml(data.note)}` : undefined,
           "",
           `<b>Nguồn gửi:</b> ${escapeHtml(data.source || "quote-form")}`,
@@ -130,8 +143,8 @@ export async function POST(request: NextRequest) {
           email: data.email,
           product: data.product,
           quantity: data.quantity,
-          area: data.area,
-          usage: data.usage,
+          area: areaLabel,
+          usage: usageLabel,
           note: data.note,
           source: data.source || "quote-form",
           pathname: data.pathname || "/",

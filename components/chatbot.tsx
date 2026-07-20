@@ -161,11 +161,11 @@ export function Chatbot() {
       open: true,
       minimized: false,
     }));
-    setStatus({ tone: "info", text: "Đang gửi nội dung cho nhân viên phụ trách..." });
+    setStatus({ tone: "info", text: "Đang gửi..." });
     setBusy(true);
 
     try {
-      const response = await fetch("/api/telegram/chat", {
+      const response = await fetch("/api/supabase/chat", {
         method: "POST",
         headers: { "content-type": "application/json; charset=utf-8" },
         body: JSON.stringify({
@@ -176,6 +176,7 @@ export function Chatbot() {
           product: "",
           quantity: "",
           area: "",
+          message: text,
           transcript,
           requestCallback: false,
           source: "chatbot",
@@ -185,7 +186,15 @@ export function Chatbot() {
         }),
       });
 
-      const result = (await response.json()) as { ok: boolean; sessionId?: string; error?: string; retryAfter?: number };
+      const result = (await response.json()) as {
+        ok: boolean;
+        sessionId?: string;
+        replyText?: string;
+        error?: string;
+        retryAfter?: number;
+        phoneConfirmed?: boolean;
+        leadNotified?: boolean;
+      };
       if (!response.ok || !result.ok) {
         const errorMessage = result.retryAfter
           ? `${result.error ?? "Không gửi được."} Thử lại sau ${result.retryAfter}s.`
@@ -199,7 +208,7 @@ export function Chatbot() {
             {
               id: nextMessageId.current++,
               role: "assistant",
-              text: "Chưa gửi được nội dung. Anh thử lại giúp em nhé.",
+              text: "Chưa gửi được. Anh thử lại giúp em.",
             },
           ],
         }));
@@ -207,7 +216,13 @@ export function Chatbot() {
       }
 
       const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
-      setStatus({ tone: "success", text: "Đã chuyển nội dung cho nhân viên phụ trách." });
+      const replyText = result.replyText?.trim() || "Đã nhận nội dung. Em sẽ phản hồi sớm.";
+      const leadStatus = result.phoneConfirmed
+        ? result.leadNotified
+          ? "Đã nhận số điện thoại. Em đã chuyển tiếp."
+          : "Đã nhận số điện thoại."
+        : "Đã nhận nội dung. Em sẽ phản hồi sớm.";
+      setStatus({ tone: "success", text: leadStatus });
       setState((current) => ({
         ...current,
         sessionId: nextSessionId,
@@ -216,11 +231,11 @@ export function Chatbot() {
           {
             id: nextMessageId.current++,
             role: "assistant",
-            text: "Đã gửi nội dung cho nhân viên phụ trách. Anh chờ em một chút nhé.",
+            text: replyText,
           },
         ],
       }));
-      toast.success("Đã chuyển nội dung cho nhân viên phụ trách.");
+      toast.success(leadStatus);
     } catch {
       const message = "Lỗi mạng hoặc máy chủ bận.";
       setStatus({ tone: "error", text: message });
@@ -232,7 +247,7 @@ export function Chatbot() {
           {
             id: nextMessageId.current++,
             role: "assistant",
-            text: "Lỗi mạng hoặc máy chủ bận. Anh gửi lại giúp em nhé.",
+            text: "Lỗi mạng hoặc máy chủ bận. Anh thử lại giúp em.",
           },
         ],
       }));

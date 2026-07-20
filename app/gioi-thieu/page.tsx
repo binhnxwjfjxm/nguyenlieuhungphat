@@ -24,11 +24,8 @@ export default function GioiThieuPage() {
       <section className="page-hero">
         <div className="container page-hero-inner">
           <p className="eyebrow">GIỚI THIỆU</p>
-          <h1>Công ty thương mại và phân phối cho nhu cầu kinh doanh thực tế</h1>
-          <p>
-            Hưng Phát tập trung vào ba ngành hàng chính: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh. Trang này giới thiệu
-            ngắn gọn về định hướng, cách phục vụ và cách chúng tôi hỗ trợ khách hàng doanh nghiệp.
-          </p>
+          <h1 className="gradient-heading">Thương mại &amp; phân phối cho doanh nghiệp</h1>
+          <p>Hưng Phát tập trung vào ba ngành hàng chính: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.</p>
           <div className="page-hero-points">
             <span>
               <Building2 size={18} /> Thương mại và phân phối

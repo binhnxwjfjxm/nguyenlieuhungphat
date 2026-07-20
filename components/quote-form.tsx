@@ -7,6 +7,8 @@ import { useToast } from "./toast-provider";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import {
   type FieldErrors,
+  quoteDeliveryAreaOptions,
+  quoteNeedOptions,
   type QuoteRequestInput,
   sanitizeText,
   validateQuoteInput,
@@ -45,11 +47,11 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
   const pathname = usePathname();
   const toast = useToast();
   const [form, setForm] = useState<FormState>(() => ({
-    ...EMPTY_FORM,
-    pathname,
-    ...initialValues,
-    source: initialValues?.source ?? "quote-form",
-    website: initialValues?.website ?? EMPTY_FORM.website,
+        ...EMPTY_FORM,
+        pathname,
+        ...initialValues,
+        source: initialValues?.source ?? "quote-form",
+        website: initialValues?.website ?? EMPTY_FORM.website,
   }));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,7 +100,7 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
 
     setIsSubmitting(true);
     setErrors({});
-    setStatus({ tone: "info", text: "Đang gửi báo giá..." });
+    setStatus({ tone: "info", text: "Đang gửi..." });
 
     try {
       const response = await fetch("/api/telegram/quote", {
@@ -135,14 +137,14 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
       onSuccess?.(nextLeadId);
       setForm({
         ...EMPTY_FORM,
-        product: validated.data.product,
         usage: validated.data.usage,
+        area: validated.data.area,
         source: validated.data.source,
         pathname: validated.data.pathname,
         website: validated.data.website,
       });
     } catch {
-      const message = "Lỗi mạng hoặc máy chủ bận. Vui lòng thử lại.";
+      const message = "Lỗi mạng hoặc máy chủ bận. Anh thử lại giúp em.";
       setStatus({ tone: "error", text: message });
       toast.error(message);
     } finally {
@@ -172,43 +174,62 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
       <div className="form-grid">
         <label className="field">
           <span>Họ tên *</span>
-          <input value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Nguyễn Văn A" />
+          <input autoComplete="name" required value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Nguyễn Văn A" />
           {errors.name ? <em>{errors.name}</em> : null}
         </label>
         <label className="field">
           <span>Số điện thoại *</span>
-          <input value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="0912345678" inputMode="tel" />
+          <input autoComplete="tel" inputMode="tel" required value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="0912345678" />
           {errors.phone ? <em>{errors.phone}</em> : null}
         </label>
         <label className="field field-wide">
-          <span>Công ty</span>
-          <input value={form.company} onChange={(event) => updateField("company", event.target.value)} placeholder="Tên công ty" />
+          <span>Công ty / cửa hàng</span>
+          <input autoComplete="organization" value={form.company} onChange={(event) => updateField("company", event.target.value)} placeholder="Tên công ty hoặc cửa hàng" />
           {errors.company ? <em>{errors.company}</em> : null}
         </label>
         <label className="field">
           <span>Email</span>
-          <input value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="email@congty.com" type="email" />
+          <input autoComplete="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="email@congty.com" type="email" />
           {errors.email ? <em>{errors.email}</em> : null}
         </label>
         <label className="field">
-          <span>Sản phẩm hoặc nhu cầu</span>
-          <input value={form.product} onChange={(event) => updateField("product", event.target.value)} placeholder="Tên sản phẩm cần báo giá" />
+          <span>Nhu cầu chính *</span>
+          <select required value={form.usage} onChange={(event) => updateField("usage", event.target.value)}>
+            <option value="">Chọn nhu cầu</option>
+            {quoteNeedOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {errors.usage ? <em>{errors.usage}</em> : null}
+        </label>
+        <label className="field field-wide">
+          <span>Sản phẩm cần tìm / nhu cầu cụ thể</span>
+          <textarea
+            value={form.product}
+            onChange={(event) => updateField("product", event.target.value)}
+            placeholder="Ví dụ: trân châu, syrup, gói sốt mì cay, bao bì, hàng đông lạnh... hoặc mô tả nhu cầu cụ thể"
+            rows={inline ? 4 : 5}
+          />
           {errors.product ? <em>{errors.product}</em> : null}
         </label>
         <label className="field">
           <span>Số lượng dự kiến</span>
-          <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} placeholder="Ví dụ: 2 tấn" />
+          <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} placeholder="Ví dụ: 2 thùng, 50kg, 1 pallet..." />
           {errors.quantity ? <em>{errors.quantity}</em> : null}
         </label>
         <label className="field">
-          <span>Khu vực giao hàng</span>
-          <input value={form.area} onChange={(event) => updateField("area", event.target.value)} placeholder="TP.HCM, Bình Dương..." />
+          <span>Khu vực giao hàng *</span>
+          <select required value={form.area} onChange={(event) => updateField("area", event.target.value)}>
+            <option value="">Chọn khu vực</option>
+            {quoteDeliveryAreaOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           {errors.area ? <em>{errors.area}</em> : null}
-        </label>
-        <label className="field">
-          <span>Nhu cầu</span>
-          <input value={form.usage} onChange={(event) => updateField("usage", event.target.value)} placeholder="Ứng dụng hoặc yêu cầu cụ thể" />
-          {errors.usage ? <em>{errors.usage}</em> : null}
         </label>
         <label className="field field-wide">
           <span>Ghi chú</span>

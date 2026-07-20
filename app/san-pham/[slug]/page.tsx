@@ -70,7 +70,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
             <div className="product-detail-copy">
               <p className="eyebrow">{product.category}</p>
-              <h1>{product.name}</h1>
+              <h1 className="gradient-heading">{product.name}</h1>
               <p className="product-detail-english">{product.englishName}</p>
               <p className="product-detail-lead">{product.shortDescription}</p>
 
@@ -92,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div className="product-detail-actions">
                 <QuoteButton
                   className="button button-primary button-large"
-                  seed={{ product: product.name, usage: product.name, source: "product-detail", pathname: `/san-pham/${product.slug}` }}
+                  seed={{ product: product.name, source: "product-detail", pathname: `/san-pham/${product.slug}` }}
                 >
                   Nhận báo giá
                 </QuoteButton>
@@ -109,7 +109,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="container product-info-grid">
           <article className="product-copy-card">
             <p className="eyebrow">THÔNG TIN SẢN PHẨM</p>
-            <h2>Đặc điểm và khả năng ứng dụng</h2>
+            <h2 className="gradient-heading">Đặc điểm &amp; ứng dụng</h2>
             <p>{product.description}</p>
             <div className="feature-grid">
               {product.features.map((feature) => (
@@ -122,7 +122,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </article>
 
           <aside className="specification-card">
-            <h2>Thông số tham khảo</h2>
+            <h2 className="gradient-heading">Thông số tham khảo</h2>
             <dl>
               {product.specifications.map((specification) => (
                 <div key={specification.label}>
@@ -140,7 +140,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="container">
           <div className="section-heading">
             <p className="eyebrow">ỨNG DỤNG</p>
-            <h2>Phù hợp cho nhiều nhu cầu kinh doanh</h2>
+            <h2 className="gradient-heading">Phù hợp nhiều nhu cầu</h2>
           </div>
           <div className="application-list">
             {product.applications.map((application) => (
@@ -155,9 +155,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">BÁO GIÁ NHANH</p>
-              <h2>Điền sẵn thông tin ngành hàng này</h2>
+              <h2 className="gradient-heading">Điền sẵn thông tin</h2>
             </div>
-            <QuoteButton className="button button-secondary" seed={{ product: product.name, usage: product.name, source: "product-inline" }}>
+            <QuoteButton className="button button-secondary" seed={{ product: product.name, source: "product-inline" }}>
               Mở form báo giá
             </QuoteButton>
           </div>
@@ -166,7 +166,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             inline
             initialValues={{
               product: product.name,
-              usage: product.name,
               source: "product-inline",
               pathname: `/san-pham/${product.slug}`,
             }}
@@ -180,7 +179,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="section-heading split-heading">
               <div>
                 <p className="eyebrow">GỢI Ý THÊM</p>
-                <h2>Sản phẩm cùng nhóm</h2>
+                <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
               </div>
               <Link className="text-link" href="/san-pham">
                 <ArrowLeft size={17} /> Xem toàn bộ

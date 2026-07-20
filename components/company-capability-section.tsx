@@ -11,11 +11,10 @@ export function CompanyCapabilitySection() {
         <Reveal>
           <div className="section-heading split-heading">
             <div>
-              <p className="eyebrow">NĂNG LỰC THƯƠNG MẠI VÀ PHÂN PHỐI</p>
-              <h2>Hỗ trợ nhập hàng, báo giá và giao nhận linh hoạt</h2>
+              <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
+              <h2 className="gradient-heading">Hỗ trợ nhập hàng và giao nhận</h2>
               <p>
-                Hưng Phát kết nối nguồn hàng, tổ chức danh mục và hỗ trợ giao nhận để phục vụ nhu cầu nhập hàng của cửa
-                hàng, đại lý và đối tác kinh doanh.
+                Hưng Phát kết nối nguồn hàng, tổ chức danh mục và hỗ trợ giao nhận cho cửa hàng, đại lý và đối tác.
               </p>
             </div>
             <QuoteButton className="text-link desktop-only-link capability-quote-link" seed={{ source: "capability-section" }}>
@@ -42,10 +41,9 @@ export function CompanyCapabilitySection() {
                 <span className="capability-icon">
                   <Building2 size={18} />
                 </span>
-                <h3>Năng lực thương mại và phân phối</h3>
+                <h3>Thương mại & phân phối</h3>
                 <p>
-                  Danh mục tập trung theo ngành hàng, hỗ trợ lựa chọn theo mô hình kinh doanh và phối hợp báo giá theo
-                  nhu cầu thực tế.
+                  Danh mục theo ngành hàng, hỗ trợ chọn đúng nhóm và phối hợp báo giá theo nhu cầu thực tế.
                 </p>
               </div>
             </article>
@@ -66,7 +64,7 @@ export function CompanyCapabilitySection() {
                 </div>
                 <div className="capability-mini-copy">
                   <Warehouse size={17} />
-                  <span>Tiếp nhận số lượng và khu vực giao hàng</span>
+                  <span>Tiếp nhận số lượng và khu vực</span>
                 </div>
               </article>
             </Reveal>

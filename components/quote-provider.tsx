@@ -117,7 +117,7 @@ export function QuoteProvider({ children }: PropsWithChildren) {
             <div className="quote-dialog-header">
               <div>
                 <p className="eyebrow">NHẬN BÁO GIÁ</p>
-                <h2>Hưng Phát báo giá nhanh</h2>
+                <h2 className="gradient-heading">Hưng Phát báo giá nhanh</h2>
               </div>
               <button className="icon-button quote-dialog-close" type="button" aria-label="Đóng form báo giá" onClick={closeQuote}>
                 <X size={20} />
@@ -138,4 +138,3 @@ export function useQuote() {
   }
   return context;
 }
-

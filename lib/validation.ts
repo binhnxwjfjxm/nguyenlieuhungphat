@@ -46,6 +46,29 @@ export type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; code: string; error: string; fieldErrors?: FieldErrors };
 
+export const quoteNeedOptions = [
+  { value: "tra-sua", label: "Trà sữa" },
+  { value: "mi-cay", label: "Mì cay" },
+  { value: "bao-bi", label: "Bao bì" },
+  { value: "khac", label: "Khác" },
+] as const;
+
+export const quoteDeliveryAreaOptions = [
+  { value: "tp-hcm", label: "TP. Hồ Chí Minh" },
+  { value: "ha-noi", label: "Hà Nội" },
+  { value: "binh-duong", label: "Bình Dương" },
+  { value: "dong-nai", label: "Đồng Nai" },
+  { value: "long-an", label: "Long An" },
+  { value: "can-tho", label: "Cần Thơ" },
+  { value: "tay-ninh", label: "Tây Ninh" },
+  { value: "ba-ria-vung-tau", label: "Bà Rịa - Vũng Tàu" },
+  { value: "mien-nam", label: "Khu vực miền Nam" },
+  { value: "mien-trung", label: "Khu vực miền Trung" },
+  { value: "mien-bac", label: "Khu vực miền Bắc" },
+  { value: "toan-quoc", label: "Toàn quốc" },
+  { value: "khac", label: "Khác" },
+] as const;
+
 const VN_PHONE_PATTERN = /^(?:0\d{9,10}|84\d{9,10})$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SESSION_PATTERN = /^(?:CHAT-\d{8}-[A-Z0-9]{4})$/;
@@ -88,16 +111,21 @@ function normalizeOptionalText(value: unknown, maxLength: number) {
   return sanitizeText(value, maxLength);
 }
 
+function normalizeSelectValue(value: unknown, allowedValues: readonly string[]) {
+  const normalized = normalizeOptionalText(value, 80);
+  return allowedValues.includes(normalized) ? normalized : "";
+}
+
 export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationResult<QuoteRequestData> {
   const data: QuoteRequestData = {
     name: normalizeOptionalText(raw.name, 80),
     phone: normalizeOptionalText(raw.phone, 40),
     company: normalizeOptionalText(raw.company, 120),
     email: normalizeOptionalText(raw.email, 160),
-    product: normalizeOptionalText(raw.product, 120),
+    product: normalizeOptionalText(raw.product, 500),
     quantity: normalizeOptionalText(raw.quantity, 60),
-    area: normalizeOptionalText(raw.area, 80),
-    usage: normalizeOptionalText(raw.usage, 120),
+    area: normalizeSelectValue(raw.area, quoteDeliveryAreaOptions.map((option) => option.value)),
+    usage: normalizeSelectValue(raw.usage, quoteNeedOptions.map((option) => option.value)),
     note: normalizeOptionalText(raw.note, 500),
     source: normalizeOptionalText(raw.source, 80),
     pathname: normalizeOptionalText(raw.pathname, 160),
@@ -129,21 +157,20 @@ export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationR
     fieldErrors.email = "Email chưa đúng định dạng.";
   }
 
-  if (!data.product && !data.usage) {
-    fieldErrors.product = "Cần nhập sản phẩm hoặc nhu cầu.";
-    fieldErrors.usage = "Cần nhập sản phẩm hoặc nhu cầu.";
+  if (!data.usage) {
+    fieldErrors.usage = "Vui lòng chọn nhu cầu chính.";
   }
 
-  if (data.product.length > 120) {
-    fieldErrors.product = "Sản phẩm tối đa 120 ký tự.";
+  if (!data.area) {
+    fieldErrors.area = "Vui lòng chọn khu vực giao hàng.";
+  }
+
+  if (data.product.length > 500) {
+    fieldErrors.product = "Nội dung cần tư vấn tối đa 500 ký tự.";
   }
 
   if (data.quantity.length > 60) {
     fieldErrors.quantity = "Số lượng tối đa 60 ký tự.";
-  }
-
-  if (data.area.length > 80) {
-    fieldErrors.area = "Khu vực tối đa 80 ký tự.";
   }
 
   if (data.usage.length > 120) {

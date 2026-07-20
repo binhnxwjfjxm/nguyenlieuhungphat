@@ -25,11 +25,8 @@ export default function NganhHangPage() {
       <section className="page-hero">
         <div className="container page-hero-inner">
           <p className="eyebrow">NGÀNH HÀNG</p>
-          <h1>Ba nhóm hàng chính cho nhu cầu kinh doanh thực tế</h1>
-          <p>
-            Mỗi nhóm bên dưới dẫn tới trang riêng. Khi cần đối chiếu nhanh theo mục tiêu nhập hàng, anh có thể đi thẳng vào đúng nhóm thay
-            vì lọc ở một trang tổng hợp.
-          </p>
+          <h1 className="gradient-heading">3 nhóm hàng chính</h1>
+          <p>Mỗi nhóm dẫn tới trang riêng để xem nhanh đúng nhu cầu.</p>
         </div>
       </section>
 

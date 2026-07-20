@@ -72,7 +72,7 @@ export function ProductCard({ product, compact = false }: { product: Product; co
           </HapticLink>
           <QuoteButton
             className="product-quote-button"
-            seed={{ product: product.name, usage: product.name, source: "product-card", pathname: `/san-pham/${product.slug}` }}
+            seed={{ product: product.name, source: "product-card", pathname: `/san-pham/${product.slug}` }}
           >
             Nhận báo giá
           </QuoteButton>

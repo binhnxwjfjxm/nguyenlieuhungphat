@@ -22,14 +22,13 @@ export function Hero() {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <p className="eyebrow">CÔNG TY TNHH TM NGUYÊN LIỆU HƯNG PHÁT</p>
-          <h1>
-            Nguồn hàng phù hợp
+          <h1 className="gradient-heading">
+            Nguồn hàng đúng nhu cầu
             <span>Phân phối linh hoạt</span>
-            Đồng hành cùng kinh doanh
+            Đồng hành kinh doanh
           </h1>
           <p className="hero-description">
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối
-            tác kinh doanh.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác.
           </p>
           <div className="hero-actions">
             <HapticLink className="button button-primary button-large" href="/nganh-hang">

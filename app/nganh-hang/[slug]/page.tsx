@@ -44,7 +44,7 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
         <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">NGÀNH HÀNG</p>
-            <h1>{category.title}</h1>
+            <h1 className="gradient-heading">{category.title}</h1>
             <p>{category.description}</p>
             <Link className="text-link" href="/nganh-hang">
               <ArrowLeft size={17} /> Quay lại danh mục
@@ -61,8 +61,8 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
           <Reveal>
             <div className="catalog-empty">
               <PackageSearch size={34} />
-              <h2>Danh mục đang được cập nhật</h2>
-              <p>Vui lòng gửi nhu cầu để nhận tư vấn. Khi có sản phẩm thật phù hợp, chúng tôi sẽ cập nhật vào trang này.</p>
+              <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
+              <p>Gửi nhu cầu để nhận tư vấn. Khi có sản phẩm phù hợp, chúng tôi sẽ cập nhật vào trang này.</p>
             </div>
           </Reveal>
           {categoryProducts.length ? (

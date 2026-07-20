@@ -21,7 +21,7 @@ export const stats = [
   { value: "2016", label: "Thành lập từ năm" },
   { value: "3", label: "Nhóm ngành hàng chính" },
   { value: "B2B", label: "Phục vụ đối tác kinh doanh" },
-  { value: "Linh hoạt", label: "Báo giá theo nhu cầu" },
+  { value: "Linh hoạt", label: "Báo giá nhanh" },
 ];
 
 export const trustItems = [
@@ -37,7 +37,7 @@ export const trustItems = [
   },
   {
     title: "Báo giá nhanh chóng",
-    description: "Tiếp nhận nhu cầu, số lượng và khu vực giao hàng để tư vấn phù hợp.",
+    description: "Tiếp nhận nhu cầu, số lượng và khu vực để tư vấn nhanh.",
     icon: Truck,
   },
   {

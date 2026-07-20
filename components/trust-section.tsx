@@ -8,7 +8,7 @@ export function TrustSection() {
         <Reveal>
           <div className="section-heading centered-heading compact-heading">
             <p className="eyebrow">GIÁ TRỊ CỐT LÕI</p>
-            <h2>Vì sao doanh nghiệp chọn Hưng Phát?</h2>
+            <h2 className="gradient-heading">Vì sao chọn Hưng Phát?</h2>
           </div>
         </Reveal>
         <div className="trust-grid">

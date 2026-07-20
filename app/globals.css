@@ -318,6 +318,17 @@ img {
   font-family: var(--font-serif);
 }
 
+.gradient-heading {
+  background: linear-gradient(90deg, var(--brown-dark) 0%, #8f5b39 35%, var(--green-dark) 70%, var(--brown-dark) 100%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 9s linear infinite;
+  text-wrap: balance;
+}
+
 .hero h1 {
   margin: 0;
   color: var(--brown-dark);
@@ -1505,5 +1516,20 @@ img {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .gradient-heading {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 220% 50%;
   }
 }

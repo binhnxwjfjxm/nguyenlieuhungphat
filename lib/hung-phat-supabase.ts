@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Pool } from "pg";
+import { Pool, type QueryResultRow } from "pg";
 
 type TelegramRecord = {
   telegramChatId?: string | number | null;
@@ -43,6 +43,15 @@ type IntegrationSettingsInput = {
   config: Record<string, unknown>;
 };
 
+export type DialogflowRuntimeRecord = {
+  projectId: string;
+  location: string;
+  agentId: string;
+  languageCode: string;
+  serviceAccountJson: string;
+  agentDisplayName?: string;
+};
+
 declare global {
   var __hungPhatSupabasePool: Pool | undefined;
 }
@@ -79,6 +88,13 @@ async function runQuery(sql: string, params: unknown[]) {
   if (!pool) return false;
   await pool.query(sql, params);
   return true;
+}
+
+async function queryOne<T extends QueryResultRow>(sql: string, params: unknown[] = []) {
+  const pool = getPool();
+  if (!pool) return null;
+  const result = await pool.query<T>(sql, params);
+  return result.rows[0] ?? null;
 }
 
 export async function recordChatConversation(input: ChatRecordInput) {
@@ -257,4 +273,56 @@ export async function upsertPlaybook(input: {
     `,
     [input.slug, input.title, input.description, JSON.stringify(input.config), input.enabled, input.version],
   );
+}
+
+export async function getDialogflowRuntimeFromSupabase(): Promise<DialogflowRuntimeRecord | null> {
+  const row = await queryOne<{
+    config: Record<string, unknown> | null;
+  }>(
+    `
+      select config
+      from public.hung_phat_integration_settings
+      where key = $1
+      limit 1
+    `,
+    ["dialogflow_runtime"],
+  );
+
+  if (!row?.config || typeof row.config !== "object") {
+    return null;
+  }
+
+  const config = row.config as Record<string, unknown>;
+  const projectId = typeof config.project_id === "string" ? config.project_id.trim() : "";
+  const location = typeof config.location === "string" ? config.location.trim() : "";
+  const agentId = typeof config.agent_id === "string" ? config.agent_id.trim() : "";
+  const languageCode = typeof config.language_code === "string" ? config.language_code.trim() : "";
+  const agentDisplayName = typeof config.agent_display_name === "string" ? config.agent_display_name.trim() : "";
+
+  if (!projectId || !agentId || !languageCode) {
+    return null;
+  }
+
+  const secretRow = await queryOne<{ decrypted_secret: string | null }>(
+    `
+      select decrypted_secret
+      from vault.decrypted_secrets
+      where name = $1
+      limit 1
+    `,
+    ["hung_phat_google_service_account_json"],
+  );
+
+  if (!secretRow?.decrypted_secret) {
+    return null;
+  }
+
+  return {
+    projectId,
+    location: location || "global",
+    agentId,
+    languageCode,
+    serviceAccountJson: secretRow.decrypted_secret,
+    agentDisplayName: agentDisplayName || undefined,
+  };
 }
