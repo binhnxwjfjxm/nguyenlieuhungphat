@@ -10,6 +10,7 @@ import {
   TelegramConfigError,
   TelegramRequestError,
 } from "@/lib/telegram";
+import { recordQuoteLead } from "@/lib/hung-phat-supabase";
 import type { FieldErrors } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -118,6 +119,29 @@ export async function POST(request: NextRequest) {
         chatId: destinations.quoteChatId,
         text: message,
       });
+
+      try {
+        await recordQuoteLead({
+          leadId,
+          name: data.name,
+          phone: data.phoneNormalized,
+          company: data.company,
+          email: data.email,
+          product: data.product,
+          quantity: data.quantity,
+          area: data.area,
+          usage: data.usage,
+          note: data.note,
+          source: data.source || "quote-form",
+          pathname: data.pathname || "/",
+          website,
+          status: "new",
+          telegramChatId: telegram.result?.chat?.id ?? destinations.quoteChatId,
+          telegramMessageId: telegram.result?.message_id ?? null,
+        });
+      } catch {
+        // Keep quote delivery successful even if persistence is unavailable.
+      }
 
       return NextResponse.json(
         {

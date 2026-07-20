@@ -52,7 +52,7 @@ function parseStoredState(value: string | null): ChatState {
       ...DEFAULT_STATE,
       ...parsed,
       sessionId: parsed.sessionId || createSessionId(),
-      messages: [],
+      messages: Array.isArray(parsed.messages) ? parsed.messages : [],
       draft: parsed.draft ?? "",
     };
   } catch {

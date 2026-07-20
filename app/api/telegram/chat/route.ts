@@ -10,6 +10,7 @@ import {
   TelegramConfigError,
   TelegramRequestError,
 } from "@/lib/telegram";
+import { recordChatConversation } from "@/lib/hung-phat-supabase";
 import type { FieldErrors } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -119,6 +120,23 @@ export async function POST(request: NextRequest) {
         chatId: destinations.adminChatId,
         text: message,
       });
+
+      try {
+        await recordChatConversation({
+          sessionId,
+          source: data.source || "chatbot",
+          pathname: data.pathname || "/",
+          website,
+          transcript: data.transcript,
+          requestCallback: data.requestCallback,
+          telegramChatId: telegram.result?.chat?.id ?? destinations.adminChatId,
+          telegramMessageId: telegram.result?.message_id ?? null,
+          agentStatus: "queued",
+          playbookKey: "freeform-chat",
+        });
+      } catch {
+        // Keep chat delivery successful even if persistence is unavailable.
+      }
 
       return NextResponse.json(
         {

@@ -3,7 +3,6 @@ import { Be_Vietnam_Pro } from "next/font/google";
 import { Chatbot } from "@/components/chatbot";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { QuoteProvider } from "@/components/quote-provider";
 import { ToastProvider } from "@/components/toast-provider";
 import { getSiteUrl } from "@/lib/site";
@@ -79,7 +78,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Header />
             {children}
             <Footer />
-            <MobileBottomNav />
             <Chatbot />
           </QuoteProvider>
         </ToastProvider>

@@ -11,7 +11,6 @@
 
 .footer-link-button,
 .product-quote-button,
-.mobile-bottom-nav-item,
 .chip-button,
 .quote-trigger-button {
   border: 0;
@@ -872,32 +871,6 @@
 
   .chatbot-panel.is-minimized {
     width: 100%;
-  }
-
-  .mobile-bottom-nav button.mobile-bottom-nav-item,
-  .mobile-bottom-nav a.mobile-bottom-nav-item {
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 4px;
-    border: 0;
-    border-radius: 14px;
-    background: transparent;
-    color: var(--muted);
-    font-size: 0.58rem;
-    font-weight: 600;
-    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
-  }
-
-  .mobile-bottom-nav button.mobile-bottom-nav-item:active,
-  .mobile-bottom-nav a.mobile-bottom-nav-item:active {
-    transform: scale(0.93);
-  }
-
-  .mobile-bottom-nav button.mobile-bottom-nav-item.active,
-  .mobile-bottom-nav a.mobile-bottom-nav-item.active {
-    background: var(--green-soft);
-    color: var(--green-dark);
   }
 
   .hero-picture {

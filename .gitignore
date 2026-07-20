@@ -10,3 +10,6 @@ dist
 Project-ID-dialog-supprot-vlgn.json
 *.log
 .DS_Store
+.wrangler/
+hung-phat-12-assets.zip
+logo.jpg

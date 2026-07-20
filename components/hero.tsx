@@ -28,14 +28,14 @@ export function Hero() {
             Đồng hành cùng kinh doanh
           </h1>
           <p className="hero-description">
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng,
-            đại lý và đối tác kinh doanh.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối
+            tác kinh doanh.
           </p>
           <div className="hero-actions">
-            <HapticLink className="button button-primary button-large" href="#danh-muc">
+            <HapticLink className="button button-primary button-large" href="/nganh-hang">
               Xem ngành hàng <ArrowRight size={18} />
             </HapticLink>
-            <HapticLink className="button button-secondary button-large" href="#bao-gia">
+            <HapticLink className="button button-secondary button-large" href="/lien-he">
               <MessageCircle size={18} /> Nhận báo giá
             </HapticLink>
           </div>

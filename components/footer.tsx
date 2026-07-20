@@ -1,5 +1,5 @@
 import { Globe2, Mail, MapPin, Phone, Play, Share2 } from "lucide-react";
-import { productCategories } from "@/data/products";
+import { categories } from "@/data/site";
 import { Logo } from "./logo";
 import { QuoteButton } from "./quote-trigger";
 
@@ -7,23 +7,23 @@ const footerGroups = [
   {
     title: "Về chúng tôi",
     links: [
-      { label: "Giới thiệu", href: "/#gioi-thieu" },
-      { label: "Ngành hàng", href: "/#danh-muc" },
-      { label: "Năng lực phân phối", href: "/#nang-luc" },
+      { label: "Giới thiệu", href: "/gioi-thieu" },
+      { label: "Ngành hàng", href: "/nganh-hang" },
+      { label: "Sản phẩm", href: "/san-pham" },
     ],
   },
   {
     title: "Ngành hàng",
-    links: productCategories.map((category) => ({
+    links: categories.map((category) => ({
       label: category.title,
-      href: `/san-pham?category=${category.slug}`,
+      href: `/nganh-hang/${category.slug}`,
     })),
   },
   {
     title: "Hỗ trợ",
     links: [
-      { label: "Yêu cầu báo giá", href: "/#bao-gia" },
-      { label: "Liên hệ tư vấn", href: "/#lien-he" },
+      { label: "Yêu cầu báo giá", href: "/lien-he" },
+      { label: "Liên hệ tư vấn", href: "/lien-he" },
       { label: "Gọi hotline", href: "tel:0900123456" },
     ],
   },
@@ -36,8 +36,8 @@ export function Footer() {
         <div className="footer-brand-column">
           <Logo />
           <p>
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa
-            hàng, đại lý và đối tác kinh doanh.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối
+            tác kinh doanh.
           </p>
           <div className="social-row">
             <a href="#" aria-label="Facebook">

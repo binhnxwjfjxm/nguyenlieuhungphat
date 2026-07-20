@@ -1,20 +1,20 @@
 import {
   Boxes,
   Flame,
-  Snowflake,
-  Truck,
-  ShieldCheck,
   PackageCheck,
+  Snowflake,
+  ShieldCheck,
+  Truck,
   Warehouse,
 } from "lucide-react";
 import { siteAssets } from "@/lib/site-assets";
 
 export const navigation = [
-  { label: "Trang chủ", href: "/#trang-chu" },
-  { label: "Giới thiệu", href: "/#gioi-thieu" },
+  { label: "Trang chủ", href: "/" },
+  { label: "Giới thiệu", href: "/gioi-thieu" },
+  { label: "Ngành hàng", href: "/nganh-hang" },
   { label: "Sản phẩm", href: "/san-pham" },
-  { label: "Ngành hàng", href: "/#danh-muc" },
-  { label: "Liên hệ", href: "/#lien-he" },
+  { label: "Liên hệ", href: "/lien-he" },
 ];
 
 export const stats = [
