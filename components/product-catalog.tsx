@@ -1,10 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Product, ProductCategory } from "@/data/products";
 import { normalizeSearchText } from "@/lib/search";
+import { HapticLink } from "./haptic-link";
 import { ProductCard } from "./product-card";
+import { QuoteButton } from "./quote-trigger";
 
 export function ProductCatalog({
   products,
@@ -27,6 +30,8 @@ export function ProductCatalog({
   const [application, setApplication] = useState("");
   const [sort, setSort] = useState("featured");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(24);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -70,6 +75,11 @@ export function ProductCatalog({
     });
   }, [application, category, origin, products, query, sort]);
 
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const selectedPreview = useMemo(() => {
+    if (!selectedProduct) return null;
+    return filteredProducts.some((product) => product.slug === selectedProduct.slug) ? selectedProduct : null;
+  }, [filteredProducts, selectedProduct]);
   const hasFilters = Boolean(query || category || origin || application || sort !== "featured");
   const isEmptyCatalog = products.length === 0;
 
@@ -79,7 +89,54 @@ export function ProductCatalog({
     setOrigin("");
     setApplication("");
     setSort("featured");
+    setVisibleCount(24);
   }
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    setVisibleCount(24);
+  }
+
+  function updateCategory(value: string) {
+    setCategory(value);
+    setVisibleCount(24);
+  }
+
+  function updateOrigin(value: string) {
+    setOrigin(value);
+    setVisibleCount(24);
+  }
+
+  function updateApplication(value: string) {
+    setApplication(value);
+    setVisibleCount(24);
+  }
+
+  function updateSort(value: string) {
+    setSort(value);
+    setVisibleCount(24);
+  }
+
+  function closePreview() {
+    setSelectedProduct(null);
+  }
+
+  useEffect(() => {
+    if (!selectedPreview) return undefined;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") closePreview();
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedPreview]);
 
   return (
     <div className="catalog-layout">
@@ -90,10 +147,10 @@ export function ProductCatalog({
             type="search"
             placeholder="Tìm ngành hàng, nhu cầu..."
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => updateQuery(event.target.value)}
           />
           {query ? (
-            <button type="button" aria-label="Xóa từ khóa" onClick={() => setQuery("")}>
+            <button type="button" aria-label="Xóa từ khóa" onClick={() => updateQuery("")}>
               <X size={17} />
             </button>
           ) : null}
@@ -104,14 +161,14 @@ export function ProductCatalog({
       </div>
 
       <div className="catalog-category-row" aria-label="Lọc theo danh mục">
-        <button className={`filter-chip${category === "" ? " active" : ""}`} type="button" onClick={() => setCategory("")}>
+        <button className={`filter-chip${category === "" ? " active" : ""}`} type="button" onClick={() => updateCategory("")}>
           Tất cả
         </button>
         {categories.map((item) => (
           <button
             className={`filter-chip${category === item.slug ? " active" : ""}`}
             type="button"
-            onClick={() => setCategory(item.slug)}
+            onClick={() => updateCategory(item.slug)}
             key={item.slug}
           >
             {item.title}
@@ -128,7 +185,7 @@ export function ProductCatalog({
 
           <label className="filter-field">
             <span>Xuất xứ</span>
-            <select value={origin} onChange={(event) => setOrigin(event.target.value)}>
+            <select value={origin} onChange={(event) => updateOrigin(event.target.value)}>
               <option value="">Tất cả xuất xứ</option>
               {origins.map((item) => (
                 <option value={item} key={item}>
@@ -140,7 +197,7 @@ export function ProductCatalog({
 
           <label className="filter-field">
             <span>Ứng dụng</span>
-            <select value={application} onChange={(event) => setApplication(event.target.value)}>
+            <select value={application} onChange={(event) => updateApplication(event.target.value)}>
               <option value="">Tất cả ứng dụng</option>
               {applications.map((item) => (
                 <option value={item} key={item}>
@@ -152,7 +209,7 @@ export function ProductCatalog({
 
           <label className="filter-field">
             <span>Sắp xếp</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value)}>
+            <select value={sort} onChange={(event) => updateSort(event.target.value)}>
               <option value="featured">Nổi bật trước</option>
               <option value="name-asc">Tên A-Z</option>
               <option value="name-desc">Tên Z-A</option>
@@ -175,11 +232,21 @@ export function ProductCatalog({
               <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
             </div>
           ) : filteredProducts.length ? (
-            <div className="product-grid catalog-grid">
-              {filteredProducts.map((product) => (
-                <ProductCard product={product} key={product.slug} />
-              ))}
-            </div>
+            <>
+              <div className="product-grid catalog-grid">
+                {visibleProducts.map((product) => (
+                  <ProductCard key={product.slug} product={product} onOpen={setSelectedProduct} />
+                ))}
+              </div>
+
+              {filteredProducts.length > visibleCount ? (
+                <div className="catalog-more-row">
+                  <button className="button button-ghost catalog-more-button" type="button" onClick={() => setVisibleCount((value) => value + 24)}>
+                    Xem thêm {Math.min(24, filteredProducts.length - visibleCount)} sản phẩm
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className="catalog-empty">
               <Search size={34} />
@@ -192,6 +259,73 @@ export function ProductCatalog({
           )}
         </section>
       </div>
+
+      {selectedPreview ? (
+        <div className="product-modal-overlay" role="presentation" onMouseDown={closePreview}>
+          <div
+            className="product-modal-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-preview-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button className="icon-button product-modal-close" type="button" aria-label="Đóng xem nhanh" onClick={closePreview}>
+              <X size={18} />
+            </button>
+
+            <div className="product-modal-layout">
+              <div className="product-modal-media">
+                <Image
+                  src={selectedPreview.image}
+                  alt={selectedPreview.name}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 44vw"
+                />
+                <span className="product-tag">{selectedPreview.category}</span>
+              </div>
+
+              <div className="product-modal-copy">
+                <p className="eyebrow">{selectedPreview.origin}</p>
+                <h2 id="product-preview-title">{selectedPreview.name}</h2>
+                <p className="product-modal-code">{selectedPreview.englishName}</p>
+                <p className="product-modal-summary">{selectedPreview.shortDescription}</p>
+
+                <div className="product-modal-meta">
+                  <div>
+                    <span>Nhóm</span>
+                    <strong>{selectedPreview.category}</strong>
+                  </div>
+                  <div>
+                    <span>Trạng thái</span>
+                    <strong>{selectedPreview.featured ? "Nổi bật" : "Danh mục"}</strong>
+                  </div>
+                </div>
+
+                <div className="product-modal-specs">
+                  {selectedPreview.specifications.slice(0, 4).map((specification) => (
+                    <div key={specification.label}>
+                      <span>{specification.label}</span>
+                      <strong>{specification.value}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="product-modal-actions">
+                  <HapticLink className="button button-ghost" href={`/san-pham/${selectedPreview.slug}`}>
+                    Mở trang chi tiết
+                  </HapticLink>
+                  <QuoteButton
+                    className="button button-primary"
+                    seed={{ product: selectedPreview.name, source: "product-modal", pathname: `/san-pham/${selectedPreview.slug}` }}
+                  >
+                    Nhận báo giá
+                  </QuoteButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

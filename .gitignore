@@ -13,3 +13,13 @@ Project-ID-dialog-supprot-vlgn.json
 .wrangler/
 hung-phat-12-assets.zip
 logo.jpg
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.turbo/
+.cache/
+.codex-input/
+.vercel/
+.ignore
