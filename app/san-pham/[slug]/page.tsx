@@ -78,13 +78,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div>
                   <MapPin size={20} />
                   <span>
-                    Xuất xứ<strong>{product.origin}</strong>
+                    Ngành hàng<strong>{product.origin}</strong>
                   </span>
                 </div>
                 <div>
                   <Package size={20} />
                   <span>
-                    Đóng gói<strong>{product.packaging}</strong>
+                    Nhóm<strong>{product.packaging}</strong>
                   </span>
                 </div>
               </div>

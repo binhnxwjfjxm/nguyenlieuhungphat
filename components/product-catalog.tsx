@@ -43,7 +43,17 @@ export function ProductCatalog({
     const normalizedQuery = normalizeSearchText(query);
     const result = products.filter((product) => {
       const searchable = normalizeSearchText(
-        [product.name, product.englishName, product.category, product.shortDescription, ...product.applications].join(" "),
+        [
+          product.name,
+          product.englishName,
+          product.category,
+          product.origin,
+          product.packaging,
+          product.shortDescription,
+          ...product.applications,
+          ...product.features,
+          ...product.specifications.map((specification) => `${specification.label} ${specification.value}`),
+        ].join(" "),
       );
       return (
         (!normalizedQuery || searchable.includes(normalizedQuery)) &&
