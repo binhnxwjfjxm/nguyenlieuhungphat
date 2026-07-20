@@ -2,11 +2,12 @@ import { ArrowRight, Search } from "lucide-react";
 import { featuredProducts, productCategories } from "@/data/products";
 import { HapticLink } from "./haptic-link";
 import { ProductCard } from "./product-card";
-import { QuoteCta } from "./quote-cta";
 import { Reveal } from "./reveal";
 
+const previewProducts = featuredProducts.slice(0, 8);
+
 export function ProductSection() {
-  const hasProducts = featuredProducts.length > 0;
+  const hasProducts = previewProducts.length > 0;
 
   return (
     <section className="section product-section" id="san-pham">
@@ -14,11 +15,12 @@ export function ProductSection() {
         <Reveal>
           <div className="section-heading split-heading product-heading">
             <div>
-              <p className="eyebrow">SẢN PHẨM NỔI BẬT</p>
-              <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
+              <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
+              <h2 className="gradient-heading">Catalog gọn, dễ lọc, dễ đi tiếp</h2>
+              <p>Khách xem nhanh được nhóm hàng đang có dữ liệu thật, sau đó chuyển sang catalog đầy đủ để lọc sâu hơn.</p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/san-pham">
-              Xem tất cả <ArrowRight size={17} />
+              Mở toàn bộ catalog <ArrowRight size={17} />
             </HapticLink>
           </div>
         </Reveal>
@@ -35,24 +37,27 @@ export function ProductSection() {
         </div>
 
         {hasProducts ? (
-          <div className="product-grid">
-            {featuredProducts.map((product, index) => (
-              <Reveal key={product.slug} delay={index * 0.06}>
-                <ProductCard product={product} compact />
-              </Reveal>
-            ))}
-          </div>
+          <>
+            <div className="product-grid">
+              {previewProducts.map((product, index) => (
+                <Reveal key={product.slug} delay={index * 0.06}>
+                  <ProductCard product={product} compact />
+                </Reveal>
+              ))}
+            </div>
+            <div className="product-section-footer">
+              <HapticLink className="button button-ghost" href="/san-pham">
+                Xem toàn bộ catalog
+              </HapticLink>
+            </div>
+          </>
         ) : (
           <div className="catalog-empty product-empty-state">
             <Search size={34} />
             <h2 className="gradient-heading">Danh mục đang được cập nhật</h2>
-            <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng và báo giá phù hợp.</p>
+            <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng và nhận báo giá phù hợp.</p>
           </div>
         )}
-
-        <Reveal>
-          <QuoteCta />
-        </Reveal>
       </div>
     </section>
   );

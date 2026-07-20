@@ -1,34 +1,27 @@
-import { trustItems } from "@/data/site";
+import { stats } from "@/data/site";
 import { Reveal } from "./reveal";
 
 export function TrustSection() {
   return (
-    <section className="section section-tight" id="gioi-thieu">
+    <section className="section-tight trust-strip-section" id="gioi-thieu">
       <div className="container">
         <Reveal>
-          <div className="section-heading centered-heading compact-heading">
-            <p className="eyebrow">GIÁ TRỊ CỐT LÕI</p>
-            <h2 className="gradient-heading">Vì sao chọn Hưng Phát?</h2>
+          <div className="trust-strip">
+            <div className="trust-strip-copy">
+              <p className="eyebrow">DẤU HIỆU TIN CẬY</p>
+              <h2 className="gradient-heading">4 tín hiệu cốt lõi</h2>
+              <p>2016, 3 nhóm hàng, B2B và báo giá linh hoạt.</p>
+            </div>
+            <div className="trust-strip-grid" aria-label="Thông tin tin cậy">
+              {stats.map((stat) => (
+                <div className="trust-strip-item" key={stat.label}>
+                  <strong>{stat.value}</strong>
+                  <span>{stat.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </Reveal>
-        <div className="trust-grid">
-          {trustItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Reveal key={item.title} delay={index * 0.06}>
-                <article className="trust-card">
-                  <span className="icon-shell">
-                    <Icon size={24} strokeWidth={1.8} />
-                  </span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                  </div>
-                </article>
-              </Reveal>
-            );
-          })}
-        </div>
       </div>
     </section>
   );

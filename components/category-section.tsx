@@ -27,9 +27,9 @@ export function CategorySection() {
         <Reveal>
           <div className="section-heading split-heading">
             <div>
-              <p className="eyebrow">DANH MỤC</p>
-              <h2 className="gradient-heading">3 ngành hàng chính</h2>
-              <p>Danh mục được sắp xếp gọn để khách vào đúng nhóm nhanh hơn.</p>
+              <p className="eyebrow">NGÀNH HÀNG</p>
+              <h2 className="gradient-heading">Ba nhóm hàng chính</h2>
+              <p>Danh mục được giữ gọn để khách vào đúng nhánh hàng nhanh hơn và không phải lướt qua quá nhiều lựa chọn rời rạc.</p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/nganh-hang">
               Xem tất cả <ArrowUpRight size={17} />
@@ -62,7 +62,9 @@ export function CategorySection() {
                     </span>
                     <h3>{category.title}</h3>
                     <p>{category.description}</p>
-                    <small>{category.count}</small>
+                    <span className="category-link-text">
+                      Xem ngành hàng <ArrowUpRight size={15} />
+                    </span>
                   </div>
                 </HapticLink>
               </Reveal>

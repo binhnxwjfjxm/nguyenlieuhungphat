@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
-import { stats } from "@/data/site";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
@@ -23,12 +22,12 @@ export function Hero() {
         >
           <p className="eyebrow">CÔNG TY TNHH TM NGUYÊN LIỆU HƯNG PHÁT</p>
           <h1 className="gradient-heading">
-            Nguồn hàng đúng nhu cầu
+            Nguồn hàng phù hợp
             <span>Phân phối linh hoạt</span>
-            Đồng hành kinh doanh
+            Đồng hành cùng kinh doanh
           </h1>
           <p className="hero-description">
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác.
+            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho khách B2B.
           </p>
           <div className="hero-actions">
             <HapticLink className="button button-primary button-large" href="/nganh-hang">
@@ -46,7 +45,6 @@ export function Hero() {
           animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 0.65, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="hero-orbit" />
           <ResponsiveAssetPicture
             className="hero-picture"
             imgClassName="hero-picture-img"
@@ -58,22 +56,7 @@ export function Hero() {
             priority
             imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
           />
-          <div className="hero-badge">
-            <span>Since</span>
-            <strong>2016</strong>
-          </div>
         </motion.div>
-      </div>
-
-      <div className="container hero-stats-wrap">
-        <div className="hero-stats">
-          {stats.map((stat) => (
-            <div className="stat-item" key={stat.label}>
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
