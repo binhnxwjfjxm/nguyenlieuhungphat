@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
 
       const telegram = await sendTelegramMessage({
         chatId: destinations.adminChatId,
+        messageThreadId: destinations.adminThreadId,
         text: message,
       });
 

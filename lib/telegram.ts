@@ -3,6 +3,7 @@ import "server-only";
 type TelegramMessageOptions = {
   chatId: string;
   text: string;
+  messageThreadId?: string | number | null;
 };
 
 export class TelegramConfigError extends Error {
@@ -36,6 +37,12 @@ function firstNonEmpty(...values: Array<string | undefined | null>) {
   return "";
 }
 
+function normalizeThreadId(value?: string | null) {
+  const trimmed = value?.trim();
+  if (!trimmed || !/^\d+$/.test(trimmed)) return undefined;
+  return trimmed;
+}
+
 function escapeTelegramHtml(value: string) {
   return normalizeNfc(value)
     .replace(/&/g, "&amp;")
@@ -54,15 +61,10 @@ export function formatTelegramLines(lines: Array<string | undefined | null>) {
 
 function getTelegramConfig() {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const quoteChatId = firstNonEmpty(
-    process.env.TELEGRAM_QUOTE_CHAT_ID,
-    process.env.TELEGRAM_QUOTE_TOPIC_ID,
-  );
-  const adminChatId = firstNonEmpty(
-    process.env.TELEGRAM_ADMIN_CHAT_ID,
-    process.env.TELEGRAM_CHAT_ID,
-    process.env.TELEGRAM_CHAT_TOPIC_ID,
-  );
+  const quoteChatId = firstNonEmpty(process.env.TELEGRAM_QUOTE_CHAT_ID);
+  const quoteThreadId = normalizeThreadId(process.env.TELEGRAM_QUOTE_TOPIC_ID);
+  const adminChatId = firstNonEmpty(process.env.TELEGRAM_ADMIN_CHAT_ID, process.env.TELEGRAM_CHAT_ID);
+  const adminThreadId = normalizeThreadId(process.env.TELEGRAM_CHAT_TOPIC_ID);
 
   if (!token || !quoteChatId || !adminChatId) {
     throw new TelegramConfigError("Thiếu cấu hình Telegram.");
@@ -71,11 +73,13 @@ function getTelegramConfig() {
   return {
     token,
     quoteChatId,
+    quoteThreadId,
     adminChatId,
+    adminThreadId,
   };
 }
 
-export async function sendTelegramMessage({ chatId, text }: TelegramMessageOptions) {
+export async function sendTelegramMessage({ chatId, text, messageThreadId }: TelegramMessageOptions) {
   const { token } = getTelegramConfig();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -87,6 +91,7 @@ export async function sendTelegramMessage({ chatId, text }: TelegramMessageOptio
       signal: controller.signal,
       body: JSON.stringify({
         chat_id: chatId,
+        ...(messageThreadId ? { message_thread_id: messageThreadId } : {}),
         text: normalizeNfc(text),
         parse_mode: "HTML",
         disable_web_page_preview: true,
@@ -126,9 +131,11 @@ export function escapeHtml(value: string) {
 }
 
 export function getTelegramDestinations() {
-  const { quoteChatId, adminChatId } = getTelegramConfig();
+  const { quoteChatId, quoteThreadId, adminChatId, adminThreadId } = getTelegramConfig();
   return {
     quoteChatId,
+    quoteThreadId,
     adminChatId,
+    adminThreadId,
   };
 }
