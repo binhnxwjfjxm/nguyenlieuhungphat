@@ -90,32 +90,32 @@ export async function POST(request: NextRequest) {
       return jsonError(429, rateLimit.code, rateLimit.error, rateLimit.retryAfter);
     }
 
-    const destinations = getTelegramDestinations();
-    const message = normalizeTelegramText(
-      [
-        "<b>YÊU CẦU TỪ CHATBOT</b>",
-        `<b>Mã phiên:</b> <code>${escapeHtml(sessionId)}</code>`,
-        `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
-        "",
-        data.name ? `<b>Họ và tên:</b> ${escapeHtml(data.name)}` : undefined,
-        data.phoneNormalized ? `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}` : undefined,
-        data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
-        data.product ? `<b>Ngành hàng:</b> ${escapeHtml(data.product)}` : undefined,
-        data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
-        data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
-        data.requestCallback ? `<b>Yêu cầu gọi lại:</b> Có` : undefined,
-        "",
-        "<b>Nội dung trao đổi:</b>",
-        escapeHtml(data.transcript).replace(/\n/g, "<br>"),
-        "",
-        `<b>Website:</b> ${escapeHtml(website)}`,
-        `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    );
-
     try {
+      const destinations = getTelegramDestinations();
+      const message = normalizeTelegramText(
+        [
+          "<b>YÊU CẦU TỪ CHATBOT</b>",
+          `<b>Mã phiên:</b> <code>${escapeHtml(sessionId)}</code>`,
+          `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
+          "",
+          data.name ? `<b>Họ và tên:</b> ${escapeHtml(data.name)}` : undefined,
+          data.phoneNormalized ? `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}` : undefined,
+          data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
+          data.product ? `<b>Ngành hàng:</b> ${escapeHtml(data.product)}` : undefined,
+          data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
+          data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
+          data.requestCallback ? `<b>Yêu cầu gọi lại:</b> Có` : undefined,
+          "",
+          "<b>Nội dung trao đổi:</b>",
+          escapeHtml(data.transcript).replace(/\n/g, "<br>"),
+          "",
+          `<b>Website:</b> ${escapeHtml(website)}`,
+          `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+
       const telegram = await sendTelegramMessage({
         chatId: destinations.adminChatId,
         text: message,

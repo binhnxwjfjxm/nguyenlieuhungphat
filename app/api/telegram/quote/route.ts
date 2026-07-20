@@ -89,32 +89,32 @@ export async function POST(request: NextRequest) {
       return jsonError(429, rateLimit.code, rateLimit.error, rateLimit.retryAfter);
     }
 
-    const destinations = getTelegramDestinations();
-    const message = normalizeTelegramText(
-      [
-        "<b>BÁO GIÁ WEBSITE</b>",
-        `<b>Mã yêu cầu:</b> <code>${escapeHtml(leadId)}</code>`,
-        `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
-        "",
-        `<b>Họ và tên:</b> ${escapeHtml(data.name)}`,
-        `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
-        data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
-        data.email ? `<b>Email:</b> ${escapeHtml(data.email)}` : undefined,
-        `<b>Ngành hàng:</b> ${escapeHtml(data.usage || data.product || "Chưa xác định")}`,
-        data.product ? `<b>Sản phẩm hoặc nhu cầu:</b> ${escapeHtml(data.product)}` : undefined,
-        data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
-        data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
-        data.note ? `<b>Nội dung cần hỗ trợ:</b> ${escapeHtml(data.note)}` : undefined,
-        "",
-        `<b>Nguồn gửi:</b> ${escapeHtml(data.source || "quote-form")}`,
-        `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
-        `<b>Website:</b> ${escapeHtml(website)}`,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    );
-
     try {
+      const destinations = getTelegramDestinations();
+      const message = normalizeTelegramText(
+        [
+          "<b>BÁO GIÁ WEBSITE</b>",
+          `<b>Mã yêu cầu:</b> <code>${escapeHtml(leadId)}</code>`,
+          `<b>Thời gian:</b> ${escapeHtml(formatVietnamDateTime())}`,
+          "",
+          `<b>Họ và tên:</b> ${escapeHtml(data.name)}`,
+          `<b>Số điện thoại:</b> ${escapeHtml(data.phoneNormalized)}`,
+          data.company ? `<b>Công ty:</b> ${escapeHtml(data.company)}` : undefined,
+          data.email ? `<b>Email:</b> ${escapeHtml(data.email)}` : undefined,
+          `<b>Ngành hàng:</b> ${escapeHtml(data.usage || data.product || "Chưa xác định")}`,
+          data.product ? `<b>Sản phẩm hoặc nhu cầu:</b> ${escapeHtml(data.product)}` : undefined,
+          data.quantity ? `<b>Số lượng dự kiến:</b> ${escapeHtml(data.quantity)}` : undefined,
+          data.area ? `<b>Khu vực giao hàng:</b> ${escapeHtml(data.area)}` : undefined,
+          data.note ? `<b>Nội dung cần hỗ trợ:</b> ${escapeHtml(data.note)}` : undefined,
+          "",
+          `<b>Nguồn gửi:</b> ${escapeHtml(data.source || "quote-form")}`,
+          `<b>Pathname:</b> ${escapeHtml(data.pathname || "/")}`,
+          `<b>Website:</b> ${escapeHtml(website)}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+
       const telegram = await sendTelegramMessage({
         chatId: destinations.quoteChatId,
         text: message,
