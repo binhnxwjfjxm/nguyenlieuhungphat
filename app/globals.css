@@ -1782,6 +1782,8 @@ img {
   }
 }
 
+/* Sites publish refresh: no visual change. */
+
 :root {
   --background: #ffffff;
   --background-deep: #f5fbf7;
