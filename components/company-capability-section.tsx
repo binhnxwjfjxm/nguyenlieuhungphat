@@ -50,6 +50,22 @@ export function CompanyCapabilitySection() {
           </Reveal>
 
           <div className="capability-stack">
+            <Reveal delay={0.02}>
+              <div className="capability-highlights">
+                <span>
+                  <strong>2016</strong>
+                  <small>Kinh nghiệm thực tế</small>
+                </span>
+                <span>
+                  <strong>3</strong>
+                  <small>Nhóm hàng chính</small>
+                </span>
+                <span>
+                  <strong>B2B</strong>
+                  <small>Phân phối linh hoạt</small>
+                </span>
+              </div>
+            </Reveal>
             <Reveal delay={0.04}>
               <article className="capability-card capability-card-small">
                 <div className="capability-image-wrap">

@@ -21,6 +21,8 @@ const categoryAssetBySlug = {
 } as const;
 
 export function CategorySection() {
+  const [featured, ...otherCategories] = categories;
+
   return (
     <section className="section category-section" id="danh-muc">
       <div className="container">
@@ -37,39 +39,66 @@ export function CategorySection() {
           </div>
         </Reveal>
 
-        <div className="category-scroller">
-          {categories.map((category, index) => {
-            const Icon = category.icon;
-            const asset = categoryAssetBySlug[category.slug as keyof typeof categoryAssetBySlug];
+        <div className="category-layout">
+          <Reveal>
+            <HapticLink className="category-card category-card-featured" href={`/nganh-hang/${featured.slug}`}>
+              <div className="category-image-wrap">
+                <ResponsiveAssetPicture
+                  className="category-picture"
+                  imgClassName="category-picture-img"
+                  alt={`Ảnh minh họa danh mục ${featured.title}`}
+                  desktopSrc={categoryAssetBySlug[featured.slug as keyof typeof categoryAssetBySlug].src}
+                  desktopFallbackSrc={categoryAssetBySlug[featured.slug as keyof typeof categoryAssetBySlug].fallback}
+                  priority
+                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+                />
+              </div>
+              <div className="category-content">
+                <span className="category-icon">
+                  <featured.icon size={19} />
+                </span>
+                <h3>{featured.title}</h3>
+                <p>{featured.description}</p>
+                <span className="category-link-text">
+                  Xem ngành hàng <ArrowUpRight size={15} />
+                </span>
+              </div>
+            </HapticLink>
+          </Reveal>
 
-            return (
-              <Reveal key={category.title} delay={index * 0.05}>
-                <HapticLink className="category-card" href={`/nganh-hang/${category.slug}`}>
-                  <div className="category-image-wrap">
-                    <ResponsiveAssetPicture
-                      className="category-picture"
-                      imgClassName="category-picture-img"
-                      alt={`Ảnh minh họa danh mục ${category.title}`}
-                      desktopSrc={asset.src}
-                      desktopFallbackSrc={asset.fallback}
-                      priority={index === 0}
-                      imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                    />
-                  </div>
-                  <div className="category-content">
-                    <span className="category-icon">
-                      <Icon size={19} />
-                    </span>
-                    <h3>{category.title}</h3>
-                    <p>{category.description}</p>
-                    <span className="category-link-text">
-                      Xem ngành hàng <ArrowUpRight size={15} />
-                    </span>
-                  </div>
-                </HapticLink>
-              </Reveal>
-            );
-          })}
+          <div className="category-stack">
+            {otherCategories.map((category, index) => {
+              const Icon = category.icon;
+              const asset = categoryAssetBySlug[category.slug as keyof typeof categoryAssetBySlug];
+
+              return (
+                <Reveal key={category.title} delay={index * 0.05}>
+                  <HapticLink className="category-card category-card-compact" href={`/nganh-hang/${category.slug}`}>
+                    <div className="category-image-wrap">
+                      <ResponsiveAssetPicture
+                        className="category-picture"
+                        imgClassName="category-picture-img"
+                        alt={`Ảnh minh họa danh mục ${category.title}`}
+                        desktopSrc={asset.src}
+                        desktopFallbackSrc={asset.fallback}
+                        imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+                      />
+                    </div>
+                    <div className="category-content">
+                      <span className="category-icon">
+                        <Icon size={19} />
+                      </span>
+                      <h3>{category.title}</h3>
+                      <p>{category.description}</p>
+                      <span className="category-link-text">
+                        Xem ngành hàng <ArrowUpRight size={15} />
+                      </span>
+                    </div>
+                  </HapticLink>
+                </Reveal>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

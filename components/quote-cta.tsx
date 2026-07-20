@@ -27,10 +27,7 @@ export function QuoteCta({ productName }: { productName?: string }) {
         </p>
       </div>
       <div className="quote-actions">
-        <QuoteButton
-          className="button button-cream button-large"
-          seed={{ product: productName ?? "", source: "quote-banner" }}
-        >
+        <QuoteButton className="button button-surface button-large" seed={{ product: productName ?? "", source: "quote-banner" }}>
           Nhận báo giá <ArrowRight size={18} />
         </QuoteButton>
         <HapticLink className="button button-outline-light button-large" href="tel:0900123456">

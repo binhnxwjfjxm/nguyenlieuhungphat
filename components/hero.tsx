@@ -45,17 +45,42 @@ export function Hero() {
           animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 0.65, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         >
-          <ResponsiveAssetPicture
-            className="hero-picture"
-            imgClassName="hero-picture-img"
-            alt="Hình ảnh minh họa không gian trưng bày và kho hàng Hưng Phát"
-            desktopSrc={siteAssets.hero.desktop}
-            desktopFallbackSrc={siteAssetFallbacks.hero.desktop}
-            mobileSrc={siteAssets.hero.mobile}
-            mobileFallbackSrc={siteAssetFallbacks.hero.mobile}
-            priority
-            imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-          />
+          <div className="hero-collage">
+            <ResponsiveAssetPicture
+              className="hero-picture hero-picture-main"
+              imgClassName="hero-picture-img"
+              alt="Hình ảnh minh họa không gian trưng bày và kho hàng Hưng Phát"
+              desktopSrc={siteAssets.hero.desktop}
+              desktopFallbackSrc={siteAssetFallbacks.hero.desktop}
+              mobileSrc={siteAssets.hero.mobile}
+              mobileFallbackSrc={siteAssetFallbacks.hero.mobile}
+              priority
+              imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+            />
+
+            <div className="hero-stack" aria-hidden="true">
+              <div className="hero-mini-card hero-mini-card-top">
+                <ResponsiveAssetPicture
+                  className="hero-mini-picture"
+                  imgClassName="hero-mini-picture-img"
+                  alt=""
+                  desktopSrc={siteAssets.categories.industrial}
+                  desktopFallbackSrc={siteAssetFallbacks.categories.industrial}
+                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+                />
+              </div>
+              <div className="hero-mini-card hero-mini-card-bottom">
+                <ResponsiveAssetPicture
+                  className="hero-mini-picture"
+                  imgClassName="hero-mini-picture-img"
+                  alt=""
+                  desktopSrc={siteAssets.warehouse.two}
+                  desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
+                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+                />
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

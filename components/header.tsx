@@ -28,7 +28,7 @@ export function Header() {
           <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm ngành hàng">
             <Search size={19} />
           </HapticLink>
-          <QuoteButton className="button button-primary">Nhận báo giá</QuoteButton>
+          <QuoteButton className="button button-surface">Nhận báo giá</QuoteButton>
         </div>
 
         <div className="mobile-actions">
@@ -62,7 +62,7 @@ export function Header() {
                   {item.label}
                 </a>
               ))}
-              <QuoteButton className="button button-primary mobile-quote" onClick={() => setOpen(false)}>
+              <QuoteButton className="button button-surface mobile-quote" onClick={() => setOpen(false)}>
                 Nhận báo giá
               </QuoteButton>
             </nav>
