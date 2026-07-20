@@ -278,6 +278,7 @@
 }
 
 .chatbot-launcher {
+  position: relative;
   display: inline-grid;
   place-items: center;
   width: 56px;
@@ -288,6 +289,32 @@
   color: #fff;
   box-shadow: 0 18px 40px rgba(58, 36, 24, 0.24);
   cursor: pointer;
+  overflow: hidden;
+}
+
+.chatbot-launcher-avatar {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.chatbot-launcher-avatar img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.chatbot-launcher-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.94);
+  color: var(--brown);
+  box-shadow: 0 8px 18px rgba(58, 36, 24, 0.2);
 }
 
 .chatbot-panel {

@@ -235,7 +235,12 @@ export function Chatbot() {
             aria-label="Mở Hưng Phát Assistant"
             onClick={openChat}
           >
-            <MessageSquareMore size={18} />
+            <span className="chatbot-launcher-avatar" aria-hidden="true">
+              <Image src={chatbotAvatar} alt="" fill sizes="56px" priority />
+            </span>
+            <span className="chatbot-launcher-badge" aria-hidden="true">
+              <MessageSquareMore size={12} />
+            </span>
           </motion.button>
         ) : null}
       </AnimatePresence>
