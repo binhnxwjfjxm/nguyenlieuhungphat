@@ -96,6 +96,21 @@ export function Chatbot() {
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [state.messages, busy]);
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setState((current) => ({
+          ...current,
+          open: false,
+          minimized: false,
+        }));
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   function updateDraft(value: string) {
     setState((current) => ({ ...current, draft: value }));
   }
@@ -236,7 +251,7 @@ export function Chatbot() {
             onClick={openChat}
           >
             <span className="chatbot-launcher-avatar" aria-hidden="true">
-              <Image src={chatbotAvatar} alt="" fill sizes="56px" priority />
+              <Image src={chatbotAvatar} alt="" fill sizes="56px" />
             </span>
             <span className="chatbot-launcher-badge" aria-hidden="true">
               <MessageSquareMore size={12} />
@@ -257,7 +272,7 @@ export function Chatbot() {
             <header className="chatbot-header">
               <div className="chatbot-title">
                 <span className="chatbot-avatar">
-                  <Image src={chatbotAvatar} alt="Avatar chatbot Hưng Phát" fill sizes="38px" priority />
+                  <Image src={chatbotAvatar} alt="Avatar chatbot Hưng Phát" fill sizes="38px" />
                 </span>
                 <div>
                   <strong>Hưng Phát Assistant</strong>
@@ -280,7 +295,13 @@ export function Chatbot() {
                   className="icon-button"
                   type="button"
                   aria-label="Đóng chatbot"
-                  onClick={() => setState((current) => ({ ...current, open: false }))}
+                  onClick={() =>
+                    setState((current) => ({
+                      ...current,
+                      open: false,
+                      minimized: false,
+                    }))
+                  }
                 >
                   <X size={18} />
                 </button>
@@ -296,11 +317,7 @@ export function Chatbot() {
                         <p>{message.text}</p>
                       </div>
                     ))
-                  ) : (
-                    <div className="chatbot-empty-state">
-                      <p>Gõ nội dung cần hỗ trợ bên dưới, em sẽ chuyển cho nhân viên phụ trách.</p>
-                    </div>
-                  )}
+                  ) : null}
                   {busy ? (
                     <div className="chatbot-message assistant chatbot-message-loading" aria-live="polite">
                       <p>
@@ -316,7 +333,7 @@ export function Chatbot() {
 
                 <form className="chatbot-compose" onSubmit={sendMessage}>
                   <label className="field chatbot-compose-field">
-                    <span>Nội dung chat</span>
+                    <span className="sr-only">Nội dung chat</span>
                     <textarea
                       value={state.draft}
                       onChange={(event) => updateDraft(event.target.value)}
@@ -326,18 +343,12 @@ export function Chatbot() {
                   </label>
 
                   <div className="chatbot-compose-actions">
-                    <small className="chatbot-compose-hint">Nhấn Enter để gửi, Shift+Enter để xuống dòng.</small>
                     <button className="button button-primary" type="submit" disabled={busy || !state.draft.trim()}>
                       {busy ? <LoaderCircle className="spinner" size={18} /> : <SendHorizontal size={18} />}
                       {busy ? "Đang gửi..." : "Gửi"}
                     </button>
                   </div>
                 </form>
-
-                <div className="chatbot-footer-note">
-                  <MessageSquareMore size={16} />
-                  <span>Em chỉ chuyển nội dung anh nhập cho nhân viên phụ trách.</span>
-                </div>
               </div>
             ) : null}
           </motion.aside>

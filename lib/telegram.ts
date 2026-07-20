@@ -28,6 +28,14 @@ function normalizeNfc(value: string) {
   return value.normalize("NFC");
 }
 
+function firstNonEmpty(...values: Array<string | undefined | null>) {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return "";
+}
+
 function escapeTelegramHtml(value: string) {
   return normalizeNfc(value)
     .replace(/&/g, "&amp;")
@@ -46,8 +54,15 @@ export function formatTelegramLines(lines: Array<string | undefined | null>) {
 
 function getTelegramConfig() {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const quoteChatId = process.env.TELEGRAM_QUOTE_CHAT_ID?.trim();
-  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID?.trim();
+  const quoteChatId = firstNonEmpty(
+    process.env.TELEGRAM_QUOTE_CHAT_ID,
+    process.env.TELEGRAM_QUOTE_TOPIC_ID,
+  );
+  const adminChatId = firstNonEmpty(
+    process.env.TELEGRAM_ADMIN_CHAT_ID,
+    process.env.TELEGRAM_CHAT_ID,
+    process.env.TELEGRAM_CHAT_TOPIC_ID,
+  );
 
   if (!token || !quoteChatId || !adminChatId) {
     throw new TelegramConfigError("Thiếu cấu hình Telegram.");
