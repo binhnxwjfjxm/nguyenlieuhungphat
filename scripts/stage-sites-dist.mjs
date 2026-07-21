@@ -49,6 +49,17 @@ async function main() {
     await mkdir(path.dirname(hostingTarget), { recursive: true });
     await cp(hostingSource, hostingTarget);
   }
+  await rm(path.join(serverDir, "cache"), { recursive: true, force: true });
+  await rm(
+    path.join(
+      serverDir,
+      "server-functions",
+      "default",
+      ".next",
+      "cache",
+    ),
+    { recursive: true, force: true },
+  );
   if (await exists(pgStubDir)) {
     const stats = await lstat(pgStubDir);
     if (stats.isSymbolicLink()) {
