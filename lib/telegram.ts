@@ -6,6 +6,14 @@ type TelegramMessageOptions = {
   messageThreadId?: string | number | null;
 };
 
+type TelegramDocumentOptions = {
+  chatId: string;
+  document: Blob;
+  filename?: string;
+  caption?: string;
+  messageThreadId?: string | number | null;
+};
+
 export class TelegramConfigError extends Error {
   constructor(message: string) {
     super(message);
@@ -37,6 +45,14 @@ function firstNonEmpty(...values: Array<string | undefined | null>) {
   return "";
 }
 
+function getTelegramToken() {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) {
+    throw new TelegramConfigError("Thiếu cấu hình Telegram.");
+  }
+  return token;
+}
+
 function normalizeThreadId(value?: string | null) {
   const trimmed = value?.trim();
   if (!trimmed || !/^\d+$/.test(trimmed)) return undefined;
@@ -60,13 +76,13 @@ export function formatTelegramLines(lines: Array<string | undefined | null>) {
 }
 
 function getTelegramConfig() {
-  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const token = getTelegramToken();
   const quoteChatId = firstNonEmpty(process.env.TELEGRAM_QUOTE_CHAT_ID);
   const quoteThreadId = normalizeThreadId(process.env.TELEGRAM_QUOTE_TOPIC_ID);
   const adminChatId = firstNonEmpty(process.env.TELEGRAM_ADMIN_CHAT_ID, process.env.TELEGRAM_CHAT_ID);
   const adminThreadId = normalizeThreadId(process.env.TELEGRAM_CHAT_TOPIC_ID);
 
-  if (!token || !quoteChatId || !adminChatId) {
+  if (!quoteChatId || !adminChatId) {
     throw new TelegramConfigError("Thiếu cấu hình Telegram.");
   }
 
@@ -79,24 +95,24 @@ function getTelegramConfig() {
   };
 }
 
-export async function sendTelegramMessage({ chatId, text, messageThreadId }: TelegramMessageOptions) {
-  const { token } = getTelegramConfig();
+function getRecruitmentConfig() {
+  const hrChatId = firstNonEmpty(process.env.TELEGRAM_HR_CHAT_ID);
+  if (!hrChatId) {
+    throw new TelegramConfigError("Thiếu cấu hình Telegram tuyển dụng.");
+  }
+
+  return {
+    token: getTelegramToken(),
+    hrChatId,
+  };
+}
+
+async function fetchTelegramJson(url: string, init: RequestInit) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
-    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "content-type": "application/json; charset=utf-8" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        chat_id: chatId,
-        ...(messageThreadId ? { message_thread_id: messageThreadId } : {}),
-        text: normalizeNfc(text),
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    });
+    const response = await fetch(url, { ...init, signal: controller.signal });
 
     if (!response.ok) {
       let description = `Telegram responded with ${response.status}`;
@@ -126,6 +142,40 @@ export async function sendTelegramMessage({ chatId, text, messageThreadId }: Tel
   }
 }
 
+export async function sendTelegramMessage({ chatId, text, messageThreadId }: TelegramMessageOptions) {
+  const { token } = getTelegramConfig();
+  return fetchTelegramJson(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json; charset=utf-8" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      ...(messageThreadId ? { message_thread_id: messageThreadId } : {}),
+      text: normalizeNfc(text),
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
+  });
+}
+
+export async function sendTelegramDocument({ chatId, document, filename, caption, messageThreadId }: TelegramDocumentOptions) {
+  const token = getTelegramToken();
+  const formData = new FormData();
+  formData.append("chat_id", chatId);
+  if (messageThreadId) {
+    formData.append("message_thread_id", String(messageThreadId));
+  }
+  if (caption) {
+    formData.append("caption", normalizeNfc(caption));
+    formData.append("parse_mode", "HTML");
+  }
+  formData.append("document", document, filename ?? "cv");
+
+  return fetchTelegramJson(`https://api.telegram.org/bot${token}/sendDocument`, {
+    method: "POST",
+    body: formData,
+  });
+}
+
 export function escapeHtml(value: string) {
   return escapeTelegramHtml(value);
 }
@@ -138,4 +188,9 @@ export function getTelegramDestinations() {
     adminChatId,
     adminThreadId,
   };
+}
+
+export function getRecruitmentTelegramDestination() {
+  const { hrChatId } = getRecruitmentConfig();
+  return { hrChatId };
 }

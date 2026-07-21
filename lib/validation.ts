@@ -42,6 +42,31 @@ export type ChatRequestData = ChatRequestInput & {
   phoneNormalized: string;
 };
 
+export const recruitmentPositionOptions = [
+  { value: "kinh-doanh-b2b", label: "Kinh doanh B2B" },
+  { value: "kho-giao-nhan", label: "Điều phối kho & giao nhận" },
+  { value: "noi-dung-web", label: "Vận hành nội dung / web" },
+  { value: "khac", label: "Khác" },
+] as const;
+
+export type RecruitmentRequestInput = {
+  name: string;
+  phone: string;
+  email: string;
+  position: string;
+  experience: string;
+  cvLink: string;
+  note: string;
+  source: string;
+  pathname: string;
+  website: string;
+  honeypot: string;
+};
+
+export type RecruitmentRequestData = RecruitmentRequestInput & {
+  phoneNormalized: string;
+};
+
 export type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; code: string; error: string; fieldErrors?: FieldErrors };
@@ -252,7 +277,65 @@ export function validateChatInput(raw: Partial<ChatRequestInput>): ValidationRes
   return { ok: true, data };
 }
 
-export function createLeadCode(prefix: "HP" | "CHAT", now = new Date()) {
+export function validateRecruitmentInput(raw: Partial<RecruitmentRequestInput>): ValidationResult<RecruitmentRequestData> {
+  const data: RecruitmentRequestData = {
+    name: normalizeOptionalText(raw.name, 80),
+    phone: normalizeOptionalText(raw.phone, 40),
+    email: normalizeOptionalText(raw.email, 160),
+    position: normalizeSelectValue(raw.position, recruitmentPositionOptions.map((option) => option.value)),
+    experience: normalizeOptionalText(raw.experience, 1000),
+    cvLink: normalizeOptionalText(raw.cvLink, 300),
+    note: normalizeOptionalText(raw.note, 500),
+    source: normalizeOptionalText(raw.source, 80),
+    pathname: normalizeOptionalText(raw.pathname, 160),
+    website: normalizeOptionalText(raw.website, 160),
+    honeypot: normalizeOptionalText(raw.honeypot, 40),
+    phoneNormalized: "",
+  };
+
+  const fieldErrors: FieldErrors<keyof RecruitmentRequestInput> = {};
+
+  if (data.honeypot) {
+    return { ok: false, code: "BOT_DETECTED", error: "Yêu cầu không hợp lệ." };
+  }
+
+  if (data.name.length < 2 || data.name.length > 80) {
+    fieldErrors.name = "Họ tên phải từ 2 đến 80 ký tự.";
+  }
+
+  data.phoneNormalized = normalizePhone(data.phone);
+  if (!isValidVietnamPhone(data.phoneNormalized)) {
+    fieldErrors.phone = "Số điện thoại phải đúng định dạng Việt Nam.";
+  }
+
+  if (data.email && !isValidEmail(data.email)) {
+    fieldErrors.email = "Email chưa đúng định dạng.";
+  }
+
+  if (!data.position) {
+    fieldErrors.position = "Vui lòng chọn vị trí ứng tuyển.";
+  }
+
+  if (data.experience.length < 2 || data.experience.length > 1000) {
+    fieldErrors.experience = "Kinh nghiệm / điểm mạnh phải từ 2 đến 1000 ký tự.";
+  }
+
+  if (data.cvLink.length > 300) {
+    fieldErrors.cvLink = "Link CV tối đa 300 ký tự.";
+  }
+
+  if (data.note.length > 500) {
+    fieldErrors.note = "Ghi chú tối đa 500 ký tự.";
+  }
+
+  if (Object.keys(fieldErrors).length) {
+    return { ok: false, code: "VALIDATION_ERROR", error: "Dữ liệu chưa hợp lệ.", fieldErrors };
+  }
+
+  return { ok: true, data };
+}
+
+export function createLeadCode(prefix: "HP" | "CHAT" | "HR", now = new Date()) {
   const date = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Ho_Chi_Minh",
     year: "numeric",

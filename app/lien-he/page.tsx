@@ -36,8 +36,8 @@ export default function LienHePage() {
             <a href="tel:0900123456">
               <Phone size={18} /> 0900 123 456
             </a>
-            <a href="mailto:info@hungphat.com">
-              <Mail size={18} /> info@hungphat.com
+            <a href="mailto:baogia@nguyenlieuhungphat.com">
+              <Mail size={18} /> baogia@nguyenlieuhungphat.com
             </a>
             <p>
               <MapPin size={18} /> TP. Hồ Chí Minh, Việt Nam

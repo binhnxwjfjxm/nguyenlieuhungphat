@@ -15,6 +15,7 @@ export const navigation = [
   { label: "Tin tức sự kiện", href: "/nganh-hang" },
   { label: "Sản phẩm", href: "/san-pham" },
   { label: "Liên hệ", href: "/lien-he" },
+  { label: "Tuyển dụng", href: "/tuyen-dung" },
 ];
 
 export const stats = [

@@ -10,6 +10,7 @@ const footerGroups = [
       { label: "Giới thiệu", href: "/gioi-thieu" },
       { label: "Tin tức & Sự kiện", href: "/nganh-hang" },
       { label: "Danh mục sản phẩm", href: "/san-pham" },
+      { label: "Tuyển dụng", href: "/tuyen-dung" },
     ],
   },
   {
@@ -73,8 +74,8 @@ export function Footer() {
           <a href="tel:0900123456">
             <Phone size={17} /> 0900 123 456
           </a>
-          <a href="mailto:info@hungphat.com">
-            <Mail size={17} /> info@hungphat.com
+          <a href="mailto:baogia@nguyenlieuhungphat.com">
+            <Mail size={17} /> baogia@nguyenlieuhungphat.com
           </a>
           <p>
             <MapPin size={17} /> TP. Hồ Chí Minh, Việt Nam

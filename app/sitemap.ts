@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     { url: `${baseUrl}/san-pham`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/lien-he`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/tuyen-dung`, changeFrequency: "monthly", priority: 0.75 },
     ...products.map((product) => ({
       url: `${baseUrl}/san-pham/${product.slug}`,
       changeFrequency: "monthly" as const,
