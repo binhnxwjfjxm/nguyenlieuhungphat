@@ -93,6 +93,8 @@ img {
   background: rgba(42, 69, 56, 0.94);
   color: #fff;
   backdrop-filter: blur(18px);
+  isolation: isolate;
+  overflow: visible;
 }
 
 .header-inner {
@@ -172,6 +174,8 @@ img {
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
+  z-index: 2;
 }
 
 .mobile-actions,
@@ -190,6 +194,8 @@ img {
   color: #fff;
   cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  position: relative;
+  z-index: 3;
 }
 
 .icon-button:hover {
@@ -2735,7 +2741,7 @@ body {
 }
 
 .site-header {
-  overflow: clip;
+  overflow: visible;
 }
 
 .mobile-menu {
@@ -2745,6 +2751,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(180deg, rgba(11, 61, 48, 0.98), rgba(11, 61, 48, 0.96));
   box-shadow: 0 22px 42px rgba(11, 61, 48, 0.24);
+  z-index: 1;
 }
 
 .mobile-menu-nav {
@@ -2963,6 +2970,7 @@ body {
 
   .site-header {
     background: rgba(11, 61, 48, 0.98);
+    overflow: visible;
   }
 
   .mobile-menu-nav {
