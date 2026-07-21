@@ -36,7 +36,7 @@ async function main() {
   await rm(distDir, { recursive: true, force: true });
   await mkdir(serverDir, { recursive: true });
 
-  await cp(outputDir, serverDir, { recursive: true });
+  await cp(outputDir, serverDir, { recursive: true, dereference: true });
   if (await exists(hostingSource)) {
     await mkdir(path.dirname(hostingTarget), { recursive: true });
     await cp(hostingSource, hostingTarget);
