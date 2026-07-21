@@ -102,7 +102,7 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
           <p className="product-origin">
             <MapPin size={13} /> {product.origin}
           </p>
-          <span className="product-code">{product.englishName}</span>
+          {product.brand ? <span className="product-brand">{product.brand}</span> : null}
         </div>
         <h3>
           {clickable ? (
@@ -114,8 +114,8 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
         <p className={`product-summary${compact ? " product-summary-compact" : ""}`}>{product.shortDescription}</p>
 
         <div className="product-card-metadata">
+          <span>{product.origin}</span>
           <span>{product.category}</span>
-          <span>{product.packaging}</span>
         </div>
 
         <div className="product-card-actions">

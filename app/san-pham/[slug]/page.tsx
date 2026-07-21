@@ -43,11 +43,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    alternateName: product.englishName,
     image: [getAbsoluteUrl(product.image)],
     description: product.shortDescription,
     category: product.category,
-    brand: { "@type": "Brand", name: "Hưng Phát" },
+    brand: { "@type": "Brand", name: product.brand || "Hưng Phát" },
   };
 
   return (
@@ -59,7 +58,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <nav className="breadcrumbs" aria-label="Đường dẫn">
             <Link href="/">Trang chủ</Link>
             <span>/</span>
-            <Link href="/san-pham">Ngành hàng</Link>
+            <Link href="/san-pham">Danh mục sản phẩm</Link>
             <span>/</span>
             <span>{product.name}</span>
           </nav>
@@ -71,7 +70,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="product-detail-copy">
               <p className="eyebrow">{product.category}</p>
               <h1 className="gradient-heading">{product.name}</h1>
-              <p className="product-detail-english">{product.englishName}</p>
+              {product.brand ? <p className="product-detail-brand">{product.brand}</p> : null}
               <p className="product-detail-lead">{product.shortDescription}</p>
 
               <div className="product-meta-grid">
@@ -84,9 +83,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div>
                   <Package size={20} />
                   <span>
-                    Nhóm<strong>{product.packaging}</strong>
+                    Nhóm hàng<strong>{product.category}</strong>
                   </span>
                 </div>
+                {product.brand ? (
+                  <div>
+                    <MapPin size={20} />
+                    <span>
+                      Thương hiệu<strong>{product.brand}</strong>
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               <div className="product-detail-actions">
@@ -176,11 +183,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {relatedProducts.length ? (
         <section className="section related-products-section">
           <div className="container">
-            <div className="section-heading split-heading">
-              <div>
-                <p className="eyebrow">GỢI Ý THÊM</p>
-                <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
-              </div>
+          <div className="section-heading split-heading">
+            <div>
+              <p className="eyebrow">GỢI Ý THÊM</p>
+              <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
+            </div>
               <Link className="text-link" href="/san-pham">
                 <ArrowLeft size={17} /> Xem toàn bộ
               </Link>

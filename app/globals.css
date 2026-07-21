@@ -1860,6 +1860,12 @@ img {
   text-transform: uppercase;
 }
 
+.product-brand {
+  color: var(--green-dark);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .product-summary {
   margin: 8px 0 12px;
   color: var(--muted);

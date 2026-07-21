@@ -209,7 +209,7 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
           <textarea
             value={form.product}
             onChange={(event) => updateField("product", event.target.value)}
-            placeholder="Ví dụ: trân châu, syrup, gói sốt mì cay, bao bì, hàng đông lạnh... hoặc mô tả nhu cầu cụ thể"
+            placeholder="Ví dụ: trân châu, syrup, gói sốt mì cay, hàng đông lạnh... hoặc mô tả nhu cầu cụ thể"
             rows={inline ? 4 : 5}
           />
           {errors.product ? <em>{errors.product}</em> : null}

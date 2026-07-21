@@ -386,9 +386,18 @@
   line-height: 1.8;
 }
 
+.product-detail-brand {
+  margin: 10px 0 0;
+  color: var(--green-dark);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .product-meta-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin: 30px 0;
 }

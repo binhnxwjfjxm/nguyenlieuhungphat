@@ -5,6 +5,7 @@ export type Product = {
   slug: string;
   name: string;
   englishName: string;
+  brand?: string;
   category: string;
   categorySlug: string;
   image: string;
@@ -28,7 +29,7 @@ export const productCategories: ProductCategory[] = [
   {
     slug: "nguyen-lieu-pha-che",
     title: "Nguyên liệu pha chế",
-    description: "Nhóm nguyên liệu phục vụ trà sữa, cà phê, đá xay và các món đồ uống.",
+    description: "Nhóm nguyên liệu cho trà sữa, cà phê, đá xay và các món đồ uống.",
   },
   {
     slug: "nguyen-lieu-mi-cay",
@@ -47,51 +48,59 @@ function normalizeText(value: string) {
 }
 
 function getCategorySlug(industryCode: string) {
+  if (industryCode === "TS") return "nguyen-lieu-pha-che";
+  if (industryCode === "MC") return "nguyen-lieu-mi-cay";
   if (industryCode === "DL") return "hang-dong-lanh";
-  return "nguyen-lieu-pha-che";
+  return "";
 }
 
-function buildProduct(productPlan: (typeof productPlans)[number]): Product {
+function getIndustryName(industryCode: string, industryName: string) {
+  const normalized = normalizeText(industryName);
+  if (industryCode === "TS") return normalized || "Trà sữa và pha chế";
+  if (industryCode === "MC") return normalized || "Nguyên liệu mì cay";
+  if (industryCode === "DL") return normalized || "Đông lạnh";
+  return "";
+}
+
+function buildProduct(productPlan: (typeof productPlans)[number]): Product | null {
+  const categorySlug = getCategorySlug(productPlan.industry_code);
+  if (!categorySlug) return null;
+
   const productId = normalizeText(productPlan.new_product_id);
   const productName = normalizeText(productPlan.old_name);
-  const industryName = normalizeText(productPlan.industry_name);
+  const brand = normalizeText(productPlan.old_brand);
+  const industryName = getIndustryName(productPlan.industry_code, productPlan.industry_name);
   const groupName = normalizeText(productPlan.group_name);
-  const planStatus = normalizeText(productPlan.plan_status);
   const imagePath = normalizeText(productPlan.new_r2_object_path);
 
   return {
     slug: productId.toLowerCase(),
     name: productName,
     englishName: `Mã ${productId}`,
+    brand: brand || undefined,
     category: groupName,
-    categorySlug: getCategorySlug(productPlan.industry_code),
+    categorySlug,
     image: getSiteAssetUrl(imagePath, "/images/hero-materials.svg"),
-    shortDescription: `Sản phẩm thật thuộc nhóm ${groupName} trong ngành ${industryName}.`,
-    description: `Dữ liệu dựng từ plan CSV. Mã cũ ${normalizeText(productPlan.old_product_key)}. Ảnh mới ${normalizeText(productPlan.new_file_name)}. Trạng thái ${planStatus}.`,
+    shortDescription: `Phù hợp nhập sỉ cho quán, cửa hàng và đại lý trong nhóm ${groupName.toLowerCase()}.`,
+    description: `Dòng ${groupName.toLowerCase()} thuộc ngành ${industryName.toLowerCase()}, tối ưu cho mô hình mua sỉ, phân phối và bán lại.`,
     origin: industryName,
     packaging: groupName,
-    applications: [industryName, planStatus === "LOCKED_FROM_EXCEL_BATCH_01" ? "Đã xác minh" : "Cần duyệt"],
+    applications: [industryName, groupName, "Mua sỉ"],
     features: [
-      `Mã sản phẩm: ${productId}`,
-      `Mã ảnh: ${normalizeText(productPlan.new_image_key)}`,
-      `Trạng thái: ${planStatus}`,
+      "Phù hợp quán, cửa hàng và đại lý",
+      "Báo giá theo nhu cầu",
+      "Hỗ trợ đặt hàng số lượng lớn",
     ],
     specifications: [
-      { label: "Mã cũ", value: normalizeText(productPlan.old_product_key) },
-      { label: "Tên cũ", value: productName },
-      { label: "Mã ảnh cũ", value: normalizeText(productPlan.old_image_key) },
-      { label: "Mã ảnh mới", value: normalizeText(productPlan.new_image_key) },
-      { label: "File ảnh mới", value: normalizeText(productPlan.new_file_name) },
-      { label: "R2 object path", value: imagePath },
       { label: "Ngành hàng", value: industryName },
-      { label: "Nhóm", value: groupName },
-      { label: "Trạng thái", value: planStatus },
+      { label: "Nhóm hàng", value: groupName },
+      { label: "Thương hiệu", value: brand || "Hưng Phát" },
     ],
     featured: productPlan.stt <= 12,
   };
 }
 
-export const products = productPlans.map(buildProduct);
+export const products = productPlans.map(buildProduct).filter((product): product is Product => Boolean(product));
 
 export const featuredProducts = products.filter((product) => product.featured);
 

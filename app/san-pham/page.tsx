@@ -5,13 +5,13 @@ import { productApplications, productCategories, productOrigins, products } from
 import { getAbsoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Ngành hàng",
+  title: "Danh mục sản phẩm",
   description:
-    "Ba ngành hàng chính của Hưng Phát: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.",
+    "Danh mục sản phẩm Hưng Phát dành cho khách mua sỉ, quán, cửa hàng và đại lý.",
   alternates: { canonical: "/san-pham" },
   openGraph: {
-    title: "Ngành hàng Hưng Phát",
-    description: "Ba ngành hàng chính của Hưng Phát.",
+    title: "Danh mục sản phẩm Hưng Phát",
+    description: "Danh mục sản phẩm Hưng Phát dành cho khách mua sỉ, quán, cửa hàng và đại lý.",
     url: getAbsoluteUrl("/san-pham"),
   },
 };
@@ -27,9 +27,9 @@ export default async function ProductsPage({
     <main className="catalog-page">
       <section className="catalog-hero">
         <div className="container catalog-hero-inner">
-          <p className="eyebrow">NGÀNH HÀNG</p>
-          <h1 className="gradient-heading">Tìm đúng nhóm hàng</h1>
-          <p>Tìm theo tên ngành hàng hoặc nhu cầu để vào đúng nhóm nhanh hơn.</p>
+          <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
+          <h1 className="gradient-heading">Tìm nguyên liệu phù hợp</h1>
+          <p>Tìm theo tên, nhóm hàng hoặc nhu cầu để vào đúng danh mục nhanh hơn cho quán, cửa hàng và đại lý.</p>
         </div>
       </section>
 

@@ -25,14 +25,14 @@ export function Header() {
         </nav>
 
         <div className="desktop-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm ngành hàng">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm sản phẩm">
             <Search size={19} />
           </HapticLink>
           <QuoteButton className="button button-surface">Nhận báo giá</QuoteButton>
         </div>
 
         <div className="mobile-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm ngành hàng">
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm sản phẩm">
             <Search size={20} />
           </HapticLink>
           <button

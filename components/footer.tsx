@@ -5,15 +5,15 @@ import { QuoteButton } from "./quote-trigger";
 
 const footerGroups = [
   {
-    title: "Về chúng tôi",
+    title: "Khám phá",
     links: [
       { label: "Giới thiệu", href: "/gioi-thieu" },
-      { label: "Ngành hàng", href: "/nganh-hang" },
-      { label: "Sản phẩm", href: "/san-pham" },
+      { label: "Tin tức & Sự kiện", href: "/nganh-hang" },
+      { label: "Danh mục sản phẩm", href: "/san-pham" },
     ],
   },
   {
-    title: "Ngành hàng",
+    title: "Danh mục nổi bật",
     links: categories.map((category) => ({
       label: category.title,
       href: `/nganh-hang/${category.slug}`,

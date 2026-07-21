@@ -49,7 +49,6 @@ export type ValidationResult<T> =
 export const quoteNeedOptions = [
   { value: "tra-sua", label: "Trà sữa" },
   { value: "mi-cay", label: "Mì cay" },
-  { value: "bao-bi", label: "Bao bì" },
   { value: "khac", label: "Khác" },
 ] as const;
 

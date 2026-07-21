@@ -93,7 +93,7 @@ export default function NganhHangPage() {
           <p className="eyebrow">TIN TỨC &amp; SỰ KIỆN</p>
           <h1 className="gradient-heading">F&amp;B hôm nay</h1>
           <p>
-            Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý để Sếp nắm bối cảnh thị trường mà không phải lướt quá
+            Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý để nắm bối cảnh thị trường mà không phải lướt quá
             nhiều nguồn rời rạc.
           </p>
           <div className="page-hero-points news-hero-points">

@@ -59,13 +59,6 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
 
       <section className="section">
         <div className="container">
-          <Reveal>
-            <div className="catalog-empty">
-              <PackageSearch size={34} />
-              <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
-              <p>Gửi nhu cầu để nhận tư vấn. Khi có sản phẩm phù hợp, chúng tôi sẽ cập nhật vào trang này.</p>
-            </div>
-          </Reveal>
           {categoryProducts.length ? (
             <div className="section-spaced">
               <div className="section-heading split-heading">
@@ -83,7 +76,15 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
                 ))}
               </div>
             </div>
-          ) : null}
+          ) : (
+            <Reveal>
+              <div className="catalog-empty">
+                <PackageSearch size={34} />
+                <h2 className="gradient-heading">Chưa có sản phẩm phù hợp</h2>
+                <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
+              </div>
+            </Reveal>
+          )}
         </div>
       </section>
 

@@ -50,7 +50,7 @@ export function ProductCatalog({
       const searchable = normalizeSearchText(
         [
           product.name,
-          product.englishName,
+          product.brand ?? "",
           product.category,
           product.origin,
           product.packaging,
@@ -145,7 +145,7 @@ export function ProductCatalog({
           <Search size={19} />
           <input
             type="search"
-            placeholder="Tìm ngành hàng, nhu cầu..."
+            placeholder="Tìm sản phẩm, nhu cầu..."
             value={query}
             onChange={(event) => updateQuery(event.target.value)}
           />
@@ -287,22 +287,26 @@ export function ProductCatalog({
               <div className="product-modal-copy">
                 <p className="eyebrow">{selectedPreview.origin}</p>
                 <h2 id="product-preview-title">{selectedPreview.name}</h2>
-                <p className="product-modal-code">{selectedPreview.englishName}</p>
+                <p className="product-modal-code">{selectedPreview.brand ?? selectedPreview.origin}</p>
                 <p className="product-modal-summary">{selectedPreview.shortDescription}</p>
 
                 <div className="product-modal-meta">
                   <div>
-                    <span>Nhóm</span>
+                    <span>Ngành hàng</span>
+                    <strong>{selectedPreview.origin}</strong>
+                  </div>
+                  <div>
+                    <span>Nhóm hàng</span>
                     <strong>{selectedPreview.category}</strong>
                   </div>
                   <div>
-                    <span>Trạng thái</span>
-                    <strong>{selectedPreview.featured ? "Nổi bật" : "Danh mục"}</strong>
+                    <span>Thương hiệu</span>
+                    <strong>{selectedPreview.brand ?? "Hưng Phát"}</strong>
                   </div>
                 </div>
 
                 <div className="product-modal-specs">
-                  {selectedPreview.specifications.slice(0, 4).map((specification) => (
+                  {selectedPreview.specifications.map((specification) => (
                     <div key={specification.label}>
                       <span>{specification.label}</span>
                       <strong>{specification.value}</strong>
