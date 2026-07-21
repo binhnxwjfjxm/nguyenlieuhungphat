@@ -68,6 +68,7 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
             alt={product.name}
             fill
             sizes="(max-width: 720px) 50vw, (max-width: 1080px) 33vw, 25vw"
+            style={{ objectFit: compact ? "contain" : "cover", objectPosition: "center center" }}
           />
           <span className="product-tag">{product.category}</span>
         </div>
@@ -78,25 +79,31 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
             alt={product.name}
             fill
             sizes="(max-width: 720px) 50vw, (max-width: 1080px) 33vw, 25vw"
+            style={{ objectFit: compact ? "contain" : "cover", objectPosition: "center center" }}
           />
           <span className="product-tag">{product.category}</span>
         </HapticLink>
       )}
 
-      <button
-        className={`save-button${saved ? " is-saved" : ""}`}
-        type="button"
-        aria-label={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-        aria-pressed={saved}
-        onClick={toggleSaved}
-      >
-        <Heart size={18} fill={saved ? "currentColor" : "none"} />
-      </button>
+      {compact ? null : (
+        <button
+          className={`save-button${saved ? " is-saved" : ""}`}
+          type="button"
+          aria-label={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+          aria-pressed={saved}
+          onClick={toggleSaved}
+        >
+          <Heart size={18} fill={saved ? "currentColor" : "none"} />
+        </button>
+      )}
 
       <div className="product-card-body">
-        <p className="product-origin">
-          <MapPin size={13} /> {product.origin}
-        </p>
+        <div className="product-card-topline">
+          <p className="product-origin">
+            <MapPin size={13} /> {product.origin}
+          </p>
+          <span className="product-code">{product.englishName}</span>
+        </div>
         <h3>
           {clickable ? (
             <span className="product-card-title">{product.name}</span>
@@ -104,7 +111,12 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
             <HapticLink href={`/san-pham/${product.slug}`}>{product.name}</HapticLink>
           )}
         </h3>
-        {!compact ? <p className="product-summary">{product.shortDescription}</p> : null}
+        <p className={`product-summary${compact ? " product-summary-compact" : ""}`}>{product.shortDescription}</p>
+
+        <div className="product-card-metadata">
+          <span>{product.category}</span>
+          <span>{product.packaging}</span>
+        </div>
 
         <div className="product-card-actions">
           {clickable ? null : (

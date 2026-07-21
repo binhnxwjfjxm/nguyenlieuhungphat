@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, PackageSearch } from "lucide-react";
+import { ProductCard } from "@/components/product-card";
 import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
@@ -66,10 +67,21 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             </div>
           </Reveal>
           {categoryProducts.length ? (
-            <div className="product-grid" style={{ marginTop: "24px" }}>
-              {categoryProducts.map((product) => (
-                <article key={product.slug}>{product.name}</article>
-              ))}
+            <div className="section-spaced">
+              <div className="section-heading split-heading">
+                <div>
+                  <p className="eyebrow">SẢN PHẨM CÙNG NHÓM</p>
+                  <h2 className="gradient-heading">Danh sách phù hợp</h2>
+                </div>
+                <span className="section-kicker">{categoryProducts.length} sản phẩm</span>
+              </div>
+              <div className="product-grid product-grid-tight">
+                {categoryProducts.map((product, index) => (
+                  <Reveal key={product.slug} delay={index * 0.04}>
+                    <ProductCard compact product={product} />
+                  </Reveal>
+                ))}
+              </div>
             </div>
           ) : null}
         </div>

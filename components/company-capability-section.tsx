@@ -12,9 +12,9 @@ export function CompanyCapabilitySection() {
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
-              <h2 className="gradient-heading">Thương mại &amp; phân phối</h2>
+              <h2 className="gradient-heading">Kho, trưng bày &amp; giao nhận</h2>
               <p>
-                Hưng Phát kết nối nguồn hàng, tổ chức danh mục và hỗ trợ giao nhận để phục vụ nhu cầu nhập hàng của cửa hàng, đại lý và đối tác kinh doanh.
+                Ảnh thật từ kho, khu trưng bày và luồng giao nhận giúp khách nhìn vào là thấy ngay năng lực vận hành của Hưng Phát.
               </p>
             </div>
             <QuoteButton className="text-link desktop-only-link capability-quote-link" seed={{ source: "capability-section" }}>
@@ -26,16 +26,17 @@ export function CompanyCapabilitySection() {
         <div className="capability-grid">
           <Reveal>
             <article className="capability-card capability-card-large">
-              <div className="capability-image-wrap">
+              <div className="capability-image-wrap capability-image-wrap-large">
                 <ResponsiveAssetPicture
                   className="capability-picture"
                   imgClassName="capability-picture-img"
-                  alt="Hình ảnh giới thiệu năng lực thương mại và phân phối của Hưng Phát"
+                  alt="Hình ảnh giới thiệu năng lực kho trưng bày của Hưng Phát"
                   desktopSrc={siteAssets.warehouse.capability}
                   desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
                   priority={false}
                   imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                 />
+                <span className="capability-image-label">Kho trưng bày</span>
               </div>
               <div className="capability-copy">
                 <span className="capability-icon">
@@ -77,6 +78,7 @@ export function CompanyCapabilitySection() {
                     desktopFallbackSrc={siteAssetFallbacks.warehouse.one}
                     imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
+                  <span className="capability-image-label">Kho hàng</span>
                 </div>
                 <div className="capability-mini-copy">
                   <Warehouse size={17} />
@@ -95,6 +97,7 @@ export function CompanyCapabilitySection() {
                     desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
                     imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                   />
+                  <span className="capability-image-label">Giao nhận</span>
                 </div>
                 <div className="capability-mini-copy">
                   <Route size={17} />

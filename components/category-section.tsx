@@ -20,6 +20,19 @@ const categoryAssetBySlug = {
   },
 } as const;
 
+const interestTags = [
+  "Siro",
+  "Trà",
+  "Bột pha chế",
+  "Trân châu",
+  "Thạch",
+  "Topping",
+  "Sốt mì cay",
+  "Viên thả lẩu",
+  "Hải sản",
+  "Dim sum",
+];
+
 export function CategorySection() {
   const [featured, ...otherCategories] = categories;
 
@@ -100,6 +113,25 @@ export function CategorySection() {
             })}
           </div>
         </div>
+      </div>
+
+      <div className="container">
+        <Reveal delay={0.05}>
+          <div className="category-interest-strip">
+            <div className="category-interest-copy">
+              <p className="eyebrow">DANH MỤC ĐƯỢC QUAN TÂM</p>
+              <h3>Những nhóm hàng chạy nhanh cho cửa hàng, quán và đại lý</h3>
+            </div>
+
+            <div className="interest-chip-row" aria-label="Danh mục được quan tâm">
+              {interestTags.map((tag) => (
+                <span className="interest-chip" key={tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
