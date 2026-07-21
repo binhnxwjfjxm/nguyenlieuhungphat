@@ -30,11 +30,17 @@ async function findOutputDir() {
 
 async function main() {
   const outputDir = await findOutputDir();
+  const hostingSource = path.join(projectDir, ".openai", "hosting.json");
+  const hostingTarget = path.join(distDir, ".openai", "hosting.json");
 
   await rm(distDir, { recursive: true, force: true });
   await mkdir(serverDir, { recursive: true });
 
   await cp(outputDir, serverDir, { recursive: true });
+  if (await exists(hostingSource)) {
+    await mkdir(path.dirname(hostingTarget), { recursive: true });
+    await cp(hostingSource, hostingTarget);
+  }
 
   const workerFile = path.join(serverDir, "worker.js");
   const entryFile = path.join(serverDir, "index.js");
