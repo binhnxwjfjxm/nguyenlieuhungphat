@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, CalendarDays, Sparkles, TrendingUp } from "lucide-react";
+import Image from "next/image";
+import { CalendarDays, Sparkles, TrendingUp } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/site";
+import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
 
@@ -10,36 +12,60 @@ const newsItems = [
     title: "AI trở thành 'gia vị' mới trong F&B Việt Nam",
     summary:
       "VietnamPlus cho thấy doanh nghiệp đang ưu tiên các dự án ngắn hạn như kiểm soát chất lượng, dự báo nhu cầu và chatbot chăm sóc khách hàng.",
+    image: siteAssets.categories.industrial,
+    imageFallback: siteAssetFallbacks.categories.industrial,
     source: "VietnamPlus",
     date: "22/04/2026",
-    href: "https://en.vietnamplus.vn/ai-emerges-as-key-driver-for-vietnams-fb-sector-breakthrough-post341587.vnp",
+    highlights: [
+      "AI được xem là một phần của tái cấu trúc chuỗi giá trị.",
+      "Ưu tiên dự án có hiệu quả nhanh trong 6-12 tháng.",
+      "Tập trung kiểm soát chất lượng, dự báo và chăm sóc khách hàng.",
+    ],
   },
   {
     badge: "Báo cáo",
     title: "Thị trường F&B chuyển sang tăng trưởng bền vững",
     summary:
       "Báo cáo của VietnamPlus ghi nhận thị trường vẫn mở rộng, nhưng biên lợi nhuận mỏng hơn và người tiêu dùng chọn giá trị thực thay vì chạy theo trào lưu.",
+    image: siteAssets.categories.food,
+    imageFallback: siteAssetFallbacks.categories.food,
     source: "VietnamPlus",
     date: "19/03/2025",
-    href: "https://en.vietnamplus.vn/vietnams-fb-market-focuses-on-sustainable-growth-post311854.vnp",
+    highlights: [
+      "Khảo sát trên 4.005 nhà hàng và quán cà phê.",
+      "52,8% doanh nghiệp tránh theo trend ngắn hạn.",
+      "Nhu cầu chất lượng và giá hợp lý được ưu tiên hơn.",
+    ],
   },
   {
     badge: "Sự kiện",
     title: "Future Menus Hà Nội 2026 mở ra hướng đi mới",
     summary:
       "Thanh Niên nói về một sự kiện F&B hướng tới đầu bếp và nhà quản trị đang cần công thức thích nghi trong giai đoạn biến động.",
+    image: siteAssets.warehouse.one,
+    imageFallback: siteAssetFallbacks.warehouse.one,
     source: "Thanh Niên",
     date: "17/07/2026",
-    href: "https://thanhnien.vn/future-menus-ha-noi-2026-mo-ra-huong-di-moi-cho-nganh-fb-bien-dong-tags1853716.html",
+    highlights: [
+      "Nhấn vào công thức thích nghi trong giai đoạn biến động.",
+      "Phù hợp với đầu bếp, nhà quản trị và người làm menu.",
+      "Dữ liệu và xu hướng đang dẫn dắt quyết định vận hành.",
+    ],
   },
   {
     badge: "Case study",
     title: "Ngọc Phương Nam: ẩm thực gắn với trải nghiệm",
     summary:
       "Một case study về vận hành, chất lượng nguyên liệu và trải nghiệm khách hàng trong mô hình nhà hàng quy mô lớn tại Hạ Long.",
+    image: siteAssets.warehouse.two,
+    imageFallback: siteAssetFallbacks.warehouse.two,
     source: "Thanh Niên",
     date: "17/07/2026",
-    href: "https://thanhnien.vn/dau-an-ngoc-phuong-nam-khi-am-thuc-hoa-quyen-cung-trai-nghiem-giua-long-ky-quan-185260717162525844.htm",
+    highlights: [
+      "Bài toán vận hành gắn chặt với trải nghiệm tại chỗ.",
+      "Chất lượng nguyên liệu quyết định cảm nhận khách hàng.",
+      "Mô hình quy mô lớn cần quy trình rõ và ổn định.",
+    ],
   },
 ] as const;
 
@@ -99,12 +125,17 @@ export default function NganhHangPage() {
 
           <div className="news-layout">
             <Reveal>
-              <a
-                className="news-feature-card"
-                href={featured.href}
-                rel="noreferrer"
-                target="_blank"
-              >
+              <article className="news-feature-card">
+                <div className="news-image-wrap news-image-wrap-large">
+                  <Image
+                    src={featured.image}
+                    alt={featured.title}
+                    fill
+                    priority
+                    sizes="(max-width: 900px) 100vw, 55vw"
+                    className="news-image"
+                  />
+                </div>
                 <div className="news-feature-topline">
                   <span className="news-badge">{featured.badge}</span>
                   <span className="news-meta">
@@ -114,19 +145,30 @@ export default function NganhHangPage() {
                 </div>
                 <h3>{featured.title}</h3>
                 <p>{featured.summary}</p>
+                <ul className="news-points">
+                  {featured.highlights.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
                 <div className="news-feature-footer">
                   <span className="news-source">{featured.source}</span>
-                  <span className="news-link">
-                    Đọc nguồn <ArrowUpRight size={16} />
-                  </span>
                 </div>
-              </a>
+              </article>
             </Reveal>
 
             <div className="news-stack">
               {stackItems.map((item, index) => (
                 <Reveal key={item.title} delay={index * 0.05}>
-                  <a className="news-card" href={item.href} rel="noreferrer" target="_blank">
+                  <article className="news-card">
+                    <div className="news-image-wrap">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 900px) 100vw, 30vw"
+                        className="news-image"
+                      />
+                    </div>
                     <div className="news-card-topline">
                       <span className="news-badge">{item.badge}</span>
                       <span className="news-meta">
@@ -136,13 +178,15 @@ export default function NganhHangPage() {
                     </div>
                     <h3>{item.title}</h3>
                     <p>{item.summary}</p>
+                    <ul className="news-points news-points-compact">
+                      {item.highlights.map((point) => (
+                        <li key={point}>{point}</li>
+                      ))}
+                    </ul>
                     <div className="news-card-footer">
                       <span className="news-source">{item.source}</span>
-                      <span className="news-link">
-                        Mở nguồn <ArrowUpRight size={16} />
-                      </span>
                     </div>
-                  </a>
+                  </article>
                 </Reveal>
               ))}
             </div>
