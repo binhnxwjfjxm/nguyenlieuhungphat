@@ -1,4 +1,4 @@
-import { access, cp, mkdir, rename, rm } from "node:fs/promises";
+import { access, cp, lstat, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
@@ -32,14 +32,63 @@ async function main() {
   const outputDir = await findOutputDir();
   const hostingSource = path.join(projectDir, ".openai", "hosting.json");
   const hostingTarget = path.join(distDir, ".openai", "hosting.json");
+  const pgStubDir = path.join(
+    serverDir,
+    "server-functions",
+    "default",
+    ".next",
+    "node_modules",
+    "pg-587764f78a6c7a9c",
+  );
 
   await rm(distDir, { recursive: true, force: true });
   await mkdir(serverDir, { recursive: true });
 
-  await cp(outputDir, serverDir, { recursive: true, dereference: true });
+  await cp(outputDir, serverDir, { recursive: true });
   if (await exists(hostingSource)) {
     await mkdir(path.dirname(hostingTarget), { recursive: true });
     await cp(hostingSource, hostingTarget);
+  }
+  if (await exists(pgStubDir)) {
+    const stats = await lstat(pgStubDir);
+    if (stats.isSymbolicLink()) {
+      await rm(pgStubDir, { recursive: true, force: true });
+      await mkdir(pgStubDir, { recursive: true });
+      await writeFile(
+        path.join(pgStubDir, "package.json"),
+        JSON.stringify(
+          {
+            name: "pg",
+            version: "8.22.0",
+            main: "index.js",
+            type: "commonjs",
+          },
+          null,
+          2,
+        ) + "\n",
+      );
+      await writeFile(
+        path.join(pgStubDir, "index.js"),
+        [
+          "class Pool {",
+          "  constructor() {}",
+          "  async query() {",
+          "    return { rows: [], rowCount: 0 };",
+          "  }",
+          "  async end() {}",
+          "  async connect() {",
+          "    return {",
+          "      query: this.query.bind(this),",
+          "      release() {},",
+          "    };",
+          "  }",
+          "}",
+          "",
+          "module.exports = { Pool };",
+          "",
+        ].join("\n"),
+      );
+    }
   }
 
   const workerFile = path.join(serverDir, "worker.js");
