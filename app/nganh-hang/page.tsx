@@ -91,7 +91,7 @@ export default function NganhHangPage() {
               <div>
                 <p className="eyebrow">ĐIỂM NHẤN</p>
                 <h2 className="gradient-heading">Nguồn F&amp;B đang được chú ý</h2>
-                <p>Em chọn vài mẩu tin đang đi đúng mạch thị trường để Sếp dùng tạm ngay, không bị loãng nội dung.</p>
+                <p>Các mẩu tin dưới đây được chọn từ nguồn cập nhật gần đây, ưu tiên chủ đề có liên quan trực tiếp tới F&amp;B.</p>
               </div>
               <span className="section-kicker">4 nguồn</span>
             </div>
@@ -147,23 +147,6 @@ export default function NganhHangPage() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="section section-tight">
-        <div className="container">
-          <Reveal>
-            <div className="news-note">
-              <div>
-                <p className="eyebrow">GỢI Ý NHANH</p>
-                <h3>Muốn em làm tiếp một bản tổng hợp theo tuần?</h3>
-                <p>Em có thể gom thành 3 mục: xu hướng, sự kiện và tác động tới nhập hàng/bán hàng của Hưng Phát.</p>
-              </div>
-              <span className="news-note-chip">
-                <Sparkles size={14} /> Tối ưu nội dung
-              </span>
-            </div>
-          </Reveal>
         </div>
       </section>
 
