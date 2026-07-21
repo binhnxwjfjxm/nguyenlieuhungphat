@@ -212,7 +212,7 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
             required
             value={form.experience}
             onChange={(event) => updateField("experience", event.target.value)}
-            placeholder="Ví dụ: từng làm sales B2B, điều phối kho, quản trị nội dung web..."
+            placeholder="Ví dụ: từng làm sales B2B, điều phối kho, chăm sóc khách hàng..."
             rows={inline ? 4 : 5}
           />
           {errors.experience ? <em>{errors.experience}</em> : null}

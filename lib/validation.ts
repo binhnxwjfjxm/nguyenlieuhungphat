@@ -45,7 +45,6 @@ export type ChatRequestData = ChatRequestInput & {
 export const recruitmentPositionOptions = [
   { value: "kinh-doanh-b2b", label: "Kinh doanh B2B" },
   { value: "kho-giao-nhan", label: "Điều phối kho & giao nhận" },
-  { value: "noi-dung-web", label: "Vận hành nội dung / web" },
   { value: "khac", label: "Khác" },
 ] as const;
 
