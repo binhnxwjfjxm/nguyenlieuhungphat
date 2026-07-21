@@ -30,8 +30,8 @@ export function Hero() {
             Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho khách B2B.
           </p>
           <div className="hero-actions">
-            <HapticLink className="button button-primary button-large" href="/nganh-hang">
-              Xem ngành hàng <ArrowRight size={18} />
+            <HapticLink className="button button-primary button-large" href="/san-pham">
+              Xem danh mục <ArrowRight size={18} />
             </HapticLink>
             <HapticLink className="button button-secondary button-large" href="/lien-he">
               <MessageCircle size={18} /> Nhận báo giá

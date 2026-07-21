@@ -42,12 +42,14 @@ export function CategorySection() {
         <Reveal>
           <div className="section-heading split-heading">
             <div>
-              <p className="eyebrow">NGÀNH HÀNG</p>
-              <h2 className="gradient-heading">Ba nhóm hàng chính</h2>
-              <p>Danh mục được giữ gọn để khách vào đúng nhánh hàng nhanh hơn và không phải lướt qua quá nhiều lựa chọn rời rạc.</p>
+              <p className="eyebrow">DANH MỤC NỔI BẬT</p>
+              <h2 className="gradient-heading">Ba nhóm hàng chính cho khách mua sỉ</h2>
+              <p>
+                Gom gọn đúng ba hướng hàng đang có nhu cầu thật, để quán, đại lý và cửa hàng xem nhanh là biết nên đi vào nhóm nào.
+              </p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/nganh-hang">
-              Xem tất cả <ArrowUpRight size={17} />
+              Xem toàn bộ danh mục <ArrowUpRight size={17} />
             </HapticLink>
           </div>
         </Reveal>
@@ -73,7 +75,7 @@ export function CategorySection() {
                 <h3>{featured.title}</h3>
                 <p>{featured.description}</p>
                 <span className="category-link-text">
-                  Xem ngành hàng <ArrowUpRight size={15} />
+                  Xem nhóm hàng <ArrowUpRight size={15} />
                 </span>
               </div>
             </HapticLink>
@@ -104,7 +106,7 @@ export function CategorySection() {
                       <h3>{category.title}</h3>
                       <p>{category.description}</p>
                       <span className="category-link-text">
-                        Xem ngành hàng <ArrowUpRight size={15} />
+                        Xem nhóm hàng <ArrowUpRight size={15} />
                       </span>
                     </div>
                   </HapticLink>
@@ -120,7 +122,7 @@ export function CategorySection() {
           <div className="category-interest-strip">
             <div className="category-interest-copy">
               <p className="eyebrow">DANH MỤC ĐƯỢC QUAN TÂM</p>
-              <h3>Những nhóm hàng chạy nhanh cho cửa hàng, quán và đại lý</h3>
+              <h3>Những nhóm hàng đang được hỏi nhiều cho quán, cửa hàng và đại lý</h3>
             </div>
 
             <div className="interest-chip-row" aria-label="Danh mục được quan tâm">

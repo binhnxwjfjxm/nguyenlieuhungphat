@@ -16,11 +16,13 @@ export function ProductSection() {
           <div className="section-heading split-heading product-heading">
             <div>
               <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
-              <h2 className="gradient-heading">Catalog gọn, dễ lọc, dễ đi tiếp</h2>
-              <p>Khách xem nhanh được nhóm hàng đang có dữ liệu thật, sau đó chuyển sang catalog đầy đủ để lọc sâu hơn.</p>
+              <h2 className="gradient-heading">Chọn nhanh nhóm hàng đang bán tốt</h2>
+              <p>
+                Ưu tiên những sản phẩm có dữ liệu rõ ràng, dễ xem, dễ đối chiếu và phù hợp để gửi báo giá ngay cho quán, cửa hàng hoặc đại lý.
+              </p>
             </div>
             <HapticLink className="text-link desktop-only-link" href="/san-pham">
-              Mở toàn bộ catalog <ArrowRight size={17} />
+              Mở toàn bộ danh mục <ArrowRight size={17} />
             </HapticLink>
           </div>
         </Reveal>
@@ -47,15 +49,15 @@ export function ProductSection() {
             </div>
             <div className="product-section-footer">
               <HapticLink className="button button-ghost" href="/san-pham">
-                Xem toàn bộ catalog
+                Xem toàn bộ danh mục
               </HapticLink>
             </div>
           </>
         ) : (
           <div className="catalog-empty product-empty-state">
             <Search size={34} />
-            <h2 className="gradient-heading">Danh mục đang được cập nhật</h2>
-            <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng và nhận báo giá phù hợp.</p>
+            <h2 className="gradient-heading">Chưa có sản phẩm phù hợp</h2>
+            <p>Thử đổi bộ lọc hoặc gửi nhu cầu để em gợi ý đúng nhóm hàng và báo giá phù hợp hơn.</p>
           </div>
         )}
       </div>

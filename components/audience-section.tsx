@@ -3,18 +3,18 @@ import { Reveal } from "./reveal";
 const audienceItems = [
   {
     title: "Trà sữa - cà phê",
-    description: "Cần topping, bột pha chế và danh mục ổn định để quay vòng đều mỗi ngày.",
-    note: "Nhập nhanh, ra hàng đều, ưu tiên giá và độ ổn định.",
+    description: "Cần topping, bột pha chế và nguồn hàng ổn định để quay vòng đều mỗi ngày.",
+    note: "Ưu tiên hàng dễ nhập, dễ bán và giữ chất lượng ổn định.",
   },
   {
     title: "Cửa hàng đồ uống",
-    description: "Muốn danh mục gọn, báo giá rõ và có thể chốt đơn theo từng đợt nhập.",
-    note: "Hợp mô hình cửa hàng nhỏ đến chuỗi bán lẻ.",
+    description: "Muốn danh mục gọn, báo giá rõ và chốt đơn theo từng đợt nhập.",
+    note: "Phù hợp mô hình cửa hàng nhỏ đến chuỗi bán lẻ.",
   },
   {
     title: "Mì cay - nhà hàng",
     description: "Cần nhóm hàng chủ lực, hàng đi đều và lịch giao ổn định để không đứt menu.",
-    note: "Tập trung vào tính sẵn hàng và phản hồi nhanh.",
+    note: "Tập trung vào độ sẵn hàng và phản hồi nhanh.",
   },
   {
     title: "Đại lý - mua sỉ",
@@ -32,7 +32,7 @@ export function AudienceSection() {
             <p className="eyebrow">ĐỐI TƯỢNG KHÁCH HÀNG</p>
             <h2 className="gradient-heading">Phù hợp với mô hình nhập hàng đều và cần báo giá nhanh</h2>
             <p>
-              Không nhồi quá nhiều card. Chỉ giữ cách trình bày rõ ràng để khách đọc vào là hiểu ngay Hưng Phát phục vụ ai và phục vụ kiểu gì.
+              Giữ cách trình bày rõ ràng để khách đọc vào là hiểu ngay Hưng Phát phục vụ ai và phục vụ theo kiểu gì.
             </p>
           </div>
         </Reveal>
