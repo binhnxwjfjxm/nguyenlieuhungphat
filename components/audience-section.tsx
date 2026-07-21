@@ -3,23 +3,23 @@ import { Reveal } from "./reveal";
 const audienceItems = [
   {
     title: "Trà sữa - cà phê",
-    description: "Cần topping, bột pha chế và nguồn hàng ổn định để quay vòng đều mỗi ngày.",
-    note: "Ưu tiên hàng dễ nhập, dễ bán và giữ chất lượng ổn định.",
+    description: "Topping, bột pha chế và nguồn hàng ổn định.",
+    note: "Nhập đều, bán đều.",
   },
   {
     title: "Cửa hàng đồ uống",
-    description: "Muốn danh mục gọn, báo giá rõ và chốt đơn theo từng đợt nhập.",
-    note: "Phù hợp mô hình cửa hàng nhỏ đến chuỗi bán lẻ.",
+    description: "Danh mục gọn, báo giá rõ, chốt đơn nhanh.",
+    note: "Phù hợp cửa hàng nhỏ đến chuỗi.",
   },
   {
     title: "Mì cay - nhà hàng",
-    description: "Cần nhóm hàng chủ lực, hàng đi đều và lịch giao ổn định để không đứt menu.",
-    note: "Tập trung vào độ sẵn hàng và phản hồi nhanh.",
+    description: "Nhóm hàng chủ lực, lịch giao ổn định.",
+    note: "Giữ menu không bị đứt.",
   },
   {
     title: "Đại lý - mua sỉ",
-    description: "Cần đầu mối rõ ràng, làm việc gọn và có thể phối hợp số lượng linh hoạt.",
-    note: "Phù hợp đối tác bán lại hoặc mua theo lô.",
+    description: "Đầu mối rõ, số lượng linh hoạt.",
+    note: "Phù hợp bán lại hoặc mua theo lô.",
   },
 ];
 
@@ -30,10 +30,7 @@ export function AudienceSection() {
         <Reveal>
           <div className="audience-copy audience-copy-editorial">
             <p className="eyebrow">ĐỐI TƯỢNG KHÁCH HÀNG</p>
-            <h2 className="gradient-heading">Phù hợp với mô hình nhập hàng đều và cần báo giá nhanh</h2>
-            <p>
-              Giữ cách trình bày rõ ràng để khách đọc vào là hiểu ngay Hưng Phát phục vụ ai và phục vụ theo kiểu gì.
-            </p>
+            <h2 className="gradient-heading">Phù hợp cho khách mua sỉ</h2>
           </div>
         </Reveal>
 

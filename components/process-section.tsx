@@ -10,7 +10,7 @@ const processSteps = [
   {
     icon: MessageSquareText,
     title: "Rà soát danh mục",
-    description: "Đối chiếu với dữ liệu thật để lọc đúng nhóm.",
+    description: "Đối chiếu dữ liệu để lọc đúng nhóm.",
   },
   {
     icon: Send,
@@ -32,8 +32,7 @@ export function ProcessSection() {
           <div className="section-heading split-heading">
             <div>
               <p className="eyebrow">QUY TRÌNH</p>
-              <h2 className="gradient-heading">Từ nhu cầu đến báo giá</h2>
-              <p>4 bước ngắn, rõ và đủ để khách biết phải làm gì tiếp theo.</p>
+              <h2 className="gradient-heading">Từ nhu cầu đến giao hàng</h2>
             </div>
           </div>
         </Reveal>

@@ -9,8 +9,7 @@ export function TrustSection() {
           <div className="trust-strip">
             <div className="trust-strip-copy">
               <p className="eyebrow">DẤU HIỆU TIN CẬY</p>
-              <h2 className="gradient-heading">4 tín hiệu cốt lõi</h2>
-              <p>2016, 3 nhóm hàng, B2B và báo giá linh hoạt.</p>
+              <h2 className="gradient-heading">Thông tin cốt lõi</h2>
             </div>
             <div className="trust-strip-grid" aria-label="Thông tin tin cậy">
               {stats.map((stat) => (
