@@ -7,8 +7,8 @@ import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 const categoryAssetBySlug = {
   "nguyen-lieu-pha-che": {
-    src: siteAssets.categories.industrial,
-    fallback: siteAssetFallbacks.categories.industrial,
+    src: siteAssets.categories.phaChe,
+    fallback: siteAssetFallbacks.categories.phaChe,
   },
   "nguyen-lieu-mi-cay": {
     src: siteAssets.categories.miCay,

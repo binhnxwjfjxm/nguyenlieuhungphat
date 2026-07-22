@@ -54,7 +54,7 @@ export const categories = [
     title: "Nguyên liệu pha chế",
     count: "Đang cập nhật",
     description: "Nhóm nguyên liệu phục vụ trà sữa, cà phê, đá xay và các món đồ uống.",
-    image: siteAssets.categories.industrial,
+    image: siteAssets.categories.phaChe,
     icon: Boxes,
   },
   {
