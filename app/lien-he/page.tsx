@@ -24,7 +24,7 @@ export default function LienHePage() {
         <div className="container page-hero-inner">
           <p className="eyebrow">LIÊN HỆ</p>
           <h1 className="gradient-heading">Gửi nhu cầu để nhận tư vấn</h1>
-          <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng. Hưng Phát sẽ phản hồi sớm.</p>
+          <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng.</p>
         </div>
       </section>
 

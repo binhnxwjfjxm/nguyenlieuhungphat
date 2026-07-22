@@ -18,9 +18,9 @@ export function Header() {
 
         <nav className="desktop-nav" aria-label="Điều hướng chính">
           {navigation.map((item) => (
-            <a key={item.href} href={item.href}>
+            <HapticLink key={item.href} className="desktop-nav-link" href={item.href}>
               {item.label}
-            </a>
+            </HapticLink>
           ))}
         </nav>
 
@@ -58,9 +58,9 @@ export function Header() {
           >
             <nav className="container mobile-menu-nav" aria-label="Điều hướng di động">
               {navigation.map((item) => (
-                <a key={item.href} href={item.href} onClick={() => setOpen(false)}>
+                <HapticLink key={item.href} className="mobile-menu-link" href={item.href} onClick={() => setOpen(false)}>
                   {item.label}
-                </a>
+                </HapticLink>
               ))}
               <QuoteButton className="button button-surface mobile-quote" onClick={() => setOpen(false)}>
                 Nhận báo giá

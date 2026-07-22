@@ -6,12 +6,12 @@ import { getAbsoluteUrl } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Tuyển dụng",
   description:
-    "Trang tuyển dụng Hưng Phát hiển thị tin tuyển dạng hàng ngang, bấm vào để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
+    "Tin tuyển Hưng Phát hiển thị dạng hàng ngang. Bấm vào từng tin để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
   alternates: { canonical: "/tuyen-dung" },
   openGraph: {
     title: "Tuyển dụng | Hưng Phát",
     description:
-      "Trang tuyển dụng Hưng Phát hiển thị tin tuyển dạng hàng ngang, bấm vào để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
+      "Tin tuyển Hưng Phát hiển thị dạng hàng ngang. Bấm vào từng tin để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
     url: getAbsoluteUrl("/tuyen-dung"),
   },
 };
@@ -22,11 +22,8 @@ export default function TuyenDungPage() {
       <section className="page-hero">
         <div className="container page-hero-inner">
           <p className="eyebrow">TUYỂN DỤNG</p>
-          <h1 className="gradient-heading">Tin tuyển dạng ngang, bấm vào xem chi tiết ngay trên web</h1>
-          <p>
-            Em đã đổi đúng format Sếp muốn: phần tin tuyển hiển thị gọn theo hàng ngang, còn nội dung mô tả công
-            việc, lương thưởng và quyền lợi nằm trong popup để khách xem dễ hơn.
-          </p>
+          <h1 className="gradient-heading">Tin tuyển dạng ngang, bấm vào xem chi tiết</h1>
+          <p>Hàng ngang ngắn, bấm vào từng tin để xem mô tả công việc, lương thưởng và quyền lợi.</p>
         </div>
       </section>
 
@@ -41,10 +38,7 @@ export default function TuyenDungPage() {
           <div className="contact-card">
             <p className="eyebrow">QUY TRÌNH</p>
             <h2 className="gradient-heading">Ứng tuyển nhanh, không vòng vo</h2>
-            <p>
-              Nếu thấy phù hợp, ứng viên có thể xem nhanh chi tiết vị trí rồi gửi hồ sơ qua form bên dưới. HR sẽ
-              nhận và phản hồi trực tiếp.
-            </p>
+            <p>Ứng viên xem nhanh chi tiết vị trí rồi gửi hồ sơ qua form bên dưới. HR sẽ phản hồi trực tiếp.</p>
           </div>
 
           <div className="contact-card contact-form-card">

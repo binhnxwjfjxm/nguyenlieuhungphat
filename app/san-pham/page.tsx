@@ -29,7 +29,7 @@ export default async function ProductsPage({
         <div className="container catalog-hero-inner">
           <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
           <h1 className="gradient-heading">Tìm nguyên liệu phù hợp</h1>
-          <p>Tìm theo tên, nhóm hàng hoặc nhu cầu để vào đúng danh mục nhanh hơn cho quán, cửa hàng và đại lý.</p>
+          <p>Tìm theo tên, nhóm hàng hoặc nhu cầu để vào đúng danh mục nhanh hơn.</p>
         </div>
       </section>
 

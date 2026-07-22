@@ -8,7 +8,7 @@ export function HomeStructuredData() {
     "@type": "Organization",
     name: "Công ty TNHH TM Nguyên Liệu Hưng Phát",
     url: siteUrl,
-    logo: `${siteUrl}/logo.jpg`,
+    logo: `${siteUrl}/logo-transparent.png`,
   };
 
   const website = {

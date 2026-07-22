@@ -72,12 +72,12 @@ const newsItems = [
 export const metadata: Metadata = {
   title: "Tin tức & Sự kiện",
   description:
-    "Tổng hợp nhanh tin tức, xu hướng và sự kiện đáng chú ý trong ngành F&B từ các nguồn cập nhật mới.",
+    "Tổng hợp nhanh tin F&B, xu hướng và sự kiện đáng chú ý.",
   alternates: { canonical: "/nganh-hang" },
   openGraph: {
     title: "Tin tức & Sự kiện | Hưng Phát",
     description:
-      "Tổng hợp nhanh tin tức, xu hướng và sự kiện đáng chú ý trong ngành F&B từ các nguồn cập nhật mới.",
+      "Tổng hợp nhanh tin F&B, xu hướng và sự kiện đáng chú ý.",
     url: getAbsoluteUrl("/nganh-hang"),
   },
 };
@@ -92,10 +92,7 @@ export default function NganhHangPage() {
         <div className="container page-hero-inner">
           <p className="eyebrow">TIN TỨC &amp; SỰ KIỆN</p>
           <h1 className="gradient-heading">F&amp;B hôm nay</h1>
-          <p>
-            Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý để nắm bối cảnh thị trường mà không phải lướt quá
-            nhiều nguồn rời rạc.
-          </p>
+          <p>Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý trong F&amp;B.</p>
           <div className="page-hero-points news-hero-points">
             <span>
               <TrendingUp size={14} /> Xu hướng

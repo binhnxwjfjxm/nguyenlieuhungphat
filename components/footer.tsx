@@ -1,6 +1,7 @@
 import { Globe2, Mail, MapPin, Phone, Play, Share2 } from "lucide-react";
 import { categories } from "@/data/site";
 import { Logo } from "./logo";
+import { HapticLink } from "./haptic-link";
 import { QuoteButton } from "./quote-trigger";
 
 const footerGroups = [
@@ -36,9 +37,6 @@ export function Footer() {
       <div className="container footer-grid">
         <div className="footer-brand-column">
           <Logo />
-          <p>
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác.
-          </p>
           <div className="social-row">
             <a href="#" aria-label="Facebook">
               <Globe2 size={18} />
@@ -60,6 +58,10 @@ export function Footer() {
                 <QuoteButton className="footer-link-button" key={link.label}>
                   {link.label}
                 </QuoteButton>
+              ) : link.href.startsWith("/") ? (
+                <HapticLink className="footer-link-button" href={link.href} key={link.label}>
+                  {link.label}
+                </HapticLink>
               ) : (
                 <a href={link.href} key={link.label}>
                   {link.label}
@@ -88,9 +90,15 @@ export function Footer() {
               <summary>{group.title}</summary>
               <div>
                 {group.links.map((link) => (
-                  <a href={link.href} key={link.label}>
-                    {link.label}
-                  </a>
+                  link.href.startsWith("/") ? (
+                    <HapticLink href={link.href} key={link.label}>
+                      {link.label}
+                    </HapticLink>
+                  ) : (
+                    <a href={link.href} key={link.label}>
+                      {link.label}
+                    </a>
+                  )
                 ))}
               </div>
             </details>
