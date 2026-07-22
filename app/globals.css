@@ -649,6 +649,15 @@ img {
   overflow: hidden;
 }
 
+.recruitment-form-wrap {
+  display: grid;
+  justify-items: center;
+}
+
+.recruitment-form-wrap .contact-form-card {
+  width: min(100%, 920px);
+}
+
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

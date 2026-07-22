@@ -2,6 +2,8 @@
 
 import { Briefcase, Building2, CalendarDays, Coins, MapPin, PhoneCall, Send, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
+import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 type AreaKey = "mien-tay-1" | "mien-tay-2";
 
@@ -50,11 +52,11 @@ const requirements = [
 ];
 
 const benefits = [
-  "Thu nhập 12 - 30 triệu / tháng theo năng lực và hiệu quả.",
+  "Thu nhập 12 - 30 triệu / tháng theo năng lực và hiệu quả thị trường.",
   "Có thể trên 50 triệu / tháng nếu đạt kết quả kinh doanh vượt trội.",
   "Thưởng theo kết quả thực tế và chỉ tiêu kinh doanh.",
   "Ký hợp đồng lao động chính thức sau thử việc.",
-  "Đầy đủ BHXH, BHYT, BHTN và chế độ lễ Tết, phép năm.",
+  "Đầy đủ BHXH, BHYT, BHTN và chế độ lễ, Tết, phép năm.",
 ];
 
 const applicationNotes = [
@@ -65,7 +67,6 @@ const applicationNotes = [
 
 export function RecruitmentBoard() {
   const [selectedRole, setSelectedRole] = useState<RecruitmentRole | null>(null);
-
   const selectedDetail = useMemo(() => selectedRole ?? roles[0], [selectedRole]);
 
   useEffect(() => {
@@ -101,10 +102,24 @@ export function RecruitmentBoard() {
               <div className="recruitment-strip-icon">
                 <Briefcase size={20} />
               </div>
-              <div>
+
+              <div className="recruitment-strip-copy">
                 <p className="recruitment-strip-eyebrow">Nhân viên kinh doanh thị trường</p>
                 <h2>{role.shortTitle}</h2>
                 <p>{role.summary}</p>
+              </div>
+
+              <div className="recruitment-strip-preview" aria-hidden="true">
+                <ResponsiveAssetPicture
+                  className="recruitment-strip-preview-picture"
+                  imgClassName="recruitment-strip-preview-img"
+                  alt=""
+                  desktopSrc={role.key === "mien-tay-1" ? siteAssets.categories.food : siteAssets.categories.industrial}
+                  desktopFallbackSrc={
+                    role.key === "mien-tay-1" ? siteAssetFallbacks.categories.food : siteAssetFallbacks.categories.industrial
+                  }
+                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+                />
               </div>
             </div>
 
