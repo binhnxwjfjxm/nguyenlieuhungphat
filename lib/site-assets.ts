@@ -40,6 +40,14 @@ export const siteAssetFallbacks = {
   hero: {
     desktop: "/images/hero-materials.svg",
     mobile: "/images/hero-materials.svg",
+    stackTop: "/images/hero-materials.svg",
+    stackBottom: "/images/hero-materials.svg",
+  },
+  pageHero: {
+    nganhHang: "/images/hero-materials.svg",
+    sanPham: "/images/hero-materials.svg",
+    gioiThieu: "/images/hero-materials.svg",
+    lienHe: "/images/hero-materials.svg",
   },
   categories: {
     industrial: "/images/category-industrial.svg",
@@ -63,8 +71,16 @@ export const siteAssetFallbacks = {
 
 export const siteAssets = {
   hero: {
-    desktop: asset("web-site/01-hero-desktop.webp", "/images/hero-materials.svg"),
-    mobile: asset("web-site/02-hero-mobile.webp", "/images/hero-materials.svg"),
+    desktop: asset("web-site/09-company-capability.webp", "/images/hero-materials.svg"),
+    mobile: asset("web-site/07-warehouse-01.webp", "/images/hero-materials.svg"),
+    stackTop: asset("web-site/08-warehouse-02.webp", "/images/hero-materials.svg"),
+    stackBottom: asset("web-site/09-company-capability.webp", "/images/hero-materials.svg"),
+  },
+  pageHero: {
+    nganhHang: asset("web-site/01-hero-nganh-hang.webp", "/images/hero-materials.svg"),
+    sanPham: asset("web-site/02-hero-san-pham.webp", "/images/hero-materials.svg"),
+    gioiThieu: asset("web-site/03-hero-gioi-thieu.webp", "/images/hero-materials.svg"),
+    lienHe: asset("web-site/04-hero-lien-he.webp", "/images/hero-materials.svg"),
   },
   categories: {
     industrial: asset("web-site/03-category-industrial.webp", "/images/category-industrial.svg"),
@@ -78,8 +94,8 @@ export const siteAssets = {
     capability: asset("web-site/09-company-capability.webp", "/images/hero-materials.svg"),
   },
   quote: {
-    desktop: asset("web-site/10-quote-banner.webp", "/images/hero-materials.svg"),
-    mobile: asset("web-site/11-quote-mobile.webp", "/images/hero-materials.svg"),
+    desktop: asset("web-site/10-process-quote-banner.webp", "/images/hero-materials.svg"),
+    mobile: asset("web-site/10-process-quote-banner.webp", "/images/hero-materials.svg"),
   },
   seo: {
     og: asset("web-site/12-og-hung-phat.webp", "/images/hero-materials.svg"),

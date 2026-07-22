@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Building2, ShieldCheck, Truck } from "lucide-react";
 import { CompanyCapabilitySection } from "@/components/company-capability-section";
 import { QuoteCta } from "@/components/quote-cta";
 import { TrustSection } from "@/components/trust-section";
 import { getAbsoluteUrl } from "@/lib/site";
+import { siteAssets } from "@/lib/site-assets";
 
 export const metadata: Metadata = {
   title: "Giới thiệu",
@@ -22,20 +24,31 @@ export default function GioiThieuPage() {
   return (
     <main className="content-page">
       <section className="page-hero">
-        <div className="container page-hero-inner">
-          <p className="eyebrow">GIỚI THIỆU</p>
-          <h1 className="gradient-heading">Thương mại &amp; phân phối cho doanh nghiệp</h1>
-          <p>Hưng Phát tập trung vào ba ngành hàng chính: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.</p>
-          <div className="page-hero-points">
-            <span>
-              <Building2 size={18} /> Thương mại và phân phối
-            </span>
-            <span>
-              <ShieldCheck size={18} /> Tập trung vào danh mục đúng nhu cầu
-            </span>
-            <span>
-              <Truck size={18} /> Báo giá và giao nhận linh hoạt
-            </span>
+        <div className="container page-hero-inner page-hero-with-image">
+          <div>
+            <p className="eyebrow">GIỚI THIỆU</p>
+            <h1 className="gradient-heading">Thương mại &amp; phân phối cho doanh nghiệp</h1>
+            <p>Hưng Phát tập trung vào ba ngành hàng chính: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.</p>
+            <div className="page-hero-points">
+              <span>
+                <Building2 size={18} /> Thương mại và phân phối
+              </span>
+              <span>
+                <ShieldCheck size={18} /> Tập trung vào danh mục đúng nhu cầu
+              </span>
+              <span>
+                <Truck size={18} /> Báo giá và giao nhận linh hoạt
+              </span>
+            </div>
+          </div>
+          <div className="page-hero-image">
+            <Image
+              src={siteAssets.pageHero.gioiThieu}
+              alt="Hưng Phát - giới thiệu thương mại và phân phối"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 40vw"
+            />
           </div>
         </div>
       </section>

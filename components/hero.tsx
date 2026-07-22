@@ -64,8 +64,8 @@ export function Hero() {
                   className="hero-mini-picture"
                   imgClassName="hero-mini-picture-img"
                   alt=""
-                  desktopSrc={siteAssets.categories.industrial}
-                  desktopFallbackSrc={siteAssetFallbacks.categories.industrial}
+                  desktopSrc={siteAssets.hero.stackTop}
+                  desktopFallbackSrc={siteAssetFallbacks.hero.stackTop}
                   imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                 />
               </div>
@@ -74,8 +74,8 @@ export function Hero() {
                   className="hero-mini-picture"
                   imgClassName="hero-mini-picture-img"
                   alt=""
-                  desktopSrc={siteAssets.warehouse.two}
-                  desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
+                  desktopSrc={siteAssets.hero.stackBottom}
+                  desktopFallbackSrc={siteAssetFallbacks.hero.stackBottom}
                   imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
                 />
               </div>

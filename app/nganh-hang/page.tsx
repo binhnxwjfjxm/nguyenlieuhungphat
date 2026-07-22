@@ -89,20 +89,31 @@ export default function NganhHangPage() {
   return (
     <main className="content-page news-page">
       <section className="page-hero">
-        <div className="container page-hero-inner">
-          <p className="eyebrow">TIN TỨC &amp; SỰ KIỆN</p>
-          <h1 className="gradient-heading">F&amp;B hôm nay</h1>
-          <p>Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý trong F&amp;B.</p>
-          <div className="page-hero-points news-hero-points">
-            <span>
-              <TrendingUp size={14} /> Xu hướng
-            </span>
-            <span>
-              <Sparkles size={14} /> Sự kiện
-            </span>
-            <span>
-              <CalendarDays size={14} /> Cập nhật tuần này
-            </span>
+        <div className="container page-hero-inner page-hero-with-image">
+          <div>
+            <p className="eyebrow">TIN TỨC &amp; SỰ KIỆN</p>
+            <h1 className="gradient-heading">F&amp;B hôm nay</h1>
+            <p>Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý trong F&amp;B.</p>
+            <div className="page-hero-points news-hero-points">
+              <span>
+                <TrendingUp size={14} /> Xu hướng
+              </span>
+              <span>
+                <Sparkles size={14} /> Sự kiện
+              </span>
+              <span>
+                <CalendarDays size={14} /> Cập nhật tuần này
+              </span>
+            </div>
+          </div>
+          <div className="page-hero-image">
+            <Image
+              src={siteAssets.pageHero.nganhHang}
+              alt="Ngành hàng Hưng Phát"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 40vw"
+            />
           </div>
         </div>
       </section>

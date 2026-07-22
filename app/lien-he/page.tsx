@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { QuoteForm } from "@/components/quote-form";
 import { QuoteCta } from "@/components/quote-cta";
 import { getAbsoluteUrl } from "@/lib/site";
+import { siteAssets } from "@/lib/site-assets";
 
 export const metadata: Metadata = {
   title: "Liên hệ",
@@ -21,10 +23,21 @@ export default function LienHePage() {
   return (
     <main className="content-page">
       <section className="page-hero">
-        <div className="container page-hero-inner">
-          <p className="eyebrow">LIÊN HỆ</p>
-          <h1 className="gradient-heading">Gửi nhu cầu để nhận tư vấn</h1>
-          <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng.</p>
+        <div className="container page-hero-inner page-hero-with-image">
+          <div>
+            <p className="eyebrow">LIÊN HỆ</p>
+            <h1 className="gradient-heading">Gửi nhu cầu để nhận tư vấn</h1>
+            <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng.</p>
+          </div>
+          <div className="page-hero-image">
+            <Image
+              src={siteAssets.pageHero.lienHe}
+              alt="Hưng Phát - gửi nhu cầu và nhận tư vấn"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 40vw"
+            />
+          </div>
         </div>
       </section>
 

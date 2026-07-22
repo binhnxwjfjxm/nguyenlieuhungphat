@@ -596,6 +596,11 @@ img {
   gap: 28px;
 }
 
+.page-hero-inner.page-hero-with-image,
+.catalog-hero-inner.page-hero-with-image {
+  max-width: 1180px;
+}
+
 .page-hero-image {
   position: relative;
   min-height: 280px;
