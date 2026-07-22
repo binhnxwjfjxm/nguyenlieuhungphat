@@ -54,6 +54,8 @@ export const siteAssetFallbacks = {
     chemical: "/images/category-chemical.svg",
     food: "/images/category-food.svg",
     packaging: "/images/category-packaging.svg",
+    miCay: "/images/category-food.svg",
+    dongLanh: "/images/category-food.svg",
   },
   warehouse: {
     one: "/images/hero-materials.svg",
@@ -87,6 +89,8 @@ export const siteAssets = {
     chemical: asset("web-site/04-category-chemical.webp", "/images/category-chemical.svg"),
     food: asset("web-site/05-category-food.webp", "/images/category-food.svg"),
     packaging: asset("web-site/06-category-packaging.webp", "/images/category-packaging.svg"),
+    miCay: asset("web-site/nguyen-lieu-mi-cay.png", "/images/category-food.svg"),
+    dongLanh: asset("web-site/hang-dong-lanh.png", "/images/category-food.svg"),
   },
   warehouse: {
     one: asset("web-site/07-warehouse-01.webp", "/images/hero-materials.svg"),

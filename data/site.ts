@@ -62,7 +62,7 @@ export const categories = [
     title: "Nguyên liệu mì cay",
     count: "Đang cập nhật",
     description: "Nhóm nguyên liệu và thành phần phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
-    image: siteAssets.categories.chemical,
+    image: siteAssets.categories.miCay,
     icon: Flame,
   },
   {
@@ -70,7 +70,7 @@ export const categories = [
     title: "Hàng đông lạnh",
     count: "Đang cập nhật",
     description: "Nhóm thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
-    image: siteAssets.categories.food,
+    image: siteAssets.categories.dongLanh,
     icon: Snowflake,
   },
 ];

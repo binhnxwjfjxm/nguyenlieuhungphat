@@ -11,12 +11,12 @@ const categoryAssetBySlug = {
     fallback: siteAssetFallbacks.categories.industrial,
   },
   "nguyen-lieu-mi-cay": {
-    src: siteAssets.categories.chemical,
-    fallback: siteAssetFallbacks.categories.chemical,
+    src: siteAssets.categories.miCay,
+    fallback: siteAssetFallbacks.categories.miCay,
   },
   "hang-dong-lanh": {
-    src: siteAssets.categories.food,
-    fallback: siteAssetFallbacks.categories.food,
+    src: siteAssets.categories.dongLanh,
+    fallback: siteAssetFallbacks.categories.dongLanh,
   },
 } as const;
 
