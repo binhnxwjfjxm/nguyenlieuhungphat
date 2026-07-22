@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Building2, CalendarDays, Coins, MapPin, PhoneCall, Send, ShieldCheck, X } from "lucide-react";
+import { Building2, CalendarDays, Coins, MapPin, PhoneCall, Send, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
@@ -99,33 +99,23 @@ export function RecruitmentBoard() {
             onClick={() => setSelectedRole(role)}
           >
             <div className="recruitment-strip-main">
-              <div className="recruitment-strip-icon">
-                <Briefcase size={20} />
-              </div>
-
               <div className="recruitment-strip-copy">
-                <p className="recruitment-strip-eyebrow">Nhân viên kinh doanh thị trường</p>
-                <h2>{role.shortTitle}</h2>
-                <p>{role.summary}</p>
-              </div>
-
-              <div className="recruitment-strip-preview" aria-hidden="true">
-                <ResponsiveAssetPicture
-                  className="recruitment-strip-preview-picture"
-                  imgClassName="recruitment-strip-preview-img"
-                  alt=""
-                  desktopSrc={role.key === "mien-tay-1" ? siteAssets.categories.food : siteAssets.categories.industrial}
-                  desktopFallbackSrc={
-                    role.key === "mien-tay-1" ? siteAssetFallbacks.categories.food : siteAssetFallbacks.categories.industrial
-                  }
-                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                />
+                <h2>Nhân viên kinh doanh {role.shortTitle}</h2>
+                <strong>{role.salary}</strong>
               </div>
             </div>
 
-            <div className="recruitment-strip-side">
-              <strong>{role.salary}</strong>
-              <span>{role.region}</span>
+            <div className="recruitment-strip-preview" aria-hidden="true">
+              <ResponsiveAssetPicture
+                className="recruitment-strip-preview-picture"
+                imgClassName="recruitment-strip-preview-img"
+                alt=""
+                desktopSrc={role.key === "mien-tay-1" ? siteAssets.categories.food : siteAssets.categories.industrial}
+                desktopFallbackSrc={
+                  role.key === "mien-tay-1" ? siteAssetFallbacks.categories.food : siteAssetFallbacks.categories.industrial
+                }
+                imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+              />
             </div>
           </button>
         ))}
