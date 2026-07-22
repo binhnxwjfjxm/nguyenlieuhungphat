@@ -12,7 +12,7 @@ import { siteAssets } from "@/lib/site-assets";
 export const navigation = [
   { label: "Trang chủ", href: "/" },
   { label: "Giới thiệu", href: "/gioi-thieu" },
-  { label: "Tin tức sự kiện", href: "/nganh-hang" },
+  { label: "Cẩm nang", href: "/nganh-hang" },
   { label: "Sản phẩm", href: "/san-pham" },
   { label: "Liên hệ", href: "/lien-he" },
   { label: "Tuyển dụng", href: "/tuyen-dung" },

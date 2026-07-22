@@ -20,14 +20,13 @@ export function Hero() {
           animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="eyebrow">CÔNG TY TNHH TM NGUYÊN LIỆU HƯNG PHÁT</p>
+          <p className="eyebrow">NGUYÊN LIỆU F&amp;B CHO QUÁN &amp; ĐẠI LÝ</p>
           <h1 className="gradient-heading">
-            Nguồn hàng phù hợp
-            <span>Phân phối linh hoạt</span>
-            Đồng hành cùng kinh doanh
+            Nguồn hàng ổn định
+            <span>Kinh doanh vững vàng</span>
           </h1>
           <p className="hero-description">
-            Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, mì cay và hàng đông lạnh cho khách B2B.
+            Pha chế, mì cay và hàng đông lạnh. Tư vấn đúng nhu cầu, báo giá nhanh.
           </p>
           <div className="hero-actions">
             <HapticLink className="button button-primary button-large" href="/san-pham">

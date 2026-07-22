@@ -9,7 +9,7 @@ const footerGroups = [
     title: "Khám phá",
     links: [
       { label: "Giới thiệu", href: "/gioi-thieu" },
-      { label: "Tin tức & Sự kiện", href: "/nganh-hang" },
+      { label: "Cẩm nang", href: "/nganh-hang" },
       { label: "Danh mục sản phẩm", href: "/san-pham" },
       { label: "Tuyển dụng", href: "/tuyen-dung" },
     ],

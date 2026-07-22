@@ -702,12 +702,17 @@ img {
 }
 
 .section {
-  padding: 84px 0;
+  padding: 56px 0;
 }
 
 .section-tight {
-  padding-top: 90px;
-  padding-bottom: 58px;
+  padding: 44px 0;
+}
+
+.section + .section,
+.section + .section-tight,
+.section-tight + .section {
+  padding-top: 24px;
 }
 
 .section-heading {
@@ -2261,7 +2266,8 @@ body {
 }
 
 .hero h1 {
-  font-size: clamp(3rem, 5.6vw, 5.9rem);
+  max-width: 640px;
+  font-size: clamp(2.8rem, 4.6vw, 4.8rem);
   line-height: 1.02;
 }
 
@@ -3102,12 +3108,17 @@ body {
 
 @media (max-width: 700px) {
   .section {
-    padding: 68px 0;
+    padding: 42px 0;
   }
 
   .section-tight {
-    padding-top: 74px;
-    padding-bottom: 50px;
+    padding: 36px 0;
+  }
+
+  .section + .section,
+  .section + .section-tight,
+  .section-tight + .section {
+    padding-top: 18px;
   }
 
   .product-detail-page .section {

@@ -1,115 +1,105 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { CalendarDays, Sparkles, TrendingUp } from "lucide-react";
-import { getAbsoluteUrl } from "@/lib/site";
-import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
+import { BookOpen, CheckCircle2, Clock3, PackageCheck } from "lucide-react";
 import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
+import { getAbsoluteUrl } from "@/lib/site";
+import { siteAssets } from "@/lib/site-assets";
 
-const newsItems = [
+const guideItems = [
   {
-    badge: "Xu hướng",
-    title: "AI trở thành 'gia vị' mới trong F&B Việt Nam",
+    badge: "Chọn nguyên liệu",
+    title: "5 bước chọn nguyên liệu pha chế cho menu mới",
     summary:
-      "VietnamPlus cho thấy doanh nghiệp đang ưu tiên các dự án ngắn hạn như kiểm soát chất lượng, dự báo nhu cầu và chatbot chăm sóc khách hàng.",
-    image: siteAssets.categories.industrial,
-    imageFallback: siteAssetFallbacks.categories.industrial,
-    source: "VietnamPlus",
-    date: "22/04/2026",
+      "Bắt đầu từ nhóm món chủ lực, mức giá bán và sản lượng dự kiến để chọn nguyên liệu vừa vị, dễ vận hành và phù hợp chi phí.",
+    image: siteAssets.categories.phaChe,
+    readingTime: "4 phút đọc",
     highlights: [
-      "AI được xem là một phần của tái cấu trúc chuỗi giá trị.",
-      "Ưu tiên dự án có hiệu quả nhanh trong 6-12 tháng.",
-      "Tập trung kiểm soát chất lượng, dự báo và chăm sóc khách hàng.",
+      "Chốt nhóm món bán chính trước khi mở rộng menu.",
+      "Ưu tiên nguyên liệu dùng được cho nhiều công thức.",
+      "Thử định lượng thực tế để tính đúng giá vốn mỗi ly.",
     ],
   },
   {
-    badge: "Báo cáo",
-    title: "Thị trường F&B chuyển sang tăng trưởng bền vững",
+    badge: "Quản lý tồn kho",
+    title: "Tính lượng nhập hàng để hạn chế tồn kho",
     summary:
-      "Báo cáo của VietnamPlus ghi nhận thị trường vẫn mở rộng, nhưng biên lợi nhuận mỏng hơn và người tiêu dùng chọn giá trị thực thay vì chạy theo trào lưu.",
+      "Một cách đơn giản để ước lượng lượng hàng cần nhập theo số món bán mỗi ngày, định lượng sử dụng và chu kỳ giao hàng.",
+    image: siteAssets.categories.miCay,
+    readingTime: "3 phút đọc",
+    highlights: [
+      "Ghi nhận sản lượng bán trung bình theo tuần.",
+      "Tách hàng bán nhanh, bán chậm và hàng dự phòng.",
+      "Đặt ngưỡng nhập lại trước khi nguyên liệu chạm mức tối thiểu.",
+    ],
+  },
+  {
+    badge: "Bảo quản",
+    title: "Bảo quản syrup, bột và topping sau khi mở",
+    summary:
+      "Giữ chất lượng nguyên liệu bằng cách ghi ngày mở, dùng dụng cụ sạch và sắp xếp theo nguyên tắc nhập trước dùng trước.",
     image: siteAssets.categories.food,
-    imageFallback: siteAssetFallbacks.categories.food,
-    source: "VietnamPlus",
-    date: "19/03/2025",
+    readingTime: "3 phút đọc",
     highlights: [
-      "Khảo sát trên 4.005 nhà hàng và quán cà phê.",
-      "52,8% doanh nghiệp tránh theo trend ngắn hạn.",
-      "Nhu cầu chất lượng và giá hợp lý được ưu tiên hơn.",
+      "Đậy kín và tuân thủ điều kiện bảo quản trên bao bì.",
+      "Không dùng chung dụng cụ lấy nguyên liệu giữa các hũ.",
+      "Kiểm tra mùi, màu và trạng thái trước mỗi ca bán.",
     ],
   },
   {
-    badge: "Sự kiện",
-    title: "Future Menus Hà Nội 2026 mở ra hướng đi mới",
+    badge: "Hàng đông lạnh",
+    title: "Nhận và bảo quản hàng đông lạnh đúng cách",
     summary:
-      "Thanh Niên nói về một sự kiện F&B hướng tới đầu bếp và nhà quản trị đang cần công thức thích nghi trong giai đoạn biến động.",
-    image: siteAssets.warehouse.one,
-    imageFallback: siteAssetFallbacks.warehouse.one,
-    source: "Thanh Niên",
-    date: "17/07/2026",
+      "Kiểm tra nhanh bao bì, trạng thái sản phẩm và nhiệt độ bảo quản ngay khi nhận hàng để giảm rủi ro hao hụt.",
+    image: siteAssets.categories.dongLanh,
+    readingTime: "4 phút đọc",
     highlights: [
-      "Nhấn vào công thức thích nghi trong giai đoạn biến động.",
-      "Phù hợp với đầu bếp, nhà quản trị và người làm menu.",
-      "Dữ liệu và xu hướng đang dẫn dắt quyết định vận hành.",
-    ],
-  },
-  {
-    badge: "Case study",
-    title: "Ngọc Phương Nam: ẩm thực gắn với trải nghiệm",
-    summary:
-      "Một case study về vận hành, chất lượng nguyên liệu và trải nghiệm khách hàng trong mô hình nhà hàng quy mô lớn tại Hạ Long.",
-    image: siteAssets.warehouse.two,
-    imageFallback: siteAssetFallbacks.warehouse.two,
-    source: "Thanh Niên",
-    date: "17/07/2026",
-    highlights: [
-      "Bài toán vận hành gắn chặt với trải nghiệm tại chỗ.",
-      "Chất lượng nguyên liệu quyết định cảm nhận khách hàng.",
-      "Mô hình quy mô lớn cần quy trình rõ và ổn định.",
+      "Đưa hàng vào tủ đông ngay sau khi kiểm tra.",
+      "Chia khu vực theo nhóm sản phẩm và ngày nhập.",
+      "Hạn chế rã đông rồi cấp đông lại.",
     ],
   },
 ] as const;
 
 export const metadata: Metadata = {
-  title: "Tin tức & Sự kiện",
-  description:
-    "Tổng hợp nhanh tin F&B, xu hướng và sự kiện đáng chú ý.",
+  title: "Cẩm nang nguyên liệu F&B",
+  description: "Hướng dẫn chọn nguyên liệu, bảo quản và quản lý nhập hàng dành cho quán, cửa hàng và đại lý.",
   alternates: { canonical: "/nganh-hang" },
   openGraph: {
-    title: "Tin tức & Sự kiện | Hưng Phát",
-    description:
-      "Tổng hợp nhanh tin F&B, xu hướng và sự kiện đáng chú ý.",
+    title: "Cẩm nang nguyên liệu F&B | Hưng Phát",
+    description: "Các hướng dẫn ngắn, dễ áp dụng cho khách hàng kinh doanh F&B.",
     url: getAbsoluteUrl("/nganh-hang"),
   },
 };
 
 export default function NganhHangPage() {
-  const featured = newsItems[0];
-  const stackItems = newsItems.slice(1);
+  const featured = guideItems[0];
+  const stackItems = guideItems.slice(1);
 
   return (
     <main className="content-page news-page">
       <section className="page-hero">
         <div className="container page-hero-inner page-hero-with-image">
           <div>
-            <p className="eyebrow">TIN TỨC &amp; SỰ KIỆN</p>
-            <h1 className="gradient-heading">F&amp;B hôm nay</h1>
-            <p>Tóm tắt nhanh xu hướng, báo cáo và sự kiện đáng chú ý trong F&amp;B.</p>
+            <p className="eyebrow">CẨM NANG HƯNG PHÁT</p>
+            <h1 className="gradient-heading">Thông tin hữu ích cho quán</h1>
+            <p>Hướng dẫn ngắn về chọn nguyên liệu, bảo quản và lên kế hoạch nhập hàng.</p>
             <div className="page-hero-points news-hero-points">
               <span>
-                <TrendingUp size={14} /> Xu hướng
+                <CheckCircle2 size={14} /> Dễ áp dụng
               </span>
               <span>
-                <Sparkles size={14} /> Sự kiện
+                <PackageCheck size={14} /> Giảm hao hụt
               </span>
               <span>
-                <CalendarDays size={14} /> Cập nhật tuần này
+                <BookOpen size={14} /> Đọc nhanh
               </span>
             </div>
           </div>
           <div className="page-hero-image">
             <Image
               src={siteAssets.pageHero.nganhHang}
-              alt="Ngành hàng Hưng Phát"
+              alt="Cẩm nang nguyên liệu F&B Hưng Phát"
               fill
               priority
               sizes="(max-width: 900px) 100vw, 40vw"
@@ -123,11 +113,11 @@ export default function NganhHangPage() {
           <Reveal>
             <div className="section-heading split-heading">
               <div>
-                <p className="eyebrow">ĐIỂM NHẤN</p>
-                <h2 className="gradient-heading">Nguồn F&amp;B đang được chú ý</h2>
-                <p>Các mẩu tin dưới đây được chọn từ nguồn cập nhật gần đây, ưu tiên chủ đề có liên quan trực tiếp tới F&amp;B.</p>
+                <p className="eyebrow">BÍ QUYẾT CHO KHÁCH HÀNG</p>
+                <h2 className="gradient-heading">Vận hành gọn, nhập hàng đúng</h2>
+                <p>Các hướng dẫn tập trung vào những việc quán và đại lý có thể áp dụng ngay.</p>
               </div>
-              <span className="section-kicker">4 nguồn</span>
+              <span className="section-kicker">4 hướng dẫn</span>
             </div>
           </Reveal>
 
@@ -147,8 +137,7 @@ export default function NganhHangPage() {
                 <div className="news-feature-topline">
                   <span className="news-badge">{featured.badge}</span>
                   <span className="news-meta">
-                    <CalendarDays size={14} />
-                    {featured.date}
+                    <Clock3 size={14} /> {featured.readingTime}
                   </span>
                 </div>
                 <h3>{featured.title}</h3>
@@ -159,7 +148,7 @@ export default function NganhHangPage() {
                   ))}
                 </ul>
                 <div className="news-feature-footer">
-                  <span className="news-source">{featured.source}</span>
+                  <span className="news-source">Hướng dẫn Hưng Phát</span>
                 </div>
               </article>
             </Reveal>
@@ -180,8 +169,7 @@ export default function NganhHangPage() {
                     <div className="news-card-topline">
                       <span className="news-badge">{item.badge}</span>
                       <span className="news-meta">
-                        <CalendarDays size={14} />
-                        {item.date}
+                        <Clock3 size={14} /> {item.readingTime}
                       </span>
                     </div>
                     <h3>{item.title}</h3>
@@ -192,7 +180,7 @@ export default function NganhHangPage() {
                       ))}
                     </ul>
                     <div className="news-card-footer">
-                      <span className="news-source">{item.source}</span>
+                      <span className="news-source">Hướng dẫn Hưng Phát</span>
                     </div>
                   </article>
                 </Reveal>
