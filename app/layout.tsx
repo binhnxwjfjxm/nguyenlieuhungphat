@@ -10,6 +10,7 @@ import { siteAssets } from "@/lib/site-assets";
 import "./globals.css";
 import "./sprint2.css";
 import "./sprint3.css";
+import "./hung-phat-warm-gold.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
@@ -66,7 +67,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f7f1e7",
+  viewportFit: "cover",
+  themeColor: "#754706",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

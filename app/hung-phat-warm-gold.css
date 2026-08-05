@@ -1,0 +1,169 @@
+:root {
+  --hp-canvas: #f7f5f1;
+  --hp-surface: #ffffff;
+  --hp-surface-soft: #efebe4;
+  --hp-bronze: #98600f;
+  --hp-bronze-strong: #754706;
+  --hp-bronze-soft: #f3e6cf;
+  --hp-ink: #2d2924;
+  --hp-muted: #70685f;
+  --hp-border: #d8d0c4;
+  --hp-olive: #65734d;
+  --hp-focus-inner: #fffdf8;
+  --hp-focus-outer: #754706;
+
+  --background: var(--hp-canvas);
+  --background-deep: #ece5da;
+  --surface: var(--hp-surface);
+  --surface-soft: #fbf8f3;
+  --brown: var(--hp-bronze);
+  --brown-dark: var(--hp-bronze-strong);
+  --brown-light: #b78333;
+  --green: var(--hp-olive);
+  --green-dark: #465437;
+  --green-soft: #edf0e7;
+  --border: var(--hp-border);
+  --text: var(--hp-ink);
+  --muted: var(--hp-muted);
+  --shadow-sm: 0 8px 24px rgba(72, 54, 34, 0.07);
+  --shadow-md: 0 16px 44px rgba(72, 54, 34, 0.12);
+}
+
+html,
+body {
+  background: var(--hp-canvas);
+  color: var(--hp-ink);
+}
+
+body {
+  background:
+    radial-gradient(circle at 100% 0, rgba(152, 96, 15, 0.08), transparent 28rem),
+    var(--hp-canvas);
+}
+
+.site-header {
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 72%),
+    rgba(90, 59, 32, 0.97);
+  box-shadow: 0 8px 24px rgba(63, 42, 24, 0.16);
+}
+
+.button-primary {
+  border-color: var(--hp-bronze-strong);
+  background: linear-gradient(180deg, #aa721d, var(--hp-bronze));
+  color: #fffdf8;
+  box-shadow: 0 10px 24px rgba(117, 71, 6, 0.19);
+}
+
+.button-primary:hover {
+  background: var(--hp-bronze-strong);
+  box-shadow: 0 14px 30px rgba(117, 71, 6, 0.24);
+}
+
+.button-secondary {
+  border-color: #c9b48f;
+  background: #fffaf1;
+  color: var(--hp-bronze-strong);
+}
+
+.button-cream {
+  background: var(--hp-bronze-soft);
+  color: var(--hp-bronze-strong);
+}
+
+.hero {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(183, 131, 51, 0.14), transparent 34%),
+    linear-gradient(180deg, #fbf7ef 0%, var(--hp-canvas) 100%);
+}
+
+.eyebrow,
+.gradient-heading,
+.product-price,
+.price,
+.accent-text {
+  color: var(--hp-bronze-strong);
+}
+
+.gradient-heading {
+  background: linear-gradient(90deg, var(--hp-bronze-strong) 0%, #ad7725 48%, #5f6d48 76%, var(--hp-bronze-strong) 100%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+:where(.card, .product-card, .category-card, .quote-card, .cart-card, .checkout-card, .contact-card, .guide-card) {
+  border-color: var(--hp-border) !important;
+  background: var(--hp-surface) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+input,
+select,
+textarea {
+  border-color: var(--hp-border) !important;
+  background: var(--hp-surface) !important;
+  color: var(--hp-ink) !important;
+  accent-color: var(--hp-bronze);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--hp-focus-inner) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--hp-focus-outer) !important;
+}
+
+:where(.chip, .tag, .badge, .category-pill, .filter-chip)[aria-selected="true"],
+:where(.chip, .tag, .badge, .category-pill, .filter-chip).active {
+  border-color: var(--hp-bronze) !important;
+  background: var(--hp-bronze-soft) !important;
+  color: var(--hp-bronze-strong) !important;
+}
+
+::selection {
+  background: var(--hp-bronze-soft);
+  color: var(--hp-ink);
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: min(calc(100% - 24px), var(--container));
+  }
+
+  .site-header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .header-inner {
+    min-height: 64px;
+  }
+
+  .brand img {
+    width: 46px;
+    height: 46px;
+  }
+
+  .button,
+  button,
+  input,
+  select {
+    min-height: 46px;
+  }
+
+  textarea {
+    min-height: 96px;
+  }
+
+  :where(.card, .product-card, .category-card, .quote-card, .cart-card, .checkout-card, .contact-card, .guide-card) {
+    border-radius: 14px !important;
+    box-shadow: 0 6px 18px rgba(72, 54, 34, 0.07);
+  }
+}
