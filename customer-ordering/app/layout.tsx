@@ -5,6 +5,7 @@ import { ServiceWorkerRegistration } from "@/components/service-worker-registrat
 import "./globals.css";
 import "./clerk-auth.css";
 import "./ui2.css";
+import "./ui3.css";
 
 export const metadata: Metadata = {
   title: {
