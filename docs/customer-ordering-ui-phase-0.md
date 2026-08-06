@@ -1,0 +1,1 @@
+Phase UI-0 sẽ được theo dõi trong GitHub Issue riêng: tạo Customer Ordering app độc lập, CI riêng và deploy boundary riêng; chưa deploy production.
