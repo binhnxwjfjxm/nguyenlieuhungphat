@@ -1,0 +1,42 @@
+import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Hưng Phát Đặt Hàng",
+    template: "%s | Hưng Phát",
+  },
+  description: "PWA đặt hàng dành cho khách hàng Hưng Phát.",
+  applicationName: "Hưng Phát Đặt Hàng",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Hưng Phát",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#198754",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="vi">
+      <body>
+        {children}
+        <ServiceWorkerRegistration />
+      </body>
+    </html>
+  );
+}
