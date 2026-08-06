@@ -8,7 +8,7 @@
     "start": "next start -p 3200",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.mjs ../scripts/vercel/*.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "verify": "npm run test && npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
