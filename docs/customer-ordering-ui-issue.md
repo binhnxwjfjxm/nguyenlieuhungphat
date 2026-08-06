@@ -1,0 +1,1 @@
+Nội dung triển khai chính được theo dõi bằng GitHub Issue riêng. Chat mới phải đọc issue đó cùng ba tài liệu: master plan, deploy boundary và handoff.
