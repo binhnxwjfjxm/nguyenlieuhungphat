@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   verify-customer-ordering:
-    runs-on: ubuntu-22.04
+    runs-on: macos-15
     timeout-minutes: 20
     env:
       CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -49,7 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          NODE_BIN="$(find "${RUNNER_TOOL_CACHE}/node" -path '*/x64/bin/node' -type f | grep '/22\.' | sort -V | tail -n 1)"
+          NODE_BIN="$(find "${RUNNER_TOOL_CACHE}/node" -type f -path '*/bin/node' | grep '/22\.' | sort -V | tail -n 1)"
           test -n "${NODE_BIN}"
           NODE_DIR="$(dirname "${NODE_BIN}")"
           echo "${NODE_DIR}" >> "${GITHUB_PATH}"
