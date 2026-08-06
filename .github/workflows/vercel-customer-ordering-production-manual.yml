@@ -60,8 +60,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PRODUCTION_BRANCH: main
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_WEBSITE_PROJECT_ID: ${{ secrets.VERCEL_WEBSITE_PROJECT_ID }}
-          VERCEL_CUSTOMER_ORDERING_PROJECT_ID: ${{ secrets.VERCEL_CUSTOMER_ORDERING_PROJECT_ID }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+          VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+          VERCEL_CUSTOMER_ORDERING_PROJECT_ID: prj_btLk3p4FhmShgKFdRBMq6ZFOagKe
           CUSTOMER_ORDERING_PRODUCTION_ORIGIN: ${{ vars.CUSTOMER_ORDERING_PRODUCTION_ORIGIN }}
         run: node scripts/vercel/deploy-customer-ordering-production.mjs
