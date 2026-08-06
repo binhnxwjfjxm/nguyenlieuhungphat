@@ -15,6 +15,9 @@ test("Customer Ordering loads Clerk UI and browser SDK through a public key only
   assert.match(browser, /@clerk\/clerk-js@6/);
   assert.match(browser, /__internal_ClerkUICtor/);
   assert.match(browser, /script\.dataset\.clerkPublishableKey = publishableKey/);
+  assert.match(browser, /scriptLoadPromises/);
+  assert.match(browser, /existing\.remove\(\)/);
+  assert.match(browser, /script\.dataset\.hpLoadState = "loading"/);
   assert.doesNotMatch(provider, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(browser, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(exampleEnv, /^CLERK_SECRET_KEY=/m);
@@ -42,8 +45,14 @@ test("account tab combines shop registration with Clerk account and security man
     read("components/clerk-user-profile.tsx"),
   ]);
   assert.match(account, /Đăng ký điểm bán/);
-  assert.match(account, /SHOP_REGISTRATION_STORAGE_KEY/);
+  assert.match(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
+  assert.match(account, /shopRegistrationStorageKey\(user\.id\)/);
+  assert.match(account, /window\.localStorage\.getItem/);
   assert.match(account, /window\.localStorage\.setItem/);
+  assert.match(account, /window\.localStorage\.removeItem/);
+  assert.match(account, /expiresAt/);
+  assert.match(account, /SHOP_REGISTRATION_TTL_MS/);
+  assert.match(account, /Xóa bản nháp/);
   assert.match(account, /ClerkUserProfilePanel/);
   assert.match(profile, /mountUserProfile/);
   assert.match(profile, /routing: "hash"/);

@@ -299,8 +299,26 @@
   color: var(--hp-green);
 }
 
+.shop-registration-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .shop-registration-submit {
   gap: 8px;
+}
+
+.shop-registration-delete {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(192, 57, 43, .2);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--hp-danger);
+  font-weight: 740;
 }
 
 .account-security-section {
@@ -341,6 +359,14 @@
     min-width: 112px;
     grid-column: auto;
     padding: 0 14px;
+  }
+
+  .shop-registration-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .shop-registration-delete {
+    padding-inline: 16px;
   }
 }
 

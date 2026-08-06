@@ -9,9 +9,10 @@ import {
   Phone,
   Save,
   Store,
+  Trash2,
   UserRound,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ClerkUserProfilePanel } from "@/components/clerk-user-profile";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
 
@@ -23,6 +24,14 @@ type ShopRegistrationDraft = {
   businessType: string;
 };
 
+type StoredShopRegistrationDraft = {
+  version: 1;
+  status: "draft";
+  savedAt: string;
+  expiresAt: string;
+  draft: ShopRegistrationDraft;
+};
+
 const EMPTY_SHOP_DRAFT: ShopRegistrationDraft = {
   shopName: "",
   contactName: "",
@@ -31,15 +40,95 @@ const EMPTY_SHOP_DRAFT: ShopRegistrationDraft = {
   businessType: "Cửa hàng bán lẻ",
 };
 
-const SHOP_REGISTRATION_STORAGE_KEY = "hp-customer-ordering-shop-registration";
+const SHOP_REGISTRATION_STORAGE_PREFIX = "hp-customer-ordering-shop-registration";
+const SHOP_REGISTRATION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function shopRegistrationStorageKey(userId: string): string {
+  return `${SHOP_REGISTRATION_STORAGE_PREFIX}:${userId}`;
+}
+
+function isShopRegistrationDraft(value: unknown): value is ShopRegistrationDraft {
+  if (!value || typeof value !== "object") return false;
+  const draft = value as Partial<Record<keyof ShopRegistrationDraft, unknown>>;
+  return (
+    typeof draft.shopName === "string" &&
+    typeof draft.contactName === "string" &&
+    typeof draft.phone === "string" &&
+    typeof draft.address === "string" &&
+    typeof draft.businessType === "string"
+  );
+}
+
+function isStoredShopRegistrationDraft(value: unknown): value is StoredShopRegistrationDraft {
+  if (!value || typeof value !== "object") return false;
+  const stored = value as Partial<StoredShopRegistrationDraft>;
+  return (
+    stored.version === 1 &&
+    stored.status === "draft" &&
+    typeof stored.savedAt === "string" &&
+    Number.isFinite(Date.parse(stored.savedAt)) &&
+    typeof stored.expiresAt === "string" &&
+    Number.isFinite(Date.parse(stored.expiresAt)) &&
+    isShopRegistrationDraft(stored.draft)
+  );
+}
 
 export function AccountAuthCard() {
   const { user, signOut } = useCustomerAuth();
+  const previousUserIdRef = useRef<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [shopDraft, setShopDraft] = useState<ShopRegistrationDraft>(EMPTY_SHOP_DRAFT);
   const [shopSavedAt, setShopSavedAt] = useState<string | null>(null);
   const displayName = user?.fullName || user?.firstName || "Khách hàng Hưng Phát";
   const email = user?.primaryEmailAddress?.emailAddress || "Chưa có email";
+
+  useEffect(() => {
+    const userId = user?.id ?? null;
+    const previousUserId = previousUserIdRef.current;
+    previousUserIdRef.current = userId;
+
+    const timeoutId = window.setTimeout(() => {
+      if (previousUserId && previousUserId !== userId) {
+        window.localStorage.removeItem(shopRegistrationStorageKey(previousUserId));
+      }
+
+      if (!userId) {
+        setShopDraft(EMPTY_SHOP_DRAFT);
+        setShopSavedAt(null);
+        return;
+      }
+
+      const storageKey = shopRegistrationStorageKey(userId);
+      const rawDraft = window.localStorage.getItem(storageKey);
+      if (!rawDraft) {
+        setShopDraft(EMPTY_SHOP_DRAFT);
+        setShopSavedAt(null);
+        return;
+      }
+
+      try {
+        const storedDraft: unknown = JSON.parse(rawDraft);
+        if (
+          !isStoredShopRegistrationDraft(storedDraft) ||
+          Date.parse(storedDraft.expiresAt) <= Date.now()
+        ) {
+          window.localStorage.removeItem(storageKey);
+          setShopDraft(EMPTY_SHOP_DRAFT);
+          setShopSavedAt(null);
+          return;
+        }
+
+        setShopDraft(storedDraft.draft);
+        setShopSavedAt(storedDraft.savedAt);
+      } catch {
+        window.localStorage.removeItem(storageKey);
+        setShopDraft(EMPTY_SHOP_DRAFT);
+        setShopSavedAt(null);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [user?.id]);
 
   function updateShopField<Key extends keyof ShopRegistrationDraft>(
     field: Key,
@@ -51,17 +140,41 @@ export function AccountAuthCard() {
 
   function handleShopSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!user?.id) return;
+
     const savedAt = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + SHOP_REGISTRATION_TTL_MS).toISOString();
+    const storedDraft: StoredShopRegistrationDraft = {
+      version: 1,
+      status: "draft",
+      savedAt,
+      expiresAt,
+      draft: shopDraft,
+    };
+
     window.localStorage.setItem(
-      SHOP_REGISTRATION_STORAGE_KEY,
-      JSON.stringify({ ...shopDraft, savedAt, status: "draft" }),
+      shopRegistrationStorageKey(user.id),
+      JSON.stringify(storedDraft),
     );
     setShopSavedAt(savedAt);
+  }
+
+  function handleDeleteShopDraft() {
+    if (user?.id) {
+      window.localStorage.removeItem(shopRegistrationStorageKey(user.id));
+    }
+    setShopDraft(EMPTY_SHOP_DRAFT);
+    setShopSavedAt(null);
   }
 
   async function handleSignOut() {
     setSigningOut(true);
     try {
+      if (user?.id) {
+        window.localStorage.removeItem(shopRegistrationStorageKey(user.id));
+      }
+      setShopDraft(EMPTY_SHOP_DRAFT);
+      setShopSavedAt(null);
       await signOut();
     } finally {
       setSigningOut(false);
@@ -196,7 +309,7 @@ export function AccountAuthCard() {
             {shopSavedAt ? (
               <>
                 <CheckCircle2 aria-hidden="true" size={18} />
-                <span>Đã lưu bản nháp đăng ký quán trên thiết bị này.</span>
+                <span>Đã lưu bản nháp đăng ký quán trên thiết bị này trong tối đa 30 ngày.</span>
               </>
             ) : (
               <>
@@ -208,10 +321,22 @@ export function AccountAuthCard() {
             )}
           </div>
 
-          <button className="primary-button shop-registration-submit" type="submit">
-            <Save aria-hidden="true" size={18} />
-            Lưu đề nghị đăng ký quán
-          </button>
+          <div className="shop-registration-actions">
+            <button className="primary-button shop-registration-submit" type="submit">
+              <Save aria-hidden="true" size={18} />
+              Lưu đề nghị đăng ký quán
+            </button>
+            {shopSavedAt ? (
+              <button
+                className="shop-registration-delete"
+                onClick={handleDeleteShopDraft}
+                type="button"
+              >
+                <Trash2 aria-hidden="true" size={17} />
+                Xóa bản nháp
+              </button>
+            ) : null}
+          </div>
         </form>
       </section>
 

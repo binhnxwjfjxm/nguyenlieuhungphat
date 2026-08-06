@@ -88,6 +88,7 @@ declare global {
 
 const CLERK_SCRIPT_ID = "hp-clerk-browser";
 const CLERK_UI_SCRIPT_ID = "hp-clerk-ui";
+const scriptLoadPromises = new Map<string, Promise<void>>();
 
 const HP_CLERK_LOCALIZATION: Record<string, unknown> = {
   dividerText: "hoặc",
@@ -165,26 +166,53 @@ function ensureScript(
 ): Promise<void> {
   if (isReady()) return Promise.resolve();
 
+  const trackedLoad = scriptLoadPromises.get(id);
+  if (trackedLoad) return trackedLoad;
+
   const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (existing) {
-    configure?.(existing);
-    if (isReady()) return Promise.resolve();
-    return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error(errorMessage)), { once: true });
-    });
+    existing.remove();
   }
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = id;
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.src = src;
-    configure?.(script);
-    script.addEventListener("load", () => resolve(), { once: true });
-    script.addEventListener("error", () => reject(new Error(errorMessage)), { once: true });
+  const script = document.createElement("script");
+  script.id = id;
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.src = src;
+  script.dataset.hpLoadState = "loading";
+  configure?.(script);
+
+  const loadPromise = new Promise<void>((resolve, reject) => {
+    script.addEventListener(
+      "load",
+      () => {
+        if (isReady()) {
+          script.dataset.hpLoadState = "loaded";
+          resolve();
+          return;
+        }
+
+        script.dataset.hpLoadState = "error";
+        reject(new Error(`${errorMessage} Script đã tải nhưng API chưa sẵn sàng.`));
+      },
+      { once: true },
+    );
+    script.addEventListener(
+      "error",
+      () => {
+        script.dataset.hpLoadState = "error";
+        reject(new Error(errorMessage));
+      },
+      { once: true },
+    );
     document.head.appendChild(script);
+  });
+
+  scriptLoadPromises.set(id, loadPromise);
+  return loadPromise.finally(() => {
+    if (scriptLoadPromises.get(id) === loadPromise) {
+      scriptLoadPromises.delete(id);
+    }
   });
 }
 
