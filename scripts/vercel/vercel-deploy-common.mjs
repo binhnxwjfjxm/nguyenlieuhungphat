@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { setTimeout as sleep } from "node:timers/promises";
 
 export const TARGETS = {
   website: {
@@ -85,18 +86,58 @@ export async function verifyBoundary(target, { auditProvider = true } = {}) {
   return { config, projectId, teamId, token, checkedOutSha };
 }
 
-async function smokeOrigin(origin, paths) {
-  const normalizedOrigin = origin.replace(/\/+$/, "");
-  for (const path of paths) {
-    const response = await fetch(`${normalizedOrigin}${path}`, { redirect: "manual" });
-    if (response.status >= 500 || response.status === 404) throw new Error(`Smoke failed for ${path}: ${response.status}`);
+export async function fetchWithRetry(url, options = {}) {
+  const attempts = options.attempts ?? 12;
+  const delayMs = options.delayMs ?? 5000;
+  const timeoutMs = options.timeoutMs ?? 15000;
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const sleepImpl = options.sleepImpl ?? sleep;
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetchImpl(url, {
+        redirect: "follow",
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.status >= 200 && response.status < 400) return response;
+      if (response.status < 500 && ![404, 408, 425, 429].includes(response.status)) {
+        throw new Error(`Smoke rejected ${new URL(url).pathname || "/"}: HTTP ${response.status}`);
+      }
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Smoke rejected")) throw error;
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+
+    if (attempt < attempts) await sleepImpl(delayMs);
   }
-  const home = await fetch(`${normalizedOrigin}/`);
+
+  const path = new URL(url).pathname || "/";
+  throw new Error(`Smoke failed for ${path} after ${attempts} attempts: ${lastError?.message ?? "unknown error"}`);
+}
+
+export async function smokeOrigin(origin, paths, retryOptions = {}) {
+  const normalizedOrigin = origin.replace(/\/+$/, "");
+  const home = await fetchWithRetry(`${normalizedOrigin}/`, retryOptions);
+
+  for (const path of paths) {
+    if (path === "/") continue;
+    await fetchWithRetry(`${normalizedOrigin}${path}`, {
+      ...retryOptions,
+      attempts: retryOptions.attempts ?? 4,
+      delayMs: retryOptions.delayMs ?? 2500,
+    });
+  }
+
   const html = await home.text();
   const assetMatch = html.match(/\/_next\/static\/[^"' ]+/);
   if (!assetMatch) throw new Error("Smoke could not find a Next.js static asset.");
-  const asset = await fetch(`${normalizedOrigin}${assetMatch[0]}`);
-  if (!asset.ok) throw new Error(`Static asset smoke failed: ${asset.status}`);
+  await fetchWithRetry(`${normalizedOrigin}${assetMatch[0]}`, {
+    ...retryOptions,
+    attempts: retryOptions.attempts ?? 4,
+    delayMs: retryOptions.delayMs ?? 2500,
+  });
 }
 
 export async function deployTarget(target) {
@@ -116,6 +157,7 @@ export async function deployTarget(target) {
     if (!deploymentUrl) throw new Error("Vercel CLI did not return a deployment URL.");
     const productionOrigin = process.env[config.originEnv] ?? "";
     if (!productionOrigin) throw new Error(`${config.originEnv} is required for production smoke.`);
+    await smokeOrigin(deploymentUrl, config.smokePaths);
     await smokeOrigin(productionOrigin, config.smokePaths);
     console.log(`Production verified: target=${target} sha=${checkedOutSha.slice(0,12)} deployment=${fingerprint(deploymentUrl)}`);
   } finally {
