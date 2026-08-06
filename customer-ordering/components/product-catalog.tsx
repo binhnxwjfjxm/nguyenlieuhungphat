@@ -43,9 +43,11 @@ export function ProductCatalog() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
-  const [loading, setLoading] = useState(true);
+  const [loadedQueryKey, setLoadedQueryKey] = useState("");
   const [catalogError, setCatalogError] = useState("");
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
+  const queryKey = `${activeCategory ?? "all"}:${deferredQuery}`;
+  const loading = loadedQueryKey !== queryKey;
 
   useEffect(() => {
     let cancelled = false;
@@ -64,23 +66,26 @@ export function ProductCatalog() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setCatalogError("");
+    const requestKey = queryKey;
     void service
       .listProducts({ categoryId: activeCategory, query: deferredQuery })
       .then((items) => {
-        if (!cancelled) setProducts(items);
+        if (!cancelled) {
+          setProducts(items);
+          setCatalogError("");
+          setLoadedQueryKey(requestKey);
+        }
       })
       .catch(() => {
-        if (!cancelled) setCatalogError("Không tải được sản phẩm. Vui lòng thử lại.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setCatalogError("Không tải được sản phẩm. Vui lòng thử lại.");
+          setLoadedQueryKey(requestKey);
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, [activeCategory, deferredQuery, service]);
+  }, [activeCategory, deferredQuery, queryKey, service]);
 
   async function addOne(product: Product) {
     if (product.availability !== "available") return;
