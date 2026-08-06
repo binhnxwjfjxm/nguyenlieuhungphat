@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Bell, ClipboardList, Home, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
+import { CartBadge } from "@/components/cart-badge";
 import { CustomerAuthGate } from "@/components/customer-auth-gate";
 
 const navigation = [
@@ -27,13 +28,23 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
       <div className="app-frame">
         <header className="app-header">
           <Link className="brand-link" href="/" aria-label="Về trang chủ Hưng Phát">
-            <Image alt="Logo Công ty Hưng Phát" className="brand-logo" height={52} priority src="/logo-transparent.png" width={132} />
+            <Image
+              alt="Logo Công ty Hưng Phát"
+              className="brand-logo"
+              height={52}
+              priority
+              src="/logo-transparent.png"
+              width={132}
+            />
           </Link>
           {title ? <strong className="app-header-title">{title}</strong> : <span />}
-          <button className="icon-button" type="button" aria-label="Thông báo">
-            <Bell aria-hidden="true" size={21} strokeWidth={1.8} />
-            <span className="notification-dot" />
-          </button>
+          <div className="header-actions">
+            <Link className="icon-button" href="/news" aria-label="Thông báo">
+              <Bell aria-hidden="true" size={20} strokeWidth={1.8} />
+              <span className="notification-dot" />
+            </Link>
+            <CartBadge />
+          </div>
         </header>
 
         <main className="app-content">{children}</main>
@@ -45,11 +56,19 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
             return (
               <Link
                 aria-current={active ? "page" : undefined}
-                className={["bottom-navigation-item", active ? "is-active" : "", item.emphasized ? "is-emphasized" : ""].filter(Boolean).join(" ")}
+                className={[
+                  "bottom-navigation-item",
+                  active ? "is-active" : "",
+                  item.emphasized ? "is-emphasized" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 href={item.href}
                 key={item.href}
               >
-                <span className="bottom-navigation-icon"><Icon aria-hidden="true" size={22} strokeWidth={1.8} /></span>
+                <span className="bottom-navigation-icon">
+                  <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
+                </span>
                 <span>{item.label}</span>
               </Link>
             );
