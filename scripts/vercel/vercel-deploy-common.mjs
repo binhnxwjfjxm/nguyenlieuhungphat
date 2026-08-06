@@ -109,6 +109,7 @@ export async function deployTarget(target) {
   try {
     run("npm", ["ci"], { cwd, env });
     run("npm", ["run", "build"], { cwd, env });
+    run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd, env });
     run("vercel", ["build", "--prod", "--token", token], { cwd, env });
     const deploymentUrl = run("vercel", ["deploy", "--prebuilt", "--prod", "--yes", "--token", token], { cwd, env, capture: true }).split(/\s+/).find((value) => value.startsWith("https://"));
     if (!deploymentUrl) throw new Error("Vercel CLI did not return a deployment URL.");
