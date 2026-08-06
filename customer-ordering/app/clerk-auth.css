@@ -50,6 +50,34 @@
   line-height: 1.45;
 }
 
+.auth-helper-centered {
+  margin-top: 0;
+  text-align: center;
+}
+
+.google-auth-button {
+  gap: 10px;
+}
+
+.google-auth-mark {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #4285f4;
+  font-size: .9rem;
+  font-weight: 850;
+  box-shadow: 0 2px 8px rgba(22, 58, 35, .12);
+}
+
+.auth-return-button {
+  min-width: 190px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
 .clerk-captcha-slot {
   min-height: 1px;
   overflow: hidden;
@@ -57,25 +85,6 @@
 
 .clerk-captcha-slot:empty {
   display: none;
-}
-
-.otp-input input {
-  letter-spacing: .3em;
-  font-size: 1.05rem;
-  font-weight: 750;
-}
-
-.auth-secondary-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.auth-secondary-actions .text-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
 }
 
 .account-auth-card {
@@ -145,8 +154,7 @@
   font-weight: 750;
 }
 
-.account-signout-button:disabled,
-.auth-secondary-actions button:disabled {
+.account-signout-button:disabled {
   cursor: wait;
   opacity: .6;
 }

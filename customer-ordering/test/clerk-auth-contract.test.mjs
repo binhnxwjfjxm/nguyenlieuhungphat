@@ -17,14 +17,21 @@ test("Customer Ordering loads Clerk through a public browser key only", async ()
   assert.doesNotMatch(exampleEnv, /^CLERK_SECRET_KEY=/m);
 });
 
-test("custom Hưng Phát login supports phone OTP, guest sign-up and CAPTCHA", async () => {
-  const login = await read("components/login-card.tsx");
-  assert.match(login, /strategy: "phone_code"/);
-  assert.match(login, /signUp\.create/);
-  assert.match(login, /form_identifier_not_found/);
-  assert.match(login, /id="clerk-captcha"/);
+test("custom Hưng Phát login uses Google OAuth for both sign-in and sign-up", async () => {
+  const [login, callback, callbackPage] = await Promise.all([
+    read("components/login-card.tsx"),
+    read("components/google-auth-callback.tsx"),
+    read("app/login/sso-callback/page.tsx"),
+  ]);
+  assert.match(login, /strategy: "oauth_google"/);
+  assert.match(login, /authenticateWithRedirect/);
+  assert.match(login, /redirectUrl: "\/login\/sso-callback"/);
   assert.match(login, /src="\/logo-transparent\.png"/);
-  assert.doesNotMatch(login, /mountSignIn/);
+  assert.doesNotMatch(login, /phone_code/);
+  assert.doesNotMatch(login, /Nhận mã xác minh/);
+  assert.match(callback, /handleRedirectCallback/);
+  assert.match(callback, /id="clerk-captcha"/);
+  assert.match(callbackPage, /GoogleAuthCallback/);
 });
 
 test("protected app shell uses Clerk auth gate", async () => {
@@ -36,7 +43,7 @@ test("protected app shell uses Clerk auth gate", async () => {
   assert.match(layout, /ClerkAuthProvider/);
 });
 
-test("customer-facing copy does not expose internal provider or Core terminology", async () => {
+test("customer-facing copy uses Google identity without exposing internal Core terminology", async () => {
   const [account, gate] = await Promise.all([
     read("components/account-auth-card.tsx"),
     read("components/customer-auth-gate.tsx"),
@@ -44,4 +51,6 @@ test("customer-facing copy does not expose internal provider or Core terminology
   assert.doesNotMatch(account, /NPP Core/);
   assert.doesNotMatch(gate, /khóa đăng nhập Clerk/);
   assert.match(account, /hồ sơ khách hàng Hưng Phát/);
+  assert.match(account, /tài khoản Google này/);
+  assert.match(account, /primaryEmailAddress/);
 });
