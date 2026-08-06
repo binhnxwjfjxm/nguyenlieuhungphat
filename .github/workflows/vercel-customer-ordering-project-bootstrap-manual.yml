@@ -20,18 +20,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Require Vercel credentials
+      - name: Require Vercel credential
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        run: |
-          test -n "$VERCEL_TOKEN"
-          test -n "$VERCEL_ORG_ID"
+        run: test -n "$VERCEL_TOKEN"
       - name: Create or verify disconnected project
         id: project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
         run: node scripts/vercel/bootstrap-customer-ordering-project.mjs
       - name: Install pinned Vercel CLI
         run: npm install --global vercel@58.0.0
@@ -39,7 +36,7 @@ jobs:
         working-directory: customer-ordering
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
           VERCEL_PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           mkdir -p .vercel
@@ -47,4 +44,5 @@ jobs:
           printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
           npm ci
           npm run verify
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
           vercel build --prod --token "$VERCEL_TOKEN"
