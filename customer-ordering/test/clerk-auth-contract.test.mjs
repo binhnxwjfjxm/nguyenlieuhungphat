@@ -14,6 +14,7 @@ test("Customer Ordering loads Clerk UI and browser SDK through a public key only
   assert.match(browser, /@clerk\/ui@1/);
   assert.match(browser, /@clerk\/clerk-js@6/);
   assert.match(browser, /__internal_ClerkUICtor/);
+  assert.match(browser, /script\.dataset\.clerkPublishableKey = publishableKey/);
   assert.doesNotMatch(provider, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(browser, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(exampleEnv, /^CLERK_SECRET_KEY=/m);

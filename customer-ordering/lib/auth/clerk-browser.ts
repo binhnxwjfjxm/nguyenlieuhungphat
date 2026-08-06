@@ -161,11 +161,14 @@ function ensureScript(
   src: string,
   isReady: () => boolean,
   errorMessage: string,
+  configure?: (script: HTMLScriptElement) => void,
 ): Promise<void> {
   if (isReady()) return Promise.resolve();
 
   const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (existing) {
+    configure?.(existing);
+    if (isReady()) return Promise.resolve();
     return new Promise((resolve, reject) => {
       existing.addEventListener("load", () => resolve(), { once: true });
       existing.addEventListener("error", () => reject(new Error(errorMessage)), { once: true });
@@ -178,6 +181,7 @@ function ensureScript(
     script.async = true;
     script.crossOrigin = "anonymous";
     script.src = src;
+    configure?.(script);
     script.addEventListener("load", () => resolve(), { once: true });
     script.addEventListener("error", () => reject(new Error(errorMessage)), { once: true });
     document.head.appendChild(script);
@@ -199,6 +203,9 @@ export async function loadClerkBrowser(publishableKey: string): Promise<ClerkBro
     `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,
     () => Boolean(window.Clerk),
     "Không tải được dịch vụ đăng nhập.",
+    (script) => {
+      script.dataset.clerkPublishableKey = publishableKey;
+    },
   );
 
   if (!window.Clerk || !window.__internal_ClerkUICtor) {
