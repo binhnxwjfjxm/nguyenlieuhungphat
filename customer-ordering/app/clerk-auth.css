@@ -50,6 +50,15 @@
   line-height: 1.45;
 }
 
+.clerk-captcha-slot {
+  min-height: 1px;
+  overflow: hidden;
+}
+
+.clerk-captcha-slot:empty {
+  display: none;
+}
+
 .otp-input input {
   letter-spacing: .3em;
   font-size: 1.05rem;

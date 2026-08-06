@@ -38,7 +38,7 @@ export function LoginCard() {
   }, [router, status]);
 
   const unavailableMessage = useMemo(() => {
-    if (status === "unconfigured") return "Ứng dụng chưa được cấu hình khóa đăng nhập.";
+    if (status === "unconfigured") return "Dịch vụ đăng nhập chưa được cấu hình.";
     if (status === "error") return providerError ?? "Không tải được dịch vụ đăng nhập.";
     return null;
   }, [providerError, status]);
@@ -178,6 +178,13 @@ export function LoginCard() {
             <p className="auth-helper">
               Nếu chưa có tài khoản, hệ thống sẽ tạo tài khoản khách vãng lai sau khi xác minh.
             </p>
+            <div
+              className="clerk-captcha-slot"
+              data-cl-language="vi-VN"
+              data-cl-size="flexible"
+              data-cl-theme="light"
+              id="clerk-captcha"
+            />
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <button
               className="primary-button"

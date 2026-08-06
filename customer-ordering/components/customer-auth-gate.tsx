@@ -17,7 +17,7 @@ export function CustomerAuthGate({ children }: Readonly<{ children: ReactNode }>
 
   const message =
     status === "unconfigured"
-      ? "Ứng dụng chưa được cấu hình khóa đăng nhập Clerk."
+      ? "Dịch vụ đăng nhập chưa được cấu hình."
       : status === "error"
         ? error ?? "Không thể tải dịch vụ đăng nhập."
         : status === "signed-out"
@@ -31,7 +31,7 @@ export function CustomerAuthGate({ children }: Readonly<{ children: ReactNode }>
       </span>
       <strong>{message}</strong>
       {status === "unconfigured" ? (
-        <small>Thiết lập NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY tại môi trường Customer Ordering.</small>
+        <small>Vui lòng liên hệ bộ phận hỗ trợ Hưng Phát.</small>
       ) : null}
     </main>
   );

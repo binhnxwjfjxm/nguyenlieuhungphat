@@ -31,12 +31,12 @@ export function AccountAuthCard() {
         {phone}
       </p>
       <div className="account-link-state">
-        <strong>Trạng thái hiện tại</strong>
-        <span>Khách vãng lai — chưa liên kết NPP Core</span>
+        <strong>Trạng thái tài khoản</strong>
+        <span>Chưa liên kết hồ sơ khách hàng Hưng Phát</span>
       </div>
       <p className="account-auth-note">
-        Khi Core hoàn thiện customer portal, tài khoản này sẽ được liên kết với đúng mã khách hàng
-        mà không đổi cách đăng nhập.
+        Sau khi hồ sơ được Hưng Phát xác nhận, quý khách vẫn dùng số điện thoại này để đặt hàng
+        và xem thông tin dành riêng cho điểm bán.
       </p>
       <button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button">
         <LogOut aria-hidden="true" size={18} />
