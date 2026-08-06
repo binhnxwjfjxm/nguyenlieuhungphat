@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   verify-customer-ordering:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     env:
       CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
