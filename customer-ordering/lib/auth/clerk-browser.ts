@@ -10,43 +10,26 @@ export interface ClerkPhoneNumber {
   phoneNumber: string;
 }
 
+export interface ClerkEmailAddress {
+  id: string;
+  emailAddress: string;
+}
+
 export interface ClerkUser {
   id: string;
   fullName: string | null;
   firstName: string | null;
   lastName: string | null;
   primaryPhoneNumber: ClerkPhoneNumber | null;
-}
-
-export interface ClerkPhoneCodeFactor {
-  strategy: string;
-  phoneNumberId?: string;
-  safeIdentifier?: string;
+  primaryEmailAddress: ClerkEmailAddress | null;
 }
 
 export interface ClerkSignIn {
-  status: string | null;
-  createdSessionId: string | null;
-  supportedFirstFactors: ClerkPhoneCodeFactor[] | null;
-  create(input: { identifier: string }): Promise<ClerkSignIn>;
-  prepareFirstFactor(input: {
-    strategy: "phone_code";
-    phoneNumberId: string;
-  }): Promise<ClerkSignIn>;
-  attemptFirstFactor(input: {
-    strategy: "phone_code";
-    code: string;
-  }): Promise<ClerkSignIn>;
-}
-
-export interface ClerkSignUp {
-  status: string | null;
-  createdSessionId: string | null;
-  create(input: { phoneNumber: string }): Promise<ClerkSignUp>;
-  preparePhoneNumberVerification(input?: {
-    strategy?: "phone_code";
-  }): Promise<ClerkSignUp>;
-  attemptPhoneNumberVerification(input: { code: string }): Promise<ClerkSignUp>;
+  authenticateWithRedirect(input: {
+    strategy: "oauth_google";
+    redirectUrl: string;
+    redirectUrlComplete: string;
+  }): Promise<unknown>;
 }
 
 export interface ClerkBrowser {
@@ -54,12 +37,16 @@ export interface ClerkBrowser {
   user: ClerkUser | null;
   client: {
     signIn: ClerkSignIn;
-    signUp: ClerkSignUp;
   };
   load(): Promise<void>;
   addListener(listener: (state: { user?: ClerkUser | null }) => void): () => void;
   setActive(input: { session: string }): Promise<void>;
   signOut(input?: { redirectUrl?: string }): Promise<void>;
+  handleRedirectCallback(input: {
+    redirectUrl?: string;
+    redirectUrlComplete?: string;
+    continueSignUpUrl?: string;
+  }): Promise<unknown>;
 }
 
 declare global {
@@ -69,14 +56,6 @@ declare global {
 }
 
 const CLERK_SCRIPT_ID = "hp-clerk-browser";
-
-export function normalizeVietnamPhone(value: string): string {
-  const compact = value.replace(/[\s().-]/g, "");
-  if (/^\+84\d{9,10}$/.test(compact)) return compact;
-  if (/^84\d{9,10}$/.test(compact)) return `+${compact}`;
-  if (/^0\d{9,10}$/.test(compact)) return `+84${compact.slice(1)}`;
-  throw new Error("Số điện thoại chưa đúng định dạng Việt Nam.");
-}
 
 export function clerkErrorCode(error: unknown): string | null {
   if (!error || typeof error !== "object") return null;
@@ -99,12 +78,23 @@ export function clerkErrorMessage(error: unknown): string {
 }
 
 function decodeFrontendApi(publishableKey: string): string {
-  const encoded = publishableKey.split("_")[2];
-  if (!encoded) throw new Error("Clerk publishable key không hợp lệ.");
-  const decoded = window.atob(encoded);
-  const domain = decoded.endsWith("$") ? decoded.slice(0, -1) : decoded;
-  if (!domain.includes(".")) throw new Error("Không xác định được Clerk Frontend API.");
-  return domain;
+  const parts = publishableKey.split("_");
+  const environment = parts[1];
+  const encoded = parts[2];
+  if (!encoded || (environment !== "test" && environment !== "live")) {
+    throw new Error("Clerk publishable key không hợp lệ.");
+  }
+
+  try {
+    const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const decoded = window.atob(padded);
+    const domain = decoded.endsWith("$") ? decoded.slice(0, -1) : decoded;
+    if (!domain.includes(".")) throw new Error("invalid-domain");
+    return domain;
+  } catch {
+    throw new Error("Không xác định được Clerk Frontend API.");
+  }
 }
 
 function loadScript(src: string, publishableKey: string): Promise<void> {

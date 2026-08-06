@@ -1,101 +1,92 @@
 # Customer Ordering — Clerk trước, kết nối NPP Core sau
 
-## 1. Mục tiêu và quyết định đã khóa
+## 1. Quyết định hiện tại
 
-Customer Ordering dùng **Clerk làm hệ xác thực duy nhất cho người dùng bên ngoài** ngay từ giai đoạn UI.
+Customer Ordering dùng **Clerk cho danh tính người dùng bên ngoài** trong khi NPP Core chưa hoàn thiện login và deny-by-default authorization cho customer portal.
 
-NPP Core hiện chưa hoàn thiện login và deny-by-default authorization cho customer portal, vì vậy phase hiện tại:
+Giai đoạn hiện tại:
 
-- chỉ xác thực số điện thoại và giữ phiên bằng Clerk;
-- chưa gọi NPP Core;
-- chưa đọc khách hàng, bảng giá, công nợ, địa chỉ hoặc đơn hàng thật;
-- chưa tạo database/migration;
+- đăng nhập và tự đăng ký bằng **Google OAuth**;
+- Google account mới trở thành khách vãng lai;
+- chưa gọi NPP Core và chưa đọc dữ liệu thật;
+- chưa tạo migration/database;
 - không sửa repo `NPP-Platform`;
-- không merge hoặc deploy production nếu chưa có lệnh rõ.
+- frontend chỉ dùng `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`;
+- không đưa secret, token hoặc database URL vào frontend/repo/log.
 
-Khách hàng chỉ thấy giao diện Hưng Phát. Tên Clerk, provider subject và khóa kỹ thuật không xuất hiện trong giao diện nghiệp vụ.
+Username/password hoặc email/password là khả năng Clerk hỗ trợ, nhưng **không bật trong phase này** để tránh tạo thêm flow xác minh email, quên mật khẩu và liên kết tài khoản trùng với Google.
 
-## 2. Không trùng tài khoản nhân viên nội bộ
-
-Hai miền danh tính phải tách tuyệt đối:
+## 2. Tách tuyệt đối nhân viên và khách hàng
 
 ```text
 Nhân viên nội bộ
-Core shared.users + employee_id + role/permission
-Không cần Clerk khi Core tạo user nhân viên
+shared.users + employee_id + Core role/permission
+Không dùng Clerk
 
 Khách hàng bên ngoài
-Clerk user + customer portal identity/membership trong Core sau này
-Không được đưa vào shared.users của nhân viên
+Clerk user + portal identity/membership trong Core sau này
+Không đưa vào shared.users
 ```
 
-Core không được đồng bộ toàn bộ nhân viên sang Clerk. Clerk chỉ phục vụ Customer Ordering và các portal bên ngoài nếu sau này có quyết định rõ.
+Core không đồng bộ nhân viên sang Clerk. Một nhân viên cần truy cập Customer Ordering với tư cách hỗ trợ phải dùng chế độ hỗ trợ/impersonation có audit sau này, không tạo tài khoản khách giả.
 
-## 3. Trạng thái người dùng Customer Ordering
+## 3. Trạng thái người dùng
 
-Trong phase Clerk-only, ứng dụng chỉ biết danh tính đã xác minh:
+Hiện tại app chỉ biết:
 
 ```text
 signed_out
 signed_in_unlinked
 ```
 
-Khi Core tích hợp, trạng thái nghiệp vụ được suy ra từ membership:
+Khi Core tích hợp:
 
 ```text
-Không có membership active  -> guest
-Có invitation pending       -> pending_activation
-Có membership active        -> customer
-Membership bị khóa           -> suspended
+không có membership active -> guest
+invitation pending          -> pending_activation
+membership active           -> customer
+membership bị khóa          -> suspended
 ```
 
-Không lưu `user_type=guest/customer` cố định trong Clerk, vì một khách vãng lai có thể được liên kết thành khách hệ thống mà không đổi tài khoản.
+Không lưu guest/customer làm nguồn sự thật trong Clerk metadata. Cùng một Clerk user có thể từ khách vãng lai trở thành khách hệ thống bằng cách thêm membership, không tạo user mới.
 
-## 4. Luồng hiện tại: Clerk-only
+## 4. Luồng Google hiện tại
 
 ```text
-Khách nhập số điện thoại trên sales.nguyenlieuhungphat.com
+Khách bấm "Tiếp tục với Google"
         ↓
-Clerk gửi OTP
+Google xác minh danh tính
         ↓
-Số đã có Clerk user: đăng nhập
-Số chưa có Clerk user: tạo khách vãng lai
+Clerk sign-in hoặc tự chuyển sang sign-up nếu chưa có user
         ↓
-Clerk giữ session
+Callback hoàn tất session
         ↓
 App hiển thị dữ liệu mock
 ```
 
-UI dùng custom flow của Hưng Phát, không dùng trang Account Portal công khai của Clerk.
-
-Biến môi trường duy nhất ở frontend:
-
-```text
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-```
-
-Không đưa `CLERK_SECRET_KEY`, API key, token hoặc database URL vào repo, client bundle, ảnh chụp hoặc tài liệu có giá trị thật.
+Khách chỉ thấy giao diện Hưng Phát. Tên provider, Clerk subject và khóa kỹ thuật không xuất hiện trong nghiệp vụ.
 
 ## 5. Mô hình dữ liệu Core tương lai
 
-Không sửa `shared.users` hiện tại của nhân viên. Khi Core sẵn sàng, migration trong repo `NPP-Platform` nên bổ sung các bảng tương đương:
+Không sửa `shared.users`. Migration trong `NPP-Platform` nên bổ sung các bảng tương đương:
 
 ```text
 shared.portal_users
 - id
 - installation_id
 - display_name
-- normalized_phone
 - normalized_email
+- normalized_phone nullable
 - status
 - created_at
 - updated_at
 
 shared.portal_identities
 - id
+- installation_id
 - portal_user_id
-- provider              -- clerk
-- provider_subject      -- Clerk user id
+- provider             -- clerk
+- provider_subject     -- Clerk user id
 - created_at
 UNIQUE (installation_id, provider, provider_subject)
 
@@ -104,8 +95,8 @@ sales.customer_contacts
 - installation_id
 - customer_id
 - full_name
-- phone
 - email
+- phone
 - is_active
 
 sales.customer_portal_memberships
@@ -125,8 +116,8 @@ sales.customer_portal_invitations
 - installation_id
 - customer_id
 - contact_id
-- intended_phone
 - intended_email
+- intended_phone nullable
 - role
 - token_hash
 - status
@@ -134,45 +125,39 @@ sales.customer_portal_invitations
 - created_by_actor_id
 ```
 
-Tên bảng cuối cùng phải theo master plan và migration convention của NPP Core sau khi audit exact main tại thời điểm làm integration.
+Tên bảng cuối cùng phải theo master plan và migration convention của Core tại thời điểm triển khai.
 
-## 6. Khách có sẵn trong Core
+## 6. Cấp quyền cho khách có sẵn trong Core
 
-Core không tạo password và không tạo một hệ login thứ hai.
-
-Luồng cấp quyền:
+Core không tạo password và không tạo hệ login thứ hai.
 
 ```text
-Nhân viên mở khách hàng có sẵn trong Core
+Nhân viên mở khách hàng trong Core
         ↓
 Chọn/thêm người liên hệ cụ thể
         ↓
 Bấm "Cấp quyền dùng app"
         ↓
-Core tạo portal invitation pending
+Core tạo invitation pending
         ↓
-Khách xác minh đúng số điện thoại bằng giao diện Hưng Phát
+Khách mở link và đăng nhập Google
         ↓
-Backend lấy Clerk subject từ session đã xác minh
+Backend xác minh Clerk session + invitation
         ↓
-Core tạo portal identity + customer membership
+Core tạo portal identity + membership
 ```
 
-Không tự liên kết chỉ vì `customers.phone` trùng. Số điện thoại chung của cửa hàng có thể thuộc nhiều người hoặc được nhập tạm.
+Không tự liên kết chỉ vì email hoặc số điện thoại trong `customers` trùng. Liên kết chỉ được phép khi:
 
-Tự động liên kết chỉ được phép khi:
-
-1. số điện thoại đã được Clerk xác minh;
-2. có invitation active cho đúng installation;
+1. Clerk session hợp lệ;
+2. invitation active đúng installation;
 3. invitation khớp đúng một contact/customer;
 4. transaction chưa được nhận trước đó;
 5. mutation có idempotency, audit và outbox.
 
-Trường hợp trùng hoặc không rõ phải chuyển sang duyệt trong Core.
+Trùng hoặc không rõ phải chuyển sang duyệt trong Core.
 
-## 7. Khách vãng lai chuyển thành khách hệ thống
-
-Không tạo Clerk user mới.
+## 7. Khách vãng lai thành khách hệ thống
 
 ```text
 Clerk user hiện tại
@@ -181,14 +166,12 @@ Core phê duyệt khách mới hoặc link-existing customer
         ↓
 Tạo customer portal membership
         ↓
-Cùng tài khoản đăng nhập trở thành khách hệ thống
+Cùng tài khoản Google trở thành khách hệ thống
 ```
 
-Lịch sử app gắn với `portal_user_id`; dữ liệu thương mại gắn với `customer_id`. Việc liên kết không làm mất phiên hoặc bắt khách đổi mật khẩu.
+Lịch sử app gắn với `portal_user_id`; dữ liệu thương mại gắn với `customer_id`.
 
 ## 8. API contract tương lai
-
-Customer Ordering gọi backend Core/BFF cùng domain hoặc boundary đã được duyệt:
 
 ```text
 GET  /api/customer-portal/me
@@ -196,115 +179,73 @@ POST /api/customer-portal/activation/claim
 POST /api/customer-portal/context/select
 ```
 
-`GET /me` tối thiểu trả:
+`GET /me` tối thiểu trả portal user, memberships và active customer. Backend phải xác minh Clerk session ở server, lấy provider subject rồi tự tra quyền trong PostgreSQL. Không tin `customerId`, role, price list, credit limit hoặc địa chỉ do frontend gửi lên.
 
-```json
-{
-  "portalUser": {
-    "id": "uuid",
-    "displayName": "Nguyễn Văn A",
-    "phone": "+84901234567"
-  },
-  "memberships": [
-    {
-      "customerId": "uuid",
-      "customerCode": "KH00128",
-      "customerName": "Cửa hàng Minh Phát",
-      "role": "owner",
-      "status": "active"
-    }
-  ],
-  "activeCustomerId": "uuid-or-null"
-}
-```
-
-Backend phải xác minh Clerk session token ở server, lấy provider subject, rồi tự tra quyền trong PostgreSQL. Không tin `customerId`, role, credit limit hoặc price list do frontend gửi lên.
-
-## 9. Authorization và ranh giới bảo mật
-
-Clerk trả lời:
+## 9. Authorization
 
 ```text
-Người đăng nhập là ai?
+Clerk: người đăng nhập là ai?
+Core: người đó được làm gì với customer nào?
 ```
 
-NPP Core trả lời:
+Mã khách, bảng giá, công nợ, hạn mức, quyền đặt hàng, địa chỉ và trạng thái khóa không lưu làm nguồn sự thật trong Clerk metadata.
 
-```text
-Người đó được làm gì với customer nào?
-```
+Mọi API phải deny-by-default và kiểm tra installation + portal identity + membership + permission tại server. Client route guard hiện tại chỉ là bảo vệ UI, không phải authorization cho dữ liệu thật.
 
-Các quyền nghiệp vụ không lưu làm nguồn sự thật trong Clerk metadata:
+## 10. Webhook và đồng bộ
 
-- mã khách hàng;
-- bảng giá;
-- công nợ/hạn mức;
-- quyền xem hoặc đặt hàng;
-- địa chỉ được phép dùng;
-- trạng thái khóa giao dịch.
-
-Mọi API phải deny-by-default, kiểm tra installation, portal identity, membership và permission tại server.
-
-Phase Clerk-only hiện tại chỉ là authentication UI/session. Client route guard không được coi là authorization hoặc hàng rào bảo vệ dữ liệu thật.
-
-## 10. Đồng bộ và webhook
-
-Khi Core có backend portal:
-
-- luồng login/activation phải upsert identity đồng bộ trong request;
-- webhook Clerk chỉ dùng để đối soát thay đổi user/phone và xử lý vô hiệu hóa;
+- activation upsert identity đồng bộ trong request;
+- webhook Clerk chỉ dùng đối soát user/email và vô hiệu hóa;
 - không chờ webhook để hoàn tất activation;
-- webhook phải verify signature, idempotent và ghi audit/outbox;
-- xóa Clerk user không tự xóa customer hoặc đơn hàng.
+- webhook verify signature, idempotent và có audit/outbox;
+- xóa Clerk user không xóa customer hoặc đơn hàng.
 
-## 11. Các phase triển khai sau
+## 11. Lộ trình
 
-### AUTH-1 — Clerk foundation trong Customer Ordering
+### AUTH-1 — hiện tại
 
-- custom phone OTP sign-in/sign-up;
-- session và logout;
-- protected UI route;
-- env placeholder;
+- Google OAuth sign-in/sign-up;
+- session, logout và protected UI route;
+- callback + CAPTCHA cho sign-up;
+- dữ liệu mock;
 - không Core API.
 
 ### AUTH-2 — Core contract và migrations
 
-Chỉ bắt đầu khi NPP Core đã đạt gate authentication + deny-by-default authorization:
+Chỉ bắt đầu khi Core đạt gate authentication + deny-by-default authorization:
 
-- portal user/identity/contact/membership/invitation migrations;
+- portal user/identity/contact/membership/invitation;
 - server-side Clerk token verification;
 - `/customer-portal/me`;
-- audit, outbox và idempotency;
-- test isolation theo installation.
+- audit, outbox, idempotency và installation isolation tests.
 
-### AUTH-3 — Cấp quyền từ giao diện Core
+### AUTH-3 — Cấp quyền từ Core
 
-- mục "Người dùng app" trong chi tiết khách hàng;
+- mục “Người dùng app” trong chi tiết khách hàng;
 - tạo/thu hồi/gửi lại invitation;
 - link existing customer;
-- không tạo password;
-- nhân viên nội bộ vẫn dùng user/role Core, không dùng Clerk.
+- nhân viên vẫn dùng Core user/role, không dùng Clerk.
 
-### AUTH-4 — Chuyển mock adapter sang NPP adapter
+### AUTH-4 — Đổi adapter
 
 ```text
 UI
   -> CustomerOrderingService
       -> NppCustomerApiAdapter
-          -> NPP Core customer portal API
+          -> Core customer portal API
 ```
 
-Chỉ thay adapter sau khi contract, migration rehearsal, backup gate và exact-head CI xanh.
+Chỉ đổi adapter sau khi contract, migration rehearsal, backup gate và exact-head CI xanh.
 
-## 12. Acceptance gate cho integration tương lai
+## 12. Acceptance gate
 
-- một Clerk user không bị tạo thành hai portal user;
-- khách vãng lai được link thành khách hệ thống mà không đổi login;
-- khách Core có sẵn chỉ được cấp quyền qua contact/invitation rõ ràng;
-- nhân viên nội bộ không bị đồng bộ sang Clerk;
-- không tin phone/customerId từ client để tự cấp quyền;
+- một Clerk subject không tạo hai portal user;
+- khách vãng lai được link mà không đổi tài khoản;
+- khách Core chỉ được cấp quyền qua contact/invitation rõ ràng;
+- nhân viên không bị đồng bộ sang Clerk;
+- không auto-link chỉ bằng email/phone;
 - deny-by-default và installation isolation có test;
-- mutation có idempotency, audit và outbox;
-- không có secret trong frontend, repo hoặc log;
-- migration có backup xác nhận và restore rehearsal trước production;
-- Core và Customer Ordering deploy độc lập, Auto Deploy vẫn OFF.
+- mutations có idempotency, audit và outbox;
+- không secret trong frontend/repo/log;
+- migration có backup xác nhận và restore rehearsal;
+- Core và Customer Ordering deploy độc lập, Auto Deploy luôn OFF.
