@@ -24,3 +24,5 @@ coverage/
 .codex-asset-check/
 .vercel/
 .ignore
+
+customer-ordering/tsconfig.tsbuildinfo

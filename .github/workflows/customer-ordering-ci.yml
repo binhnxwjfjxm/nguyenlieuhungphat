@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "agent/customer-ordering-*"
     paths:
       - "customer-ordering/**"
       - "scripts/vercel/**"

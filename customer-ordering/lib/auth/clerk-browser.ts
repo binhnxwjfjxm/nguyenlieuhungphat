@@ -1,3 +1,5 @@
+import type { ClerkAppearance } from "@/lib/auth/clerk-appearance";
+
 export type CustomerAuthStatus =
   | "loading"
   | "signed-in"
@@ -22,6 +24,7 @@ export interface ClerkUser {
   lastName: string | null;
   primaryPhoneNumber: ClerkPhoneNumber | null;
   primaryEmailAddress: ClerkEmailAddress | null;
+  passwordEnabled?: boolean;
 }
 
 export interface ClerkSignIn {
@@ -32,13 +35,36 @@ export interface ClerkSignIn {
   }): Promise<unknown>;
 }
 
+export type ClerkComponentRouting = "hash" | "path";
+
+export interface ClerkSignInProps {
+  routing?: ClerkComponentRouting;
+  path?: string;
+  withSignUp?: boolean;
+  oauthFlow?: "redirect" | "popup" | "auto";
+  forceRedirectUrl?: string;
+  fallbackRedirectUrl?: string;
+  signUpForceRedirectUrl?: string;
+  signUpFallbackRedirectUrl?: string;
+  appearance?: ClerkAppearance;
+}
+
+export interface ClerkUserProfileProps {
+  routing?: ClerkComponentRouting;
+  path?: string;
+  appearance?: ClerkAppearance;
+}
+
 export interface ClerkBrowser {
   loaded: boolean;
   user: ClerkUser | null;
   client: {
     signIn: ClerkSignIn;
   };
-  load(): Promise<void>;
+  load(input?: {
+    ui?: { ClerkUI: unknown };
+    localization?: Record<string, unknown>;
+  }): Promise<void>;
   addListener(listener: (state: { user?: ClerkUser | null }) => void): () => void;
   setActive(input: { session: string }): Promise<void>;
   signOut(input?: { redirectUrl?: string }): Promise<void>;
@@ -47,15 +73,49 @@ export interface ClerkBrowser {
     redirectUrlComplete?: string;
     continueSignUpUrl?: string;
   }): Promise<unknown>;
+  mountSignIn(node: HTMLDivElement, props?: ClerkSignInProps): void;
+  unmountSignIn(node: HTMLDivElement): void;
+  mountUserProfile(node: HTMLDivElement, props?: ClerkUserProfileProps): void;
+  unmountUserProfile(node: HTMLDivElement): void;
 }
 
 declare global {
   interface Window {
     Clerk?: ClerkBrowser;
+    __internal_ClerkUICtor?: unknown;
   }
 }
 
 const CLERK_SCRIPT_ID = "hp-clerk-browser";
+const CLERK_UI_SCRIPT_ID = "hp-clerk-ui";
+const scriptLoadPromises = new Map<string, Promise<void>>();
+
+const HP_CLERK_LOCALIZATION: Record<string, unknown> = {
+  dividerText: "hoặc",
+  formButtonPrimary: "Tiếp tục",
+  formFieldLabel__emailAddress: "Email",
+  formFieldLabel__emailAddress_username: "Email hoặc tên đăng nhập",
+  formFieldLabel__username: "Tên đăng nhập",
+  formFieldLabel__password: "Mật khẩu",
+  formFieldLabel__confirmPassword: "Nhập lại mật khẩu",
+  formFieldAction__forgotPassword: "Quên mật khẩu?",
+  signIn: {
+    start: {
+      title: "Đăng nhập",
+      subtitle: "Đăng nhập để đặt hàng cùng Hưng Phát",
+      actionText: "Chưa có tài khoản?",
+      actionLink: "Đăng ký",
+    },
+  },
+  signUp: {
+    start: {
+      title: "Đăng ký tài khoản",
+      subtitle: "Tạo tài khoản khách hàng Hưng Phát",
+      actionText: "Đã có tài khoản?",
+      actionLink: "Đăng nhập",
+    },
+  },
+};
 
 export function clerkErrorCode(error: unknown): string | null {
   if (!error || typeof error !== "object") return null;
@@ -97,36 +157,93 @@ function decodeFrontendApi(publishableKey: string): string {
   }
 }
 
-function loadScript(src: string, publishableKey: string): Promise<void> {
-  const existing = document.getElementById(CLERK_SCRIPT_ID) as HTMLScriptElement | null;
+function ensureScript(
+  id: string,
+  src: string,
+  isReady: () => boolean,
+  errorMessage: string,
+  configure?: (script: HTMLScriptElement) => void,
+): Promise<void> {
+  if (isReady()) return Promise.resolve();
+
+  const trackedLoad = scriptLoadPromises.get(id);
+  if (trackedLoad) return trackedLoad;
+
+  const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (existing) {
-    if (window.Clerk) return Promise.resolve();
-    return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Không tải được dịch vụ đăng nhập.")), { once: true });
-    });
+    existing.remove();
   }
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = CLERK_SCRIPT_ID;
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.dataset.clerkPublishableKey = publishableKey;
-    script.src = src;
-    script.addEventListener("load", () => resolve(), { once: true });
-    script.addEventListener("error", () => reject(new Error("Không tải được dịch vụ đăng nhập.")), { once: true });
+  const script = document.createElement("script");
+  script.id = id;
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.src = src;
+  script.dataset.hpLoadState = "loading";
+  configure?.(script);
+
+  const loadPromise = new Promise<void>((resolve, reject) => {
+    script.addEventListener(
+      "load",
+      () => {
+        if (isReady()) {
+          script.dataset.hpLoadState = "loaded";
+          resolve();
+          return;
+        }
+
+        script.dataset.hpLoadState = "error";
+        reject(new Error(`${errorMessage} Script đã tải nhưng API chưa sẵn sàng.`));
+      },
+      { once: true },
+    );
+    script.addEventListener(
+      "error",
+      () => {
+        script.dataset.hpLoadState = "error";
+        reject(new Error(errorMessage));
+      },
+      { once: true },
+    );
     document.head.appendChild(script);
+  });
+
+  scriptLoadPromises.set(id, loadPromise);
+  return loadPromise.finally(() => {
+    if (scriptLoadPromises.get(id) === loadPromise) {
+      scriptLoadPromises.delete(id);
+    }
   });
 }
 
 export async function loadClerkBrowser(publishableKey: string): Promise<ClerkBrowser> {
   const frontendApi = decodeFrontendApi(publishableKey);
-  await loadScript(
-    `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,
-    publishableKey,
+
+  await ensureScript(
+    CLERK_UI_SCRIPT_ID,
+    `https://${frontendApi}/npm/@clerk/ui@1/dist/ui.browser.js`,
+    () => Boolean(window.__internal_ClerkUICtor),
+    "Không tải được giao diện đăng nhập.",
   );
-  if (!window.Clerk) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng.");
-  if (!window.Clerk.loaded) await window.Clerk.load();
+
+  await ensureScript(
+    CLERK_SCRIPT_ID,
+    `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,
+    () => Boolean(window.Clerk),
+    "Không tải được dịch vụ đăng nhập.",
+    (script) => {
+      script.dataset.clerkPublishableKey = publishableKey;
+    },
+  );
+
+  if (!window.Clerk || !window.__internal_ClerkUICtor) {
+    throw new Error("Dịch vụ đăng nhập chưa sẵn sàng.");
+  }
+
+  await window.Clerk.load({
+    ui: { ClerkUI: window.__internal_ClerkUICtor },
+    localization: HP_CLERK_LOCALIZATION,
+  });
+
   return window.Clerk;
 }

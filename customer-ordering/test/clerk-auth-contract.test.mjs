@@ -4,31 +4,67 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Customer Ordering loads Clerk through a public browser key only", async () => {
+test("Customer Ordering loads Clerk UI and browser SDK through a public key only", async () => {
   const [provider, browser, exampleEnv] = await Promise.all([
     read("components/clerk-auth-provider.tsx"),
     read("lib/auth/clerk-browser.ts"),
     read(".env.example"),
   ]);
   assert.match(provider, /NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY/);
+  assert.match(browser, /@clerk\/ui@1/);
   assert.match(browser, /@clerk\/clerk-js@6/);
+  assert.match(browser, /__internal_ClerkUICtor/);
+  assert.match(browser, /script\.dataset\.clerkPublishableKey = publishableKey/);
+  assert.match(browser, /scriptLoadPromises/);
+  assert.match(browser, /existing\.remove\(\)/);
+  assert.match(browser, /script\.dataset\.hpLoadState = "loading"/);
   assert.doesNotMatch(provider, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(browser, /CLERK_SECRET_KEY/);
   assert.doesNotMatch(exampleEnv, /^CLERK_SECRET_KEY=/m);
 });
 
-test("custom Hưng Phát login uses Google OAuth for both sign-in and sign-up", async () => {
-  const [login, callback, callbackPage] = await Promise.all([
+test("Hưng Phát login embeds Clerk sign-in-or-up with configured providers", async () => {
+  const [login, appearance] = await Promise.all([
     read("components/login-card.tsx"),
+    read("lib/auth/clerk-appearance.ts"),
+  ]);
+  assert.match(login, /mountSignIn/);
+  assert.match(login, /withSignUp: true/);
+  assert.match(login, /oauthFlow: "redirect"/);
+  assert.match(login, /src="\/logo-transparent\.png"/);
+  assert.match(login, /Google, email hoặc tên đăng nhập/);
+  assert.doesNotMatch(login, /function GoogleMark/);
+  assert.doesNotMatch(login, /authenticateWithRedirect/);
+  assert.match(appearance, /socialButtonsBlockButton/);
+  assert.match(appearance, /#dadce0/);
+});
+
+test("account tab combines shop registration with Clerk account and security management", async () => {
+  const [account, profile] = await Promise.all([
+    read("components/account-auth-card.tsx"),
+    read("components/clerk-user-profile.tsx"),
+  ]);
+  assert.match(account, /Đăng ký điểm bán/);
+  assert.match(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
+  assert.match(account, /shopRegistrationStorageKey\(user\.id\)/);
+  assert.match(account, /window\.localStorage\.getItem/);
+  assert.match(account, /window\.localStorage\.setItem/);
+  assert.match(account, /window\.localStorage\.removeItem/);
+  assert.match(account, /expiresAt/);
+  assert.match(account, /SHOP_REGISTRATION_TTL_MS/);
+  assert.match(account, /Xóa bản nháp/);
+  assert.match(account, /ClerkUserProfilePanel/);
+  assert.match(profile, /mountUserProfile/);
+  assert.match(profile, /routing: "hash"/);
+  assert.match(profile, /Tạo hoặc đổi mật khẩu/);
+  assert.doesNotMatch(account, /NPP Core/);
+});
+
+test("legacy Google redirect callback remains available during the auth transition", async () => {
+  const [callback, callbackPage] = await Promise.all([
     read("components/google-auth-callback.tsx"),
     read("app/login/sso-callback/page.tsx"),
   ]);
-  assert.match(login, /strategy: "oauth_google"/);
-  assert.match(login, /authenticateWithRedirect/);
-  assert.match(login, /redirectUrl: "\/login\/sso-callback"/);
-  assert.match(login, /src="\/logo-transparent\.png"/);
-  assert.doesNotMatch(login, /phone_code/);
-  assert.doesNotMatch(login, /Nhận mã xác minh/);
   assert.match(callback, /handleRedirectCallback/);
   assert.match(callback, /id="clerk-captcha"/);
   assert.match(callbackPage, /GoogleAuthCallback/);
@@ -41,16 +77,4 @@ test("protected app shell uses Clerk auth gate", async () => {
   ]);
   assert.match(shell, /CustomerAuthGate/);
   assert.match(layout, /ClerkAuthProvider/);
-});
-
-test("customer-facing copy uses Google identity without exposing internal Core terminology", async () => {
-  const [account, gate] = await Promise.all([
-    read("components/account-auth-card.tsx"),
-    read("components/customer-auth-gate.tsx"),
-  ]);
-  assert.doesNotMatch(account, /NPP Core/);
-  assert.doesNotMatch(gate, /khóa đăng nhập Clerk/);
-  assert.match(account, /hồ sơ khách hàng Hưng Phát/);
-  assert.match(account, /tài khoản Google này/);
-  assert.match(account, /primaryEmailAddress/);
 });
