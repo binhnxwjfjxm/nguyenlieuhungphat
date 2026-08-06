@@ -1,0 +1,67 @@
+name: Deploy Website production
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: read
+  contents: read
+  issues: read
+
+jobs:
+  deploy:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.comment.body == '/deploy-website-production' &&
+      github.event.issue.number == fromJSON(vars.VERCEL_DEPLOY_CONTROL_ISSUE_NUMBER || '0') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: website-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Capture exact main SHA
+        id: exact
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Require green CI at exact SHA
+        uses: actions/github-script@v7
+        env:
+          EXACT_SHA: ${{ steps.exact.outputs.sha }}
+          WORKFLOW_FILE: frontend-ci.yml
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const response = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              workflow_id: process.env.WORKFLOW_FILE,
+              head_sha: process.env.EXACT_SHA,
+              event: "push",
+              per_page: 20,
+            });
+            const passed = response.data.workflow_runs.some(
+              (run) => run.status === "completed" && run.conclusion === "success",
+            );
+            if (!passed) core.setFailed(`No green ${process.env.WORKFLOW_FILE} run for ${process.env.EXACT_SHA}`);
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@58.0.0
+      - name: Deploy Website
+        env:
+          EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PRODUCTION_BRANCH: main
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_WEBSITE_PROJECT_ID: ${{ secrets.VERCEL_WEBSITE_PROJECT_ID }}
+          VERCEL_CUSTOMER_ORDERING_PROJECT_ID: ${{ secrets.VERCEL_CUSTOMER_ORDERING_PROJECT_ID }}
+          WEBSITE_PRODUCTION_ORIGIN: ${{ vars.WEBSITE_PRODUCTION_ORIGIN }}
+        run: node scripts/vercel/deploy-website-production.mjs
