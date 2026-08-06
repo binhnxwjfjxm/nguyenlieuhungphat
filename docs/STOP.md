@@ -1,1 +1,0 @@
-Customer Ordering implementation will be tracked by a separate GitHub issue.
