@@ -4,6 +4,7 @@ import { ClerkAuthProvider } from "@/components/clerk-auth-provider";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import "./globals.css";
 import "./clerk-auth.css";
+import "./ui2.css";
 
 export const metadata: Metadata = {
   title: {
