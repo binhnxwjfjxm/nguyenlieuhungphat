@@ -1,9 +1,27 @@
 name: Website frontend CI
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/frontend-ci.yml"
+      - ".github/workflows/vercel-website-production-manual.yml"
+      - "scripts/vercel/**"
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "test/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.ts"
+      - "tsconfig.json"
+      - "eslint.config.mjs"
   pull_request:
     paths:
       - ".github/workflows/frontend-ci.yml"
+      - ".github/workflows/vercel-website-production-manual.yml"
+      - "scripts/vercel/**"
       - "app/**"
       - "components/**"
       - "lib/**"
