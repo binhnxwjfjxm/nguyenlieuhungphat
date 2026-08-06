@@ -1,0 +1,27 @@
+name: Bind Customer Ordering sales domain
+
+on:
+  push:
+    branches:
+      - agent/customer-ordering-vercel-bootstrap
+    paths:
+      - scripts/vercel/bootstrap-customer-ordering-project.mjs
+      - .github/workflows/vercel-customer-ordering-domain-bind-check.yml
+
+permissions:
+  contents: read
+
+jobs:
+  bind-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bind and verify Vercel project domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+        run: node scripts/vercel/bootstrap-customer-ordering-project.mjs
