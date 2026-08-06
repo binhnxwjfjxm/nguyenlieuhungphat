@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { ClerkAuthProvider } from "@/components/clerk-auth-provider";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import "./globals.css";
+import "./clerk-auth.css";
 
 export const metadata: Metadata = {
   title: {
@@ -34,7 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="vi">
       <body>
-        {children}
+        <ClerkAuthProvider>{children}</ClerkAuthProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>
