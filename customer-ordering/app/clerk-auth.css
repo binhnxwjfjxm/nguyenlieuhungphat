@@ -55,21 +55,63 @@
   text-align: center;
 }
 
-.google-auth-button {
-  gap: 10px;
+.login-card-with-clerk {
+  padding-top: 24px;
 }
 
-.google-auth-mark {
+.login-logo-compact {
+  height: 78px;
+  margin-bottom: 14px;
+}
+
+.login-heading-compact {
+  margin-bottom: 18px;
+}
+
+.login-heading-compact h1 {
+  font-size: 1.45rem;
+}
+
+.clerk-sign-in-host,
+.clerk-user-profile-host {
+  min-width: 0;
+  width: 100%;
+}
+
+.auth-embed-loading {
   display: grid;
-  width: 27px;
-  height: 27px;
+  min-height: 164px;
   place-items: center;
-  border-radius: 50%;
-  background: #fff;
-  color: #4285f4;
-  font-size: .9rem;
-  font-weight: 850;
-  box-shadow: 0 2px 8px rgba(22, 58, 35, .12);
+  border: 1px solid var(--hp-border);
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f5f7f4, #fff, #f5f7f4);
+  background-size: 220% 100%;
+  color: var(--hp-muted);
+  font-size: .8rem;
+  animation: auth-loading 1.35s ease-in-out infinite;
+}
+
+.auth-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 13px;
+  border-radius: 13px;
+  background: var(--hp-green-soft);
+  color: var(--hp-green-dark);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+.auth-privacy-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.contact-note-soft {
+  margin-top: 18px;
+  opacity: .86;
 }
 
 .auth-return-button {
@@ -87,67 +129,80 @@
   display: none;
 }
 
-.account-auth-card {
+.account-hub {
   display: flex;
   min-height: 100%;
   flex-direction: column;
+  gap: 16px;
+  padding: 18px 18px 30px;
+}
+
+.account-identity-card,
+.account-section {
+  border: 1px solid rgba(255, 255, 255, .84);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .96),
+    0 10px 25px rgba(22, 58, 35, .07);
+}
+
+.account-identity-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  padding: 42px 24px 34px;
-  text-align: center;
+  gap: 13px;
+  padding: 17px;
 }
 
-.account-auth-card h1 {
+.account-avatar,
+.account-section-icon {
+  display: grid;
+  place-items: center;
+  background: var(--hp-green-soft);
+  color: var(--hp-green);
+}
+
+.account-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+}
+
+.account-identity-copy {
+  min-width: 0;
+}
+
+.account-identity-copy h1 {
   margin: 0;
-  font-size: 1.4rem;
+  overflow-wrap: anywhere;
+  font-size: 1.22rem;
+  line-height: 1.25;
 }
 
-.account-phone {
-  display: inline-flex;
+.account-email {
+  display: flex;
+  min-width: 0;
   align-items: center;
   gap: 7px;
-  margin: 10px 0 22px;
+  margin: 7px 0 0;
   color: var(--hp-muted);
-  font-size: .88rem;
+  font-size: .78rem;
 }
 
-.account-link-state {
-  display: flex;
-  width: min(100%, 390px);
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px;
-  border: 1px solid var(--hp-border);
-  border-radius: 16px;
-  background: #fff;
-  text-align: left;
-}
-
-.account-link-state strong {
-  font-size: .8rem;
-}
-
-.account-link-state span {
-  color: var(--hp-green-dark);
-  font-size: .82rem;
-  font-weight: 700;
-}
-
-.account-auth-note {
-  max-width: 390px;
-  margin: 18px 0 24px;
-  color: var(--hp-muted);
-  font-size: .8rem;
-  line-height: 1.55;
+.account-email span,
+.account-email {
+  overflow-wrap: anywhere;
 }
 
 .account-signout-button {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 43px;
+  grid-column: 1 / -1;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 18px;
-  border: 1px solid rgba(192, 57, 43, .25);
+  border: 1px solid rgba(192, 57, 43, .2);
   border-radius: 13px;
   background: #fff;
   color: var(--hp-danger);
@@ -157,4 +212,155 @@
 .account-signout-button:disabled {
   cursor: wait;
   opacity: .6;
+}
+
+.account-section {
+  padding: 17px;
+}
+
+.account-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.account-section-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+}
+
+.account-section-heading > div {
+  min-width: 0;
+}
+
+.account-section-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.account-section-heading p:last-child {
+  margin: 7px 0 0;
+  color: var(--hp-muted);
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.account-link-summary {
+  border-color: rgba(25, 135, 84, .14);
+}
+
+.shop-registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.shop-registration-form > label > span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: .75rem;
+  font-weight: 720;
+}
+
+.shop-registration-form select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 13px;
+  border: 1px solid var(--hp-border);
+  border-radius: 13px;
+  outline: 0;
+  background: #fff;
+  color: var(--hp-ink);
+}
+
+.shop-registration-form select:focus {
+  border-color: var(--hp-green);
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, .1);
+}
+
+.shop-registration-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 13px;
+  background: #f6f8f5;
+  color: var(--hp-muted);
+  font-size: .72rem;
+  line-height: 1.48;
+}
+
+.shop-registration-notice svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--hp-green);
+}
+
+.shop-registration-submit {
+  gap: 8px;
+}
+
+.account-security-section {
+  overflow: hidden;
+}
+
+.clerk-user-profile-host {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--hp-border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.account-inline-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 13px;
+  background: var(--hp-green-soft);
+  color: var(--hp-green-dark);
+  font-size: .76rem;
+}
+
+@keyframes auth-loading {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (min-width: 430px) {
+  .account-identity-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .account-signout-button {
+    min-width: 112px;
+    grid-column: auto;
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-card-with-clerk {
+    padding-inline: 18px;
+  }
+
+  .account-hub {
+    padding-inline: 14px;
+  }
+
+  .account-section,
+  .account-identity-card {
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-embed-loading {
+    animation: none;
+  }
 }

@@ -3,35 +3,36 @@
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
-import { clerkErrorCode, clerkErrorMessage } from "@/lib/auth/clerk-browser";
-
-function friendlyError(error: unknown): string {
-  const code = clerkErrorCode(error);
-  if (code === "oauth_access_denied") return "Bạn đã hủy đăng nhập bằng Google.";
-  if (code === "feature_not_enabled") return "Đăng nhập bằng Google chưa được bật.";
-  if (code === "strategy_for_user_invalid") return "Tài khoản này chưa thể đăng nhập bằng Google.";
-  return clerkErrorMessage(error);
-}
-
-function GoogleMark() {
-  return (
-    <span aria-hidden="true" className="google-auth-mark">
-      G
-    </span>
-  );
-}
+import { customerSignInAppearance } from "@/lib/auth/clerk-appearance";
 
 export function LoginCard() {
   const router = useRouter();
   const { status, clerk, error: providerError } = useCustomerAuth();
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const signInHostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status === "signed-in") router.replace("/");
   }, [router, status]);
+
+  useEffect(() => {
+    const node = signInHostRef.current;
+    if (!node || !clerk || status !== "signed-out") return;
+
+    clerk.mountSignIn(node, {
+      routing: "hash",
+      withSignUp: true,
+      oauthFlow: "redirect",
+      forceRedirectUrl: "/",
+      fallbackRedirectUrl: "/",
+      signUpForceRedirectUrl: "/",
+      signUpFallbackRedirectUrl: "/",
+      appearance: customerSignInAppearance,
+    });
+
+    return () => clerk.unmountSignIn(node);
+  }, [clerk, status]);
 
   const unavailableMessage = useMemo(() => {
     if (status === "unconfigured") return "Dịch vụ đăng nhập chưa được cấu hình.";
@@ -39,38 +40,21 @@ export function LoginCard() {
     return null;
   }, [providerError, status]);
 
-  async function handleGoogleSignIn() {
-    if (!clerk) return;
-    setError("");
-    setSubmitting(true);
-
-    try {
-      await clerk.client.signIn.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/login/sso-callback",
-        redirectUrlComplete: "/",
-      });
-    } catch (signInError) {
-      setError(friendlyError(signInError));
-      setSubmitting(false);
-    }
-  }
-
   return (
     <main className="login-page">
-      <section className="login-card">
+      <section className="login-card login-card-with-clerk">
         <Image
           alt="Logo Công ty Hưng Phát"
-          className="login-logo"
-          height={108}
+          className="login-logo login-logo-compact"
+          height={96}
           priority
           src="/logo-transparent.png"
-          width={230}
+          width={204}
         />
 
-        <div className="login-heading">
-          <h1>Đăng nhập</h1>
-          <p>Dùng tài khoản Google để đăng nhập hoặc tạo tài khoản mới.</p>
+        <div className="login-heading login-heading-compact">
+          <h1>Đăng nhập hoặc đăng ký</h1>
+          <p>Dùng Google, email hoặc tên đăng nhập để tiếp tục đặt hàng.</p>
         </div>
 
         {unavailableMessage ? (
@@ -79,24 +63,23 @@ export function LoginCard() {
             <span>{unavailableMessage}</span>
           </div>
         ) : (
-          <div className="login-form">
-            {error ? <p className="form-error" role="alert">{error}</p> : null}
-            <button
-              className="primary-button google-auth-button"
-              disabled={submitting || status !== "signed-out"}
-              onClick={handleGoogleSignIn}
-              type="button"
-            >
-              <GoogleMark />
-              {submitting ? "Đang chuyển đến Google..." : "Tiếp tục với Google"}
-            </button>
-            <p className="auth-helper auth-helper-centered">
-              Lần đầu đăng nhập, hệ thống sẽ tự tạo tài khoản khách vãng lai sau khi Google xác minh.
-            </p>
-          </div>
+          <>
+            {status === "loading" ? (
+              <div className="auth-embed-loading" aria-live="polite">
+                Đang tải phương thức đăng nhập…
+              </div>
+            ) : null}
+            <div className="clerk-sign-in-host" ref={signInHostRef} />
+            <div className="auth-privacy-note">
+              <ShieldCheck aria-hidden="true" size={17} />
+              <span>
+                Google và mật khẩu do hệ thống xác thực bảo vệ; Hưng Phát không lưu mật khẩu của bạn.
+              </span>
+            </div>
+          </>
         )}
 
-        <p className="contact-note">
+        <p className="contact-note contact-note-soft">
           Cần hỗ trợ liên kết khách hàng? <a href="tel:0900000000">Liên hệ Hưng Phát</a>
         </p>
       </section>
