@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CART_UPDATED_EVENT } from "@/lib/cart-events";
@@ -26,14 +27,14 @@ export function CartBadge() {
   }, [refresh]);
 
   return (
-    <span
-      aria-label={`Giỏ hàng hiện có ${count} sản phẩm`}
+    <Link
+      aria-label={`Mở giỏ hàng, hiện có ${count} sản phẩm`}
       className="header-cart-status"
-      role="status"
-      title="Số lượng sản phẩm đã chọn"
+      href="/cart"
+      title="Mở giỏ hàng"
     >
       <ShoppingBag aria-hidden="true" size={20} strokeWidth={1.8} />
       {count > 0 ? <span className="header-cart-badge">{count > 99 ? "99+" : count}</span> : null}
-    </span>
+    </Link>
   );
 }
