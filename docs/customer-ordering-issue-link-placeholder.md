@@ -1,0 +1,1 @@
+Issue triển khai được tạo riêng trên GitHub và sẽ là nguồn bàn giao chính cho chat mới. File này chỉ giữ chỗ liên kết trong PR plan; không phải issue triển khai.
