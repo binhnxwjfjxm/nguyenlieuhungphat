@@ -7,11 +7,11 @@ import type { ReactNode } from "react";
 import { Bell, ClipboardList, Home, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
 
 const navigation = [
-  { href: "/", label: "Trang chủ", icon: Home },
-  { href: "/products", label: "Sản phẩm", icon: LayoutGrid },
+  { href: "/", label: "Trang chủ", icon: Home, emphasized: false },
+  { href: "/products", label: "Sản phẩm", icon: LayoutGrid, emphasized: false },
   { href: "/quick-order", label: "Đặt nhanh", icon: ShoppingCart, emphasized: true },
-  { href: "/orders", label: "Đơn hàng", icon: ClipboardList },
-  { href: "/account", label: "Tài khoản", icon: UserRound },
+  { href: "/orders", label: "Đơn hàng", icon: ClipboardList, emphasized: false },
+  { href: "/account", label: "Tài khoản", icon: UserRound, emphasized: false },
 ] as const;
 
 function isActive(pathname: string, href: string) {
