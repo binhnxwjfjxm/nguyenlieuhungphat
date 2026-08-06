@@ -1,0 +1,35 @@
+{
+  "name": "nguyenlieuhungphat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs ../scripts/vercel/*.test.mjs",
+    "verify": "npm run test && npm run lint && npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "framer-motion": "12.42.2",
+    "lucide-react": "1.25.0",
+    "next": "16.2.10",
+    "pg-cloudflare": "^1.4.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
+    "@types/node": "24.10.1",
+    "@types/pg": "^8.20.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.2.10",
+    "google-auth-library": "^10.9.0",
+    "pg": "^8.22.0",
+    "typescript": "5.9.3",
+    "wrangler": "^4.112.0"
+  }
+}
