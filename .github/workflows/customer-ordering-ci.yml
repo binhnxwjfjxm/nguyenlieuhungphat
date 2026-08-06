@@ -30,35 +30,21 @@ concurrency:
 
 jobs:
   verify-customer-ordering:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    defaults:
+      run:
+        working-directory: customer-ordering
     steps:
-      - name: Checkout exact commit without marketplace action
-        shell: bash
-        run: |
-          set -euo pipefail
-          git init .
-          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git fetch --no-tags --depth=1 origin "${CHECKOUT_SHA}"
-          git checkout --detach FETCH_HEAD
-          test "$(git rev-parse HEAD)" = "${CHECKOUT_SHA}"
-
-      - name: Select preinstalled Node.js 22
-        shell: bash
-        run: |
-          set -euo pipefail
-          NODE_BIN="$(find "${RUNNER_TOOL_CACHE}/node" -type f -path '*/bin/node' | grep '/22\.' | sort -V | tail -n 1)"
-          test -n "${NODE_BIN}"
-          NODE_DIR="$(dirname "${NODE_BIN}")"
-          echo "${NODE_DIR}" >> "${GITHUB_PATH}"
-          "${NODE_BIN}" --version
-
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: customer-ordering/package-lock.json
       - name: Install dependencies
-        working-directory: customer-ordering
         run: npm ci
-
       - name: Test, lint, typecheck and build
-        working-directory: customer-ordering
         run: npm run verify
