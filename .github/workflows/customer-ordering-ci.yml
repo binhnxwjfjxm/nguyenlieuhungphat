@@ -9,6 +9,7 @@ on:
       - "customer-ordering/**"
       - "scripts/vercel/**"
       - ".github/workflows/customer-ordering-ci.yml"
+      - ".github/workflows/vercel-customer-ordering-project-bootstrap-manual.yml"
       - ".github/workflows/vercel-customer-ordering-production-manual.yml"
       - ".github/workflows/vercel-website-production-manual.yml"
   pull_request:
@@ -16,6 +17,7 @@ on:
       - "customer-ordering/**"
       - "scripts/vercel/**"
       - ".github/workflows/customer-ordering-ci.yml"
+      - ".github/workflows/vercel-customer-ordering-project-bootstrap-manual.yml"
       - ".github/workflows/vercel-customer-ordering-production-manual.yml"
       - ".github/workflows/vercel-website-production-manual.yml"
   workflow_dispatch:

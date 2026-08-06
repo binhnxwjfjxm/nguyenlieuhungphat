@@ -101,16 +101,18 @@ async function smokeOrigin(origin, paths) {
 
 export async function deployTarget(target) {
   const { config, projectId, teamId, token, checkedOutSha } = await verifyBoundary(target);
-  const cwd = resolve(config.expectedRoot);
-  const vercelDir = resolve(cwd, ".vercel");
+  const repositoryCwd = resolve(".");
+  const appCwd = resolve(config.expectedRoot);
+  const vercelDir = resolve(repositoryCwd, ".vercel");
   mkdirSync(vercelDir, { recursive: true });
   writeFileSync(resolve(vercelDir, "project.json"), JSON.stringify({ orgId: teamId, projectId }), { mode: 0o600 });
   const env = { ...process.env, VERCEL_ORG_ID: teamId, VERCEL_PROJECT_ID: projectId };
   try {
-    run("npm", ["ci"], { cwd, env });
-    run("npm", ["run", "build"], { cwd, env });
-    run("vercel", ["build", "--prod", "--token", token], { cwd, env });
-    const deploymentUrl = run("vercel", ["deploy", "--prebuilt", "--prod", "--yes", "--token", token], { cwd, env, capture: true }).split(/\s+/).find((value) => value.startsWith("https://"));
+    run("npm", ["ci"], { cwd: appCwd, env });
+    run("npm", ["run", "build"], { cwd: appCwd, env });
+    run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd: repositoryCwd, env });
+    run("vercel", ["build", "--prod", "--token", token], { cwd: repositoryCwd, env });
+    const deploymentUrl = run("vercel", ["deploy", "--prebuilt", "--prod", "--yes", "--token", token], { cwd: repositoryCwd, env, capture: true }).split(/\s+/).find((value) => value.startsWith("https://"));
     if (!deploymentUrl) throw new Error("Vercel CLI did not return a deployment URL.");
     const productionOrigin = process.env[config.originEnv] ?? "";
     if (!productionOrigin) throw new Error(`${config.originEnv} is required for production smoke.`);
