@@ -247,7 +247,7 @@ export function ProductCatalog() {
                 ?? group.products[0];
               const familyVariants = group.products.filter((product) => product.familySku === selected.familySku);
               const canOrder = selected.availability === "available";
-              const hasChoices = new Set(group.products.map((product) => product.familySku)).size > 1;
+              const hasChoices = new Set(group.products.map((product) => product.sku)).size > 1;
               return <article className="catalog-product-card catalog-product-card-compact catalog-group-card" key={group.key}>
                 <button className="catalog-product-main" onClick={(event) => openQuickView(selected, event.currentTarget)} type="button">
                   <ProductVisual product={selected} />
