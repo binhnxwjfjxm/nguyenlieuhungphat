@@ -32,21 +32,42 @@ function availabilityText(product: Product): string {
   return "Có thể thêm vào giỏ";
 }
 
+function purchaseModeLabel(product: Product): string {
+  return product.purchaseMode === "case" ? "Mua thùng" : "Mua lẻ";
+}
+
 export function ProductDetail({ productId }: Readonly<{ productId: string }>) {
   const service = useMemo(() => createCustomerOrderingService(), []);
   const [product, setProduct] = useState<Product | null>(null);
+  const [familyVariants, setFamilyVariants] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void service.getProductById(productId).then((item) => {
-      if (!cancelled) {
-        setProduct(item);
-        setLoaded(true);
-      }
-    });
+    void Promise.all([service.getProductById(productId), service.listProducts()]).then(
+      ([item, products]) => {
+        if (!cancelled) {
+          setProduct(item);
+          setFamilyVariants(
+            item
+              ? products
+                  .filter((candidate) => candidate.familyId === item.familyId)
+                  .sort((left, right) =>
+                    left.purchaseMode === right.purchaseMode
+                      ? 0
+                      : left.purchaseMode === "retail"
+                        ? -1
+                        : 1,
+                  )
+              : [],
+          );
+          setLoaded(true);
+          setQuantity(1);
+        }
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -109,27 +130,66 @@ export function ProductDetail({ productId }: Readonly<{ productId: string }>) {
             {availabilityText(product)}
           </span>
         </div>
-        <h1>{product.name}</h1>
+        <div>
+          <p className="product-detail-brand">{product.brand} · {product.productType}</p>
+          <h1>{product.name}</h1>
+        </div>
+
+        {familyVariants.length > 1 ? (
+          <div aria-label="Chọn quy cách mua" className="product-detail-variant-switch">
+            {familyVariants.map((variant) => (
+              <Link
+                aria-current={variant.id === product.id ? "page" : undefined}
+                className={variant.id === product.id ? "is-active" : ""}
+                href={`/products/${variant.id}`}
+                key={variant.id}
+              >
+                <span>{purchaseModeLabel(variant)}</span>
+                <small>{variant.packaging}</small>
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
         <p className="product-detail-description">{product.description}</p>
 
-        <dl className="product-spec-grid">
+        <dl className="product-spec-grid product-spec-grid-expanded">
+          <div>
+            <dt>Quy cách mua</dt>
+            <dd>{purchaseModeLabel(product)}</dd>
+          </div>
           <div>
             <dt>Quy cách</dt>
             <dd>{product.packaging}</dd>
           </div>
           <div>
-            <dt>Đơn vị đặt</dt>
-            <dd>{product.unit}</dd>
+            <dt>Thương hiệu</dt>
+            <dd>{product.brand}</dd>
+          </div>
+          <div>
+            <dt>Loại</dt>
+            <dd>{product.productType}</dd>
+          </div>
+          <div>
+            <dt>Vị</dt>
+            <dd>{product.flavor ?? "Không áp dụng"}</dd>
+          </div>
+          <div>
+            <dt>Size</dt>
+            <dd>{product.size}</dd>
           </div>
         </dl>
 
         <div className="product-price-panel">
-          <span>Giá tham khảo</span>
+          <span>{product.purchaseMode === "case" ? "Giá thùng" : "Giá lẻ"}</span>
           <strong className={product.price.status === "available" ? "" : "is-pending"}>
             {formatPrice(product)}
           </strong>
           {product.price.status !== "available" ? (
             <small>Ứng dụng không tự suy đoán giá khi chưa có bảng giá khách hàng.</small>
+          ) : null}
+          {product.purchaseMode === "case" ? (
+            <small>Giá thùng là giá riêng theo SKU thùng, không lấy giá lẻ nhân số lượng.</small>
           ) : null}
         </div>
 
@@ -161,7 +221,11 @@ export function ProductDetail({ productId }: Readonly<{ productId: string }>) {
             type="button"
           >
             {added ? <Check aria-hidden="true" size={19} /> : <ShoppingBag aria-hidden="true" size={19} />}
-            {added ? "Đã thêm vào giỏ" : canOrder ? "Thêm vào giỏ" : availabilityText(product)}
+            {added
+              ? "Đã thêm vào giỏ"
+              : canOrder
+                ? `Thêm ${product.unit} vào giỏ`
+                : availabilityText(product)}
           </button>
         </div>
       </div>

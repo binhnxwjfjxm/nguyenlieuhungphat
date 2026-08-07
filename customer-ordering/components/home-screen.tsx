@@ -6,16 +6,16 @@ const HERO_IMAGE_URL =
   "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system/hero-app-customer.jpg";
 
 const categories = [
-  { name: "Bột", emoji: "🌾" },
-  { name: "Phụ gia", emoji: "🧪" },
-  { name: "Đường", emoji: "◇" },
-  { name: "Dầu mỡ", emoji: "🫙" },
-  { name: "Hương liệu", emoji: "🍯" },
+  { name: "Trà sữa", emoji: "🧋" },
+  { name: "Mỳ cay", emoji: "🍜" },
+  { name: "Đông lạnh", emoji: "❄️" },
+  { name: "Ăn vặt", emoji: "🍢" },
+  { name: "Bao bì", emoji: "🥤" },
 ];
 
 const products = [
-  { code: "HP-BOT-001", name: "Bột mì đa dụng", detail: "Bao 25 kg", price: "25.000 đ/kg", tone: "wheat" },
-  { code: "HP-DUONG-012", name: "Đường kính trắng", detail: "Bao 50 kg", price: "18.000 đ/kg", tone: "sugar" },
+  { code: "TS-TC-001", name: "Trân châu đen", detail: "Có SKU lẻ / thùng", price: "Giá theo SKU", tone: "sugar" },
+  { code: "DL-PMQ-001", name: "Phô mai que", detail: "Có SKU lẻ / thùng", price: "Giá theo SKU", tone: "starch" },
 ];
 
 export function HomeScreen() {
@@ -57,14 +57,14 @@ export function HomeScreen() {
       </section>
 
       <section className="content-section">
-        <div className="section-heading"><h2>Danh mục nổi bật</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
+        <div className="section-heading"><h2>Ngành hàng nổi bật</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
         <div className="category-scroller">
           {categories.map((category) => <button className="category-chip" key={category.name} type="button"><span aria-hidden="true">{category.emoji}</span>{category.name}</button>)}
         </div>
       </section>
 
       <section className="content-section">
-        <div className="section-heading"><h2>Sản phẩm bán chạy</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
+        <div className="section-heading"><h2>Sản phẩm nổi bật</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
         <div className="product-grid">
           {products.map((product) => (
             <article className="product-card" key={product.code}>

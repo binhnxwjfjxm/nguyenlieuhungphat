@@ -24,6 +24,7 @@ export interface Category {
 
 export type ProductAvailability = "available" | "out_of_stock" | "paused";
 export type ProductVisualTone = "wheat" | "sugar" | "starch" | "additive";
+export type PurchaseMode = "retail" | "case";
 
 export interface ProductPriceView {
   amount: number | null;
@@ -33,10 +34,17 @@ export interface ProductPriceView {
 
 export interface Product {
   id: string;
+  familyId: string;
   categoryId: string;
   code: string;
   name: string;
   aliases: string[];
+  brand: string;
+  productType: string;
+  flavor: string | null;
+  size: string;
+  purchaseMode: PurchaseMode;
+  caseQuantity: number | null;
   packaging: string;
   unit: string;
   description: string;
@@ -48,6 +56,11 @@ export interface Product {
 export interface ProductSearchInput {
   categoryId?: string | null;
   query?: string;
+  purchaseMode?: PurchaseMode | null;
+  brand?: string | null;
+  productType?: string | null;
+  flavor?: string | null;
+  size?: string | null;
 }
 
 export interface CartLine {
