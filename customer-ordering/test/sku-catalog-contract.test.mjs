@@ -4,9 +4,9 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("pricing workbooks generate a full unique SKU catalog instead of the 14 demo rows", async () => {
+test("pricing workbooks generate the full unique retail and case SKU catalog", async () => {
   const generated = JSON.parse(await read("lib/adapters/mock/generated-catalog.json"));
-  assert.ok(generated.products.length > 14, `expected >14 mapped SKU, got ${generated.products.length}`);
+  assert.ok(generated.products.length > 1000, `expected >1000 mapped SKU from the 606-row master, got ${generated.products.length}`);
   assert.equal(new Set(generated.products.map((product) => product.sku)).size, generated.products.length);
   for (const product of generated.products) {
     assert.ok(product.sku);
@@ -38,4 +38,10 @@ test("search accepts human-friendly SKU forms and product metadata", async () =>
   assert.match(search, /compactCatalogText/);
   assert.match(search, /product\.sku/);
   for (const field of ["product.name", "product.brand", "product.productType", "product.flavor", "product.size"]) assert.match(search, new RegExp(field.replace(".", "\\.")));
+});
+
+test("case price never falls back to retail price", async () => {
+  const generator = await read("scripts/generate-catalog-sku.mjs");
+  assert.match(generator, /amount=mode==='case'\?r\.casePrice/);
+  assert.doesNotMatch(generator, /case'\?\(r\.casePrice\?\?r\.genericPrice\?\?r\.retailPrice\)/);
 });
