@@ -1,52 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Boxes, ChevronRight, ClipboardList, Newspaper, PackageSearch, ShoppingBasket } from "lucide-react";
+import { ProductVisual } from "@/components/product-visual";
+import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
 
-const HERO_IMAGE_URL =
-  "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system/hero-app-customer.jpg";
+const HERO_IMAGE_URL = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system/hero-app-customer.jpg";
 
-const categories = [
-  { name: "Trà sữa", emoji: "🧋" },
-  { name: "Mỳ cay", emoji: "🍜" },
-  { name: "Đông lạnh", emoji: "❄️" },
-  { name: "Ăn vặt", emoji: "🍢" },
-  { name: "Bao bì", emoji: "🥤" },
-];
-
-const products = [
-  { code: "TS-TC-001", name: "Trân châu đen", detail: "Có SKU lẻ / thùng", price: "Giá theo SKU", tone: "sugar" },
-  { code: "DL-PMQ-001", name: "Phô mai que", detail: "Có SKU lẻ / thùng", price: "Giá theo SKU", tone: "starch" },
-];
+function formatPrice(amount: number | null): string {
+  if (amount === null) return "Chờ giá";
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(amount);
+}
 
 export function HomeScreen() {
+  const categories = MOCK_CATEGORIES.slice(0, 6);
+  const products = MOCK_PRODUCTS.filter((product) => product.purchaseMode === "retail" && product.availability === "available").slice(0, 4);
+
   return (
     <div className="screen-stack">
-      <section className="welcome-row">
-        <div><p className="eyebrow">Xin chào,</p><h1>Khách hàng Hưng Phát</h1></div>
-        <span className="status-pill">Mock UI</span>
-      </section>
+      <section className="welcome-row"><div><p className="eyebrow">Xin chào,</p><h1>Khách hàng Hưng Phát</h1></div></section>
 
-      <label className="search-field">
+      <Link className="search-field home-search-link" href="/products">
         <PackageSearch aria-hidden="true" size={19} />
-        <input aria-label="Tìm sản phẩm và danh mục" placeholder="Tìm sản phẩm, danh mục..." />
-      </label>
+        <span>Tìm sản phẩm hoặc SKU</span>
+      </Link>
 
       <section className="hero-card hero-card-r2">
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="hero-r2-image"
-          fill
-          priority
-          sizes="(max-width: 520px) calc(100vw - 36px), 484px"
-          src={HERO_IMAGE_URL}
-        />
+        <Image alt="Nguyên liệu Hưng Phát" className="hero-r2-image" fill priority sizes="(max-width: 520px) calc(100vw - 36px), 484px" src={HERO_IMAGE_URL} unoptimized />
         <span aria-hidden="true" className="hero-r2-shade" />
-        <div className="hero-copy">
-          <span className="hero-kicker">Nguyên liệu chất lượng</span>
-          <h2>Cho món ngon trọn vị</h2>
-          <Link className="hero-button" href="/products">Xem ngay <ArrowRight aria-hidden="true" size={16} /></Link>
-        </div>
+        <div className="hero-copy"><span className="hero-kicker">Nguyên liệu chất lượng</span><h2>Cho món ngon trọn vị</h2><Link className="hero-button" href="/products">Xem sản phẩm <ArrowRight aria-hidden="true" size={16} /></Link></div>
       </section>
 
       <section className="quick-actions" aria-label="Truy cập nhanh">
@@ -56,24 +37,9 @@ export function HomeScreen() {
         <Link href="/news"><Newspaper aria-hidden="true" /><span>Tin tức</span></Link>
       </section>
 
-      <section className="content-section">
-        <div className="section-heading"><h2>Ngành hàng nổi bật</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
-        <div className="category-scroller">
-          {categories.map((category) => <button className="category-chip" key={category.name} type="button"><span aria-hidden="true">{category.emoji}</span>{category.name}</button>)}
-        </div>
-      </section>
+      <section className="content-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => <Link className="category-chip" href="/products" key={category.id}>{category.shortName}</Link>)}</div></section>
 
-      <section className="content-section">
-        <div className="section-heading"><h2>Sản phẩm nổi bật</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div>
-        <div className="product-grid">
-          {products.map((product) => (
-            <article className="product-card" key={product.code}>
-              <div className={`product-visual ${product.tone}`} aria-hidden="true"><span className="product-bag" /></div>
-              <div className="product-card-body"><span className="product-code">{product.code}</span><h3>{product.name}</h3><p>{product.detail}</p><strong>{product.price}</strong></div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <section className="content-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="product-grid home-product-grid">{products.map((product) => <article className="product-card home-product-card" key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></article>)}</div></section>
     </div>
   );
 }
