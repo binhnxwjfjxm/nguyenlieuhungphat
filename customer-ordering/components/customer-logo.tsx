@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-const CUSTOMER_R2_IMAGE_ROOT = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system";
-const DEFAULT_R2_LOGO_URL = `${CUSTOMER_R2_IMAGE_ROOT}/logo-app-customer.png`;
+const DEFAULT_R2_LOGO_URL = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system/logo-app-customer.png";
 const CUSTOMER_LOGO_FALLBACK = "/logo-transparent.png";
 
 export function CustomerLogo({
