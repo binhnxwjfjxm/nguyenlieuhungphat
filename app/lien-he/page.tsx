@@ -3,7 +3,13 @@ import Image from "next/image";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { QuoteForm } from "@/components/quote-form";
 import { QuoteCta } from "@/components/quote-cta";
-import { ZALO_PHONE_DISPLAY, ZALO_URL } from "@/lib/contact";
+import {
+  COMPANY_ADDRESS_DISPLAY,
+  COMPANY_EMAIL,
+  COMPANY_NAME,
+  ZALO_PHONE_DISPLAY,
+  ZALO_URL,
+} from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
@@ -46,15 +52,15 @@ export default function LienHePage() {
         <div className="container contact-grid">
           <div className="contact-card">
             <p className="eyebrow">THÔNG TIN LIÊN HỆ</p>
-            <h2 className="gradient-heading">Công ty TNHH TM Nguyên Liệu Hưng Phát</h2>
+            <h2 className="gradient-heading">{COMPANY_NAME}</h2>
             <a href={ZALO_URL}>
               <MessageCircle size={18} /> Zalo {ZALO_PHONE_DISPLAY}
             </a>
-            <a href="mailto:baogia@nguyenlieuhungphat.com">
-              <Mail size={18} /> baogia@nguyenlieuhungphat.com
+            <a href={`mailto:${COMPANY_EMAIL}`}>
+              <Mail size={18} /> {COMPANY_EMAIL}
             </a>
             <p>
-              <MapPin size={18} /> TP. Hồ Chí Minh, Việt Nam
+              <MapPin size={18} /> {COMPANY_ADDRESS_DISPLAY}
             </p>
           </div>
 

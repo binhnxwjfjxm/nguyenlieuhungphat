@@ -1,6 +1,13 @@
 import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { categories } from "@/data/site";
-import { CUSTOMER_ORDERING_URL, PRIVACY_POLICY_PATH, ZALO_PHONE_DISPLAY, ZALO_URL } from "@/lib/contact";
+import {
+  COMPANY_ADDRESS_DISPLAY,
+  COMPANY_EMAIL,
+  CUSTOMER_ORDERING_URL,
+  PRIVACY_POLICY_PATH,
+  ZALO_PHONE_DISPLAY,
+  ZALO_URL,
+} from "@/lib/contact";
 import { Logo } from "./logo";
 import { HapticLink } from "./haptic-link";
 import { QuoteButton } from "./quote-trigger";
@@ -86,11 +93,11 @@ export function Footer() {
           <a href={ZALO_URL}>
             <MessageCircle size={17} /> Zalo {ZALO_PHONE_DISPLAY}
           </a>
-          <a href="mailto:baogia@nguyenlieuhungphat.com">
-            <Mail size={17} /> baogia@nguyenlieuhungphat.com
+          <a href={`mailto:${COMPANY_EMAIL}`}>
+            <Mail size={17} /> {COMPANY_EMAIL}
           </a>
           <p>
-            <MapPin size={17} /> TP. Hồ Chí Minh, Việt Nam
+            <MapPin size={17} /> {COMPANY_ADDRESS_DISPLAY}
           </p>
         </div>
 

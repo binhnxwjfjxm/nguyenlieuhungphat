@@ -2,6 +2,7 @@
 
 import { Building2, CalendarDays, Coins, MapPin, PhoneCall, Send, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { COMPANY_ADDRESS_DISPLAY, ZALO_PHONE_DISPLAY } from "@/lib/contact";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
@@ -44,7 +45,7 @@ const responsibilities = [
 ];
 
 const requirements = [
-  "Nam, độ tuổi 22 - 35.",
+  "Chủ động đi thị trường và có sức khỏe phù hợp với công việc di chuyển thường xuyên.",
   "Yêu thích kinh doanh và phát triển thị trường.",
   "Giao tiếp tốt, chủ động, có trách nhiệm.",
   "Sẵn sàng đi công tác thường xuyên tại miền Tây.",
@@ -60,8 +61,8 @@ const benefits = [
 ];
 
 const applicationNotes = [
-  "CV có thể gửi qua form bên dưới hoặc Zalo 0396 980 168.",
-  "Địa chỉ công ty: 152 Yersin, phường Đạo Thạnh, tỉnh Đồng Tháp.",
+  `CV có thể gửi qua form bên dưới hoặc Zalo ${ZALO_PHONE_DISPLAY}.`,
+  `Địa chỉ công ty: ${COMPANY_ADDRESS_DISPLAY}.`,
   "HR sẽ liên hệ lại nếu hồ sơ phù hợp.",
 ];
 
@@ -240,7 +241,7 @@ export function RecruitmentBoard() {
                 </div>
                 <div className="recruitment-modal-card">
                   <p>Liên hệ</p>
-                  <strong>0396 980 168</strong>
+                  <strong>Zalo {ZALO_PHONE_DISPLAY}</strong>
                 </div>
                 <button
                   className="button button-primary recruitment-modal-cta"

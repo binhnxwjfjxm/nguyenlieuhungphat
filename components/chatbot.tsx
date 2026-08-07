@@ -3,8 +3,10 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { LoaderCircle, MessageSquareMore, Minimize2, RefreshCcw, SendHorizontal, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { PRIVACY_POLICY_PATH } from "@/lib/contact";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import { createLeadCode } from "@/lib/validation";
 import { useToast } from "./toast-provider";
@@ -165,7 +167,7 @@ export function Chatbot() {
     setBusy(true);
 
     try {
-      const response = await fetch("/api/supabase/chat", {
+      const response = await fetch("/api/dialogflow/chat", {
         method: "POST",
         headers: { "content-type": "application/json; charset=utf-8" },
         body: JSON.stringify({
@@ -208,7 +210,7 @@ export function Chatbot() {
             {
               id: nextMessageId.current++,
               role: "assistant",
-              text: "Chưa gửi được. Anh thử lại giúp em.",
+              text: "Chưa gửi được. Vui lòng thử lại.",
             },
           ],
         }));
@@ -216,12 +218,12 @@ export function Chatbot() {
       }
 
       const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
-      const replyText = result.replyText?.trim() || "Đã nhận nội dung. Em sẽ phản hồi sớm.";
+      const replyText = result.replyText?.trim() || "Hưng Phát đã nhận nội dung và sẽ phản hồi sớm.";
       const leadStatus = result.phoneConfirmed
         ? result.leadNotified
-          ? "Đã nhận số điện thoại. Em đã chuyển tiếp."
+          ? "Đã nhận số điện thoại và chuyển yêu cầu đến Hưng Phát."
           : "Đã nhận số điện thoại."
-        : "Đã nhận nội dung. Em sẽ phản hồi sớm.";
+        : "Đã nhận nội dung. Hưng Phát sẽ phản hồi sớm.";
       setStatus({ tone: "success", text: leadStatus });
       setState((current) => ({
         ...current,
@@ -247,7 +249,7 @@ export function Chatbot() {
           {
             id: nextMessageId.current++,
             role: "assistant",
-            text: "Lỗi mạng hoặc máy chủ bận. Anh thử lại giúp em.",
+            text: "Lỗi mạng hoặc máy chủ bận. Vui lòng thử lại.",
           },
         ],
       }));
@@ -297,7 +299,7 @@ export function Chatbot() {
                 </span>
                 <div>
                   <strong>Hưng Phát Assistant</strong>
-                  <span>Đang trực tuyến</span>
+                  <span>Hỗ trợ tự động</span>
                 </div>
               </div>
               <div className="chatbot-header-actions">
@@ -367,6 +369,10 @@ export function Chatbot() {
                       rows={3}
                     />
                   </label>
+
+                  <p className="form-privacy-note">
+                    Nội dung chat có thể được lưu để xử lý yêu cầu. <Link href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</Link>.
+                  </p>
 
                   <div className="chatbot-compose-actions">
                     <button className="button button-primary" type="submit" disabled={busy || !state.draft.trim()}>
