@@ -3,13 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "catalog:generate": "node scripts/generate-catalog-sku.mjs",
+    "predev": "npm run catalog:generate",
     "dev": "next dev -p 3200",
+    "prebuild": "npm run catalog:generate",
     "build": "next build",
     "start": "next start -p 3200",
+    "prelint": "npm run catalog:generate",
     "lint": "eslint .",
+    "pretypecheck": "npm run catalog:generate",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run catalog:generate",
     "test": "node --test test/*.test.mjs ../scripts/vercel/*.test.mjs",
-    "verify": "npm run test && npm run lint && npm run typecheck && npm run build"
+    "verify": "npm run catalog:generate && node --test test/*.test.mjs ../scripts/vercel/*.test.mjs && eslint . && tsc --noEmit && next build"
   },
   "dependencies": {
     "framer-motion": "12.42.2",

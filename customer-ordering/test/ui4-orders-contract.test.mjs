@@ -56,7 +56,7 @@ test("orders list supports search, status filters and real detail navigation", a
   assert.match(screen, /statusFilter/);
   assert.match(screen, /ORDER_STATUS_FILTERS/);
   assert.match(screen, /service\.listOrders/);
-  assert.match(screen, /Tìm mã đơn hoặc sản phẩm/);
+  assert.match(screen, /Tìm mã đơn, SKU hoặc sản phẩm/);
   assert.match(screen, /href=\{`\/orders\/\$\{order\.id\}`\}/);
   assert.match(screen, /Không có đơn phù hợp/);
 });

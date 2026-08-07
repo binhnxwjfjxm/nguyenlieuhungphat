@@ -1,311 +1,62 @@
-import type { Category, Product } from "@/lib/contracts";
+import generatedCatalog from "@/lib/adapters/mock/generated-catalog.json";
+import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
+import type { Category, Product, ProductSearchInput } from "@/lib/contracts";
 
-export const MOCK_CATEGORIES: Category[] = [
-  { id: "milk-tea", name: "Trà sữa", shortName: "Trà sữa" },
-  { id: "spicy-noodle", name: "Mỳ cay", shortName: "Mỳ cay" },
-  { id: "frozen", name: "Đông lạnh", shortName: "Đông lạnh" },
-  { id: "snacks", name: "Ăn vặt", shortName: "Ăn vặt" },
-  { id: "packaging", name: "Bao bì", shortName: "Bao bì" },
-  { id: "sauce-seasoning", name: "Gia vị & sốt", shortName: "Gia vị & sốt" },
-];
-
-const PENDING_PRICE = { amount: null, currency: "VND" as const, status: "customer_price_pending" as const };
-
-export const MOCK_PRODUCTS: Product[] = [
-  {
-    id: "tran-chau-den-1kg",
-    familyId: "tran-chau-den",
-    categoryId: "milk-tea",
-    code: "TS-TC-001",
-    name: "Trân châu đen",
-    aliases: ["trân châu", "tran chau", "topping trà sữa"],
-    brand: "Hưng Phát chọn lọc",
-    productType: "Topping",
-    flavor: "Truyền thống",
-    size: "1 kg",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Gói 1 kg",
-    unit: "gói",
-    description: "SKU mua lẻ cho quầy trà sữa và đồ uống.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "sugar",
-  },
-  {
-    id: "tran-chau-den-1kg-case",
-    familyId: "tran-chau-den",
-    categoryId: "milk-tea",
-    code: "TS-TC-001T",
-    name: "Trân châu đen",
-    aliases: ["trân châu thùng", "tran chau thung", "topping trà sữa"],
-    brand: "Hưng Phát chọn lọc",
-    productType: "Topping",
-    flavor: "Truyền thống",
-    size: "1 kg x 20",
-    purchaseMode: "case",
-    caseQuantity: 20,
-    packaging: "Thùng 20 gói x 1 kg",
-    unit: "thùng",
-    description: "SKU thùng riêng; giá thùng là giá độc lập theo bảng giá.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "sugar",
-  },
-  {
-    id: "bot-kem-beo-1kg",
-    familyId: "bot-kem-beo",
-    categoryId: "milk-tea",
-    code: "TS-BKB-002",
-    name: "Bột kem béo",
-    aliases: ["bột béo", "bot beo", "creamer"],
-    brand: "Hưng Phát chọn lọc",
-    productType: "Bột pha chế",
-    flavor: "Kem sữa",
-    size: "1 kg",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Gói 1 kg",
-    unit: "gói",
-    description: "Nguyên liệu nền cho trà sữa và đồ uống.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "wheat",
-  },
-  {
-    id: "bot-kem-beo-1kg-case",
-    familyId: "bot-kem-beo",
-    categoryId: "milk-tea",
-    code: "TS-BKB-002T",
-    name: "Bột kem béo",
-    aliases: ["bột béo thùng", "bot beo thung", "creamer case"],
-    brand: "Hưng Phát chọn lọc",
-    productType: "Bột pha chế",
-    flavor: "Kem sữa",
-    size: "1 kg x 20",
-    purchaseMode: "case",
-    caseQuantity: 20,
-    packaging: "Thùng 20 gói x 1 kg",
-    unit: "thùng",
-    description: "Quy cách thùng dành cho khách lấy số lượng lớn.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "wheat",
-  },
-  {
-    id: "my-cay-goi",
-    familyId: "my-cay",
-    categoryId: "spicy-noodle",
-    code: "MC-MY-001",
-    name: "Mỳ cay",
-    aliases: ["mì cay", "my cay", "nguyên liệu mỳ cay"],
-    brand: "HP Foodservice",
-    productType: "Mỳ",
-    flavor: "Cay",
-    size: "Gói",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Gói",
-    unit: "gói",
-    description: "SKU lẻ phục vụ quán mỳ cay.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "wheat",
-  },
-  {
-    id: "my-cay-case",
-    familyId: "my-cay",
-    categoryId: "spicy-noodle",
-    code: "MC-MY-001T",
-    name: "Mỳ cay",
-    aliases: ["mì cay thùng", "my cay thung"],
-    brand: "HP Foodservice",
-    productType: "Mỳ",
-    flavor: "Cay",
-    size: "Thùng",
-    purchaseMode: "case",
-    caseQuantity: 30,
-    packaging: "Thùng 30 gói",
-    unit: "thùng",
-    description: "SKU thùng riêng cho khách nhập số lượng lớn.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "wheat",
-  },
-  {
-    id: "pho-mai-que-goi",
-    familyId: "pho-mai-que",
-    categoryId: "frozen",
-    code: "DL-PMQ-001",
-    name: "Phô mai que",
-    aliases: ["pho mai que", "đồ đông lạnh"],
-    brand: "HP Frozen",
-    productType: "Đồ chiên",
-    flavor: "Phô mai",
-    size: "Gói",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Gói",
-    unit: "gói",
-    description: "Sản phẩm đông lạnh dùng cho quán ăn và ăn vặt.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "starch",
-  },
-  {
-    id: "pho-mai-que-case",
-    familyId: "pho-mai-que",
-    categoryId: "frozen",
-    code: "DL-PMQ-001T",
-    name: "Phô mai que",
-    aliases: ["pho mai que thùng", "đông lạnh thùng"],
-    brand: "HP Frozen",
-    productType: "Đồ chiên",
-    flavor: "Phô mai",
-    size: "Thùng",
-    purchaseMode: "case",
-    caseQuantity: 12,
-    packaging: "Thùng 12 gói",
-    unit: "thùng",
-    description: "Quy cách thùng cho khách lấy nhiều.",
-    availability: "out_of_stock",
-    price: { ...PENDING_PRICE },
-    visualTone: "starch",
-  },
-  {
-    id: "xuc-xich-an-vat",
-    familyId: "xuc-xich-an-vat",
-    categoryId: "snacks",
-    code: "AV-XX-001",
-    name: "Xúc xích ăn vặt",
-    aliases: ["xúc xích", "xuc xich", "ăn vặt"],
-    brand: "HP Snack",
-    productType: "Ăn liền",
-    flavor: "Đậm vị",
-    size: "Gói",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Gói",
-    unit: "gói",
-    description: "SKU lẻ cho cửa hàng và quầy ăn vặt.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "sugar",
-  },
-  {
-    id: "xuc-xich-an-vat-case",
-    familyId: "xuc-xich-an-vat",
-    categoryId: "snacks",
-    code: "AV-XX-001T",
-    name: "Xúc xích ăn vặt",
-    aliases: ["xúc xích thùng", "xuc xich thung"],
-    brand: "HP Snack",
-    productType: "Ăn liền",
-    flavor: "Đậm vị",
-    size: "Thùng",
-    purchaseMode: "case",
-    caseQuantity: 24,
-    packaging: "Thùng 24 gói",
-    unit: "thùng",
-    description: "SKU thùng riêng, không suy giá từ SKU lẻ.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "sugar",
-  },
-  {
-    id: "ly-pet-700ml",
-    familyId: "ly-pet-700ml",
-    categoryId: "packaging",
-    code: "BB-LY-700",
-    name: "Ly nhựa PET 700 ml",
-    aliases: ["ly 700", "ly pet", "bao bì trà sữa"],
-    brand: "HP Packaging",
-    productType: "Ly nhựa",
-    flavor: null,
-    size: "700 ml",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Lốc",
-    unit: "lốc",
-    description: "Bao bì dùng cho trà sữa, nước trái cây và đồ uống mang đi.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "additive",
-  },
-  {
-    id: "ly-pet-700ml-case",
-    familyId: "ly-pet-700ml",
-    categoryId: "packaging",
-    code: "BB-LY-700T",
-    name: "Ly nhựa PET 700 ml",
-    aliases: ["ly 700 thùng", "ly pet thùng", "bao bì thùng"],
-    brand: "HP Packaging",
-    productType: "Ly nhựa",
-    flavor: null,
-    size: "700 ml",
-    purchaseMode: "case",
-    caseQuantity: 20,
-    packaging: "Thùng 20 lốc",
-    unit: "thùng",
-    description: "Quy cách thùng cho cửa hàng dùng số lượng lớn.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "additive",
-  },
-  {
-    id: "sot-cay-chai",
-    familyId: "sot-cay",
-    categoryId: "sauce-seasoning",
-    code: "GS-SC-001",
-    name: "Sốt cay",
-    aliases: ["sốt mỳ cay", "sot cay", "gia vị"],
-    brand: "HP Foodservice",
-    productType: "Sốt",
-    flavor: "Cay",
-    size: "Chai",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: "Chai",
-    unit: "chai",
-    description: "Sốt dùng cho mỳ cay và món ăn chế biến.",
-    availability: "paused",
-    price: { ...PENDING_PRICE },
-    visualTone: "additive",
-  },
-  {
-    id: "sot-cay-case",
-    familyId: "sot-cay",
-    categoryId: "sauce-seasoning",
-    code: "GS-SC-001T",
-    name: "Sốt cay",
-    aliases: ["sốt cay thùng", "sot cay thung", "gia vị thùng"],
-    brand: "HP Foodservice",
-    productType: "Sốt",
-    flavor: "Cay",
-    size: "Thùng",
-    purchaseMode: "case",
-    caseQuantity: 12,
-    packaging: "Thùng 12 chai",
-    unit: "thùng",
-    description: "SKU thùng riêng theo bảng giá.",
-    availability: "available",
-    price: { ...PENDING_PRICE },
-    visualTone: "additive",
-  },
-];
-
-export function normalizeCatalogText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("vi")
-    .trim();
+interface GeneratedCatalog {
+  categories: Category[];
+  products: Product[];
+  meta: { sourceFiles: string[]; productCount: number };
 }
 
+const catalog = generatedCatalog as GeneratedCatalog;
+
+export const MOCK_CATEGORIES: Category[] = catalog.categories.map((category) => ({ ...category }));
+export const MOCK_PRODUCTS: Product[] = catalog.products.map((product) => ({
+  ...product,
+  aliases: [...product.aliases],
+  price: { ...product.price },
+}));
+
+export const LEGACY_PRODUCT_ID_TO_SKU: Readonly<Record<string, string>> = {
+  "tran-chau-den-1kg": "TS-TC-001",
+  "tran-chau-den-1kg-case": "TS-TC-001T",
+  "bot-kem-beo-1kg": "TS-BKB-002",
+  "bot-kem-beo-1kg-case": "TS-BKB-002T",
+  "my-cay-goi": "MC-MY-001",
+  "my-cay-case": "MC-MY-001T",
+  "pho-mai-que-goi": "DL-PMQ-001",
+  "pho-mai-que-case": "DL-PMQ-001T",
+  "xuc-xich-an-vat": "AV-XX-001",
+  "xuc-xich-an-vat-case": "AV-XX-001T",
+  "ly-pet-700ml": "BB-LY-700",
+  "ly-pet-700ml-case": "BB-LY-700T",
+  "sot-cay-chai": "GS-SC-001",
+  "sot-cay-case": "GS-SC-001T",
+};
+
 export function cloneProduct(product: Product): Product {
-  return {
-    ...product,
-    aliases: [...product.aliases],
-    price: { ...product.price },
-  };
+  return { ...product, aliases: [...product.aliases], price: { ...product.price } };
+}
+
+export function findProductBySku(sku: string): Product | null {
+  const normalized = sku.trim().toUpperCase();
+  const product = MOCK_PRODUCTS.find((item) => item.sku.toUpperCase() === normalized);
+  return product ? cloneProduct(product) : null;
+}
+
+export function filterProducts(input: ProductSearchInput = {}): Product[] {
+  const query = input.query?.trim() ?? "";
+  return MOCK_PRODUCTS
+    .filter((product) => !input.categoryId || product.categoryId === input.categoryId)
+    .filter((product) => !input.purchaseMode || product.purchaseMode === input.purchaseMode)
+    .filter((product) => !input.brand || product.brand === input.brand)
+    .filter((product) => !input.productType || product.productType === input.productType)
+    .filter((product) => !input.flavor || product.flavor === input.flavor)
+    .filter((product) => !input.size || product.size === input.size)
+    .filter((product) => productMatchesQuery(product, query))
+    .map(cloneProduct)
+    .sort((left, right) => {
+      const rank = productSearchRank(left, query) - productSearchRank(right, query);
+      return rank || left.name.localeCompare(right.name, "vi") || left.sku.localeCompare(right.sku);
+    });
 }

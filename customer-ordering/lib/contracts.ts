@@ -33,10 +33,9 @@ export interface ProductPriceView {
 }
 
 export interface Product {
-  id: string;
-  familyId: string;
+  sku: string;
+  familySku: string;
   categoryId: string;
-  code: string;
   name: string;
   aliases: string[];
   brand: string;
@@ -64,7 +63,7 @@ export interface ProductSearchInput {
 }
 
 export interface CartLine {
-  productId: string;
+  sku: string;
   quantity: number;
   note?: string;
 }
@@ -96,8 +95,7 @@ export interface SubmitOrderInput {
 }
 
 export interface CustomerOrderLine {
-  productId: string;
-  productCode: string;
+  sku: string;
   productName: string;
   packaging: string;
   unit: string;
@@ -172,7 +170,7 @@ export interface CustomerOrderingAdapter {
   signOut(): Promise<void>;
   listCategories(): Promise<Category[]>;
   listProducts(input?: ProductSearchInput): Promise<Product[]>;
-  getProductById(productId: string): Promise<Product | null>;
+  getProductBySku(sku: string): Promise<Product | null>;
   getCart(): Promise<Cart>;
   saveCart(cart: Cart): Promise<void>;
   listDeliveryAddresses(): Promise<DeliveryAddress[]>;
