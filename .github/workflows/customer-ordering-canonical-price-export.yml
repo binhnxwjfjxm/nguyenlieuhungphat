@@ -28,7 +28,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: customer-ordering-canonical-price
-          path: customer-ordering/.artifacts/*
+          path: |
+            customer-ordering/.artifacts/*
+            BANG_GIA_CHUAN_HOA_CAP_NHAT_DS_SP_23.07.26.xlsx
+            BANG_GIA_KENH_QUAN_THEM_NHOM_CHI_TIET.xlsx
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 7
