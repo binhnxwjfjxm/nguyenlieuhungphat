@@ -32,15 +32,19 @@ test("catalog keeps industries, product groups and brands as separate axes", asy
   assert.match(css, /position: absolute/);
 });
 
-test("catalog keeps exact family SKU prices in separate retail and case columns", async () => {
+test("catalog keeps the selected SKU price on-card while retail and case stay as selectors", async () => {
   const [catalog, detail] = await Promise.all([read("components/product-catalog.tsx"), read("components/product-detail.tsx")]);
   assert.match(catalog, /selectedSkuByFamily/);
   assert.match(catalog, /product\.familySku === familySku/);
   assert.match(catalog, /purchaseMode === "retail"/);
   assert.match(catalog, /purchaseMode === "case"/);
+  assert.match(catalog, /catalog-card-price/);
+  assert.match(catalog, /formatPrice\(selected\)/);
   assert.match(catalog, /catalog-price-columns/);
-  assert.match(catalog, /formatPrice\(retail\)/);
-  assert.match(catalog, /formatPrice\(caseVariant\)/);
+  assert.doesNotMatch(catalog, /formatPrice\(retail\)/);
+  assert.doesNotMatch(catalog, /formatPrice\(caseVariant\)/);
+  assert.match(catalog, /<span>Lẻ<\/span>/);
+  assert.match(catalog, /<span>Thùng<\/span>/);
   assert.match(catalog, /quickViewRetail/);
   assert.match(catalog, /quickViewCase/);
   assert.match(catalog, /role="dialog"/);
