@@ -91,18 +91,15 @@ test("quick view is portaled above the app scroll container and the copy owns mo
   assert.match(catalog, /quickViewOpenerRef/);
 });
 
-test("shared customer logo uses the small verified SVG mark rather than the mislabeled PNG", async () => {
-  const [logo, svg, shell, login] = await Promise.all([
+test("shared customer logo reuses the website company asset instead of the temporary SVG mark", async () => {
+  const [logo, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),
-    read("public/logo-mark.svg"),
     read("components/app-shell.tsx"),
     read("components/login-card.tsx"),
   ]);
-  assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-mark\.svg"/);
+  assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-transparent\.png"/);
   assert.match(logo, /unoptimized/);
-  assert.doesNotMatch(logo, /logo-transparent\.png/);
-  assert.match(svg, /<svg/);
-  assert.match(svg, /stroke="#6B4027"/);
+  assert.doesNotMatch(logo, /logo-mark\.svg/);
   assert.match(shell, /CustomerLogo/);
   assert.match(login, /CustomerLogo/);
 });
