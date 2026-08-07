@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { ProductVisual } from "@/components/product-visual";
 import { announceCartUpdated } from "@/lib/cart-events";
 import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
@@ -73,6 +73,9 @@ export function ProductCatalog() {
   const [quickViewGroupKey, setQuickViewGroupKey] = useState<string | null>(null);
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
   const [quickViewQuantity, setQuickViewQuantity] = useState(1);
+  const quickViewDialogRef = useRef<HTMLElement | null>(null);
+  const quickViewCloseRef = useRef<HTMLButtonElement | null>(null);
+  const quickViewOpenerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,12 +90,44 @@ export function ProductCatalog() {
   useEffect(() => {
     if (!quickViewGroupKey) return;
     const previousOverflow = document.body.style.overflow;
+    const opener = quickViewOpenerRef.current;
     document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setQuickViewGroupKey(null); };
+    window.requestAnimationFrame(() => quickViewCloseRef.current?.focus());
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setQuickViewGroupKey(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = quickViewDialogRef.current;
+      if (!dialog) return;
+      const focusable = [...dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((element) => !element.hasAttribute("hidden"));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !dialog.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      opener?.focus();
     };
   }, [quickViewGroupKey]);
 
@@ -145,8 +180,9 @@ export function ProductCatalog() {
     setQuickViewQuantity(1);
   }
 
-  function openQuickView(product: Product) {
+  function openQuickView(product: Product, opener: HTMLElement) {
     const key = productChoiceGroupKey(product, categories);
+    quickViewOpenerRef.current = opener;
     setQuickViewGroupKey(key);
     setQuickViewSku(product.sku);
     setSelectedSkuByGroup((current) => ({ ...current, [key]: product.sku }));
@@ -213,7 +249,7 @@ export function ProductCatalog() {
               const canOrder = selected.availability === "available";
               const hasChoices = new Set(group.products.map((product) => product.familySku)).size > 1;
               return <article className="catalog-product-card catalog-product-card-compact catalog-group-card" key={group.key}>
-                <button className="catalog-product-main" onClick={() => openQuickView(selected)} type="button">
+                <button className="catalog-product-main" onClick={(event) => openQuickView(selected, event.currentTarget)} type="button">
                   <ProductVisual product={selected} />
                   <div className="catalog-product-copy catalog-product-copy-compact">
                     <div className="catalog-product-meta"><span>{selected.sku}</span><span className={`availability-${selected.availability}`}>{availabilityLabel(selected)}</span></div>
@@ -226,7 +262,7 @@ export function ProductCatalog() {
                   <div aria-label={`Chọn quy cách ${group.productType}`} className="catalog-variant-switch catalog-variant-switch-inline" role="group">
                     {familyVariants.map((variant) => <button aria-pressed={variant.sku === selected.sku} className={variant.sku === selected.sku ? "is-active" : ""} key={variant.sku} onClick={() => setSelectedSkuByGroup((current) => ({ ...current, [group.key]: variant.sku }))} type="button">{purchaseModeLabel(variant.purchaseMode)}</button>)}
                   </div>
-                  <button aria-label={hasChoices ? `Chọn vị và quy cách ${group.productType}` : `Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={() => hasChoices ? openQuickView(selected) : void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
+                  <button aria-label={hasChoices ? `Chọn vị và quy cách ${group.productType}` : `Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={(event) => hasChoices ? openQuickView(selected, event.currentTarget) : void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
                 </div>
               </article>;
             })}</div>
@@ -234,8 +270,8 @@ export function ProductCatalog() {
         ))}</div>}
 
       {quickViewProduct ? <div className="product-quick-view-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickViewGroupKey(null); }} role="presentation">
-        <section aria-label={`Chi tiết ${quickViewProduct.name}`} aria-modal="true" className="product-quick-view product-quick-view-tall" role="dialog">
-          <button aria-label="Đóng chi tiết sản phẩm" className="product-quick-view-close" onClick={() => setQuickViewGroupKey(null)} type="button"><X aria-hidden="true" size={20} /></button>
+        <section aria-label={`Chi tiết ${quickViewProduct.name}`} aria-modal="true" className="product-quick-view product-quick-view-tall" ref={quickViewDialogRef} role="dialog" tabIndex={-1}>
+          <button aria-label="Đóng chi tiết sản phẩm" className="product-quick-view-close" onClick={() => setQuickViewGroupKey(null)} ref={quickViewCloseRef} type="button"><X aria-hidden="true" size={20} /></button>
           <ProductVisual product={quickViewProduct} />
           <div className="product-quick-view-copy">
             <div className="catalog-product-meta"><span>{quickViewProduct.sku}</span><span className={`availability-${quickViewProduct.availability}`}>{availabilityLabel(quickViewProduct)}</span></div>

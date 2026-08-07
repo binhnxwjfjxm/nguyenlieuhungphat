@@ -35,14 +35,22 @@ test("quick order supports grouped multi-selection with exact SKU quantities", a
   assert.match(source, /Mua thùng/);
 });
 
-test("product quick view is tall and touch-scrollable", async () => {
-  const css = await read("app/product-grouping.css");
+test("product quick view is tall, touch-scrollable, and traps focus", async () => {
+  const [catalog, css] = await Promise.all([
+    read("components/product-catalog.tsx"),
+    read("app/product-grouping.css"),
+  ]);
   assert.match(css, /height:\s*min\(92dvh,\s*860px\)/);
   assert.match(css, /height:\s*94dvh/);
   assert.match(css, /overflow-y:\s*auto/);
   assert.match(css, /overscroll-behavior:\s*contain/);
   assert.match(css, /-webkit-overflow-scrolling:\s*touch/);
   assert.match(css, /touch-action:\s*pan-y/);
+  assert.match(catalog, /quickViewDialogRef/);
+  assert.match(catalog, /quickViewCloseRef/);
+  assert.match(catalog, /quickViewOpenerRef/);
+  assert.match(catalog, /event\.key !== "Tab"/);
+  assert.match(catalog, /opener\?\.focus\(\)/);
 });
 
 test("shared customer logo prefers the R2 image for header and login", async () => {
