@@ -9,14 +9,18 @@ test("pricing workbooks generate exactly the canonical 606 retail + 606 case SKU
   assert.equal(generated.meta.masterRows, 606);
   assert.equal(generated.products.length, 1212);
   assert.equal(new Set(generated.products.map((product) => product.sku)).size, 1212);
-  assert.equal(generated.products.filter((product) => product.purchaseMode === "retail").length, 606);
-  assert.equal(generated.products.filter((product) => product.purchaseMode === "case").length, 606);
+  const retail = generated.products.filter((product) => product.purchaseMode === "retail");
+  const cases = generated.products.filter((product) => product.purchaseMode === "case");
+  assert.equal(retail.length, 606);
+  assert.equal(cases.length, 606);
+  const retailSkuSet = new Set(retail.map((product) => product.sku));
   for (const product of generated.products) {
     assert.ok(product.sku);
+    assert.ok(product.familySku);
     assert.ok(product.name);
     assert.equal("id" in product, false);
     assert.equal("code" in product, false);
-    if (product.purchaseMode === "case") assert.match(product.sku, /T$/);
+    if (product.purchaseMode === "case") assert.ok(retailSkuSet.has(product.familySku), `${product.sku} must link to its retail MASTER SKU`);
   }
 });
 
@@ -45,8 +49,9 @@ test("search accepts human-friendly SKU forms and product metadata", async () =>
 
 test("case price never falls back to retail price and identity only comes from MASTER", async () => {
   const generator = await read("scripts/generate-catalog-sku.mjs");
-  assert.match(generator, /amount = purchaseMode === 'case' \? record\.casePrice/);
+  assert.match(generator, /const amount = purchaseMode === 'case' \? record\.casePrice/);
   assert.match(generator, /const masterRecords = primary\.bySheet\.get\(MASTER_SHEET\)/);
   assert.match(generator, /if \(!catalog\.has\(incoming\.sku\)\) continue/);
+  assert.match(generator, /familySku: retailValue/);
   assert.doesNotMatch(generator, /casePrice\s*\?\?\s*record\.retailPrice/);
 });

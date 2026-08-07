@@ -288,16 +288,44 @@ function recordsFromRow(row, columns, source, sheet) {
     caseUnit: get('caseUnit'), caseQuantity: positive(get('caseQuantity')), retailPrice: money(get('retailPrice')), casePrice: money(get('casePrice')),
     genericPrice: money(get('genericPrice')), source, sheet,
   };
-  const retailRaw = get('retailSku'); const caseRaw = get('caseSku'); const genericRaw = get('sku');
-  const retailName = get('retailName') || get('name'); const caseName = get('caseName') || retailName;
+  const retailRaw = get('retailSku');
+  const caseRaw = get('caseSku');
+  const genericRaw = get('sku');
+  const retailName = get('retailName') || get('name');
+  const caseName = get('caseName') || retailName;
+  const retailValue = validSku(retailRaw) ? sku(retailRaw) : '';
+  const caseValue = validSku(caseRaw) ? sku(caseRaw) : '';
   const result = [];
-  if (validSku(retailRaw) && retailName) result.push({ ...common, sku: sku(retailRaw), name: retailName, purchaseMode: 'retail' });
-  if (validSku(caseRaw) && caseName && sku(caseRaw).endsWith('T')) result.push({ ...common, sku: sku(caseRaw), name: caseName, purchaseMode: 'case', retailPrice: null, genericPrice: null, unit: get('caseUnit') || get('unit') || 'thùng' });
-  if (!retailRaw && !caseRaw && validSku(genericRaw)) {
-    const value = sku(genericRaw); const name = get('name') || get('retailName') || get('caseName');
+
+  if (retailValue && retailName) {
+    result.push({ ...common, sku: retailValue, familySku: retailValue, name: retailName, purchaseMode: 'retail' });
+  }
+  if (caseValue && caseName) {
+    result.push({
+      ...common,
+      sku: caseValue,
+      familySku: retailValue || (caseValue.endsWith('T') ? caseValue.slice(0, -1) : caseValue),
+      name: caseName,
+      purchaseMode: 'case',
+      retailPrice: null,
+      genericPrice: null,
+      unit: get('caseUnit') || get('unit') || 'thùng',
+    });
+  }
+  if (!retailValue && !caseValue && validSku(genericRaw)) {
+    const value = sku(genericRaw);
+    const name = get('name') || get('retailName') || get('caseName');
     if (name) {
       const mode = value.endsWith('T') ? 'case' : 'retail';
-      result.push({ ...common, sku: value, name, purchaseMode: mode, retailPrice: mode === 'case' ? null : common.retailPrice, genericPrice: mode === 'case' ? null : common.genericPrice });
+      result.push({
+        ...common,
+        sku: value,
+        familySku: mode === 'case' ? value.slice(0, -1) : value,
+        name,
+        purchaseMode: mode,
+        retailPrice: mode === 'case' ? null : common.retailPrice,
+        genericPrice: mode === 'case' ? null : common.genericPrice,
+      });
     }
   }
   return result;
@@ -307,7 +335,7 @@ function enrichRecord(base, incoming) {
   if (!base || base.sku !== incoming.sku) return base;
   const next = { ...base };
   for (const [key, value] of Object.entries(incoming)) {
-    if (['sku', 'purchaseMode', 'name', 'source', 'sheet'].includes(key)) continue;
+    if (['sku', 'familySku', 'purchaseMode', 'name', 'source', 'sheet'].includes(key)) continue;
     if (value === '' || value === null || value === undefined) continue;
     if (key === 'retailPrice' && base.purchaseMode !== 'retail') continue;
     if (key === 'casePrice' && base.purchaseMode !== 'case') continue;
@@ -319,7 +347,7 @@ function enrichRecord(base, incoming) {
 function toProduct(record) {
   const currentSku = sku(record.sku);
   const purchaseMode = record.purchaseMode === 'case' ? 'case' : 'retail';
-  const familySku = purchaseMode === 'case' ? currentSku.slice(0, -1) : currentSku;
+  const familySku = clean(record.familySku) || (purchaseMode === 'case' && currentSku.endsWith('T') ? currentSku.slice(0, -1) : currentSku);
   const categoryId = categoryFor(record);
   const amount = purchaseMode === 'case' ? record.casePrice : (record.retailPrice ?? record.genericPrice);
   return {
@@ -347,7 +375,9 @@ async function readWorkbook(path) {
   const entries = unzip(await readFile(path));
   const sharedStrings = parseSharedStrings(entries.get('xl/sharedStrings.xml')?.toString('utf8') ?? '');
   const sheetNames = [...entries.keys()].filter((name) => /^xl\/worksheets\/sheet\d+\.xml$/.test(name)).sort();
-  const all = []; const bySheet = new Map(); const diagnostics = [];
+  const all = [];
+  const bySheet = new Map();
+  const diagnostics = [];
   for (const sheet of sheetNames) {
     const parsedRows = parseRows(entries.get(sheet).toString('utf8'), sharedStrings);
     const header = findHeader(parsedRows);
@@ -357,8 +387,11 @@ async function readWorkbook(path) {
       bySheet.set(sheet, sheetRecords);
       continue;
     }
-    for (let index = header.dataStart; index < parsedRows.length; index += 1) sheetRecords.push(...recordsFromRow(parsedRows[index], header.columns, path.split('/').pop(), sheet));
-    all.push(...sheetRecords); bySheet.set(sheet, sheetRecords);
+    for (let index = header.dataStart; index < parsedRows.length; index += 1) {
+      sheetRecords.push(...recordsFromRow(parsedRows[index], header.columns, path.split('/').pop(), sheet));
+    }
+    all.push(...sheetRecords);
+    bySheet.set(sheet, sheetRecords);
     diagnostics.push({ sheet, rows: parsedRows.length, mapped: sheetRecords.length, mode: header.mode, fields: Object.keys(header.columns), sample: sample(parsedRows) });
   }
   return { all, bySheet, diagnostics };
@@ -376,7 +409,6 @@ async function main() {
   if (retailMaster.length !== EXPECTED_MASTER_ROWS || caseMaster.length !== EXPECTED_MASTER_ROWS) {
     throw new Error(`MASTER phải có ${EXPECTED_MASTER_ROWS} SKU lẻ + ${EXPECTED_MASTER_ROWS} SKU thùng; thực tế ${retailMaster.length} + ${caseMaster.length}`);
   }
-  if (caseMaster.some((record) => !record.sku.endsWith('T'))) throw new Error('MASTER có SKU thùng không kết thúc bằng T');
 
   const catalog = new Map(masterRecords.map((record) => [record.sku, { ...record }]));
   for (const incoming of [...primary.all, ...secondary.all]) {
@@ -384,9 +416,9 @@ async function main() {
     catalog.set(incoming.sku, enrichRecord(catalog.get(incoming.sku), incoming));
   }
 
-  for (const [currentSku, record] of catalog) {
+  for (const record of catalog.values()) {
     if (record.purchaseMode !== 'case') continue;
-    const retail = catalog.get(currentSku.slice(0, -1));
+    const retail = catalog.get(record.familySku);
     if (!retail) continue;
     for (const key of ['category', 'productType', 'brand', 'flavor', 'size']) {
       if (!record[key] && retail[key]) record[key] = retail[key];
@@ -402,12 +434,33 @@ async function main() {
   const caseProducts = products.filter((product) => product.purchaseMode === 'case').length;
   if (retailProducts !== EXPECTED_MASTER_ROWS || caseProducts !== EXPECTED_MASTER_ROWS) throw new Error(`Sai phân bổ lẻ/thùng: ${retailProducts}/${caseProducts}`);
 
+  const retailSkuSet = new Set(products.filter((product) => product.purchaseMode === 'retail').map((product) => product.sku));
+  const orphanCases = products.filter((product) => product.purchaseMode === 'case' && !retailSkuSet.has(product.familySku));
+  if (orphanCases.length) throw new Error(`SKU thùng không ghép được SKU lẻ từ cùng MASTER: ${orphanCases.map((product) => product.sku).join(', ')}`);
+  const caseSkuConventionExceptions = products
+    .filter((product) => product.purchaseMode === 'case' && !product.sku.endsWith('T'))
+    .map((product) => ({ sku: product.sku, familySku: product.familySku, name: product.name }));
+
   const usedCategories = new Set(products.map((product) => product.categoryId));
-  const categories = Object.entries(categoryMeta).filter(([id]) => usedCategories.has(id)).map(([id, [name]]) => ({ id, name, shortName: name }));
+  const categories = Object.entries(categoryMeta)
+    .filter(([id]) => usedCategories.has(id))
+    .map(([id, [name]]) => ({ id, name, shortName: name }));
+
   await mkdir(dirname(out), { recursive: true });
-  await writeFile(out, `${JSON.stringify({ categories, products, meta: { sourceFiles: sources, masterRows: EXPECTED_MASTER_ROWS, productCount: products.length } }, null, 2)}\n`);
+  await writeFile(out, `${JSON.stringify({
+    categories,
+    products,
+    meta: {
+      sourceFiles: sources,
+      masterRows: EXPECTED_MASTER_ROWS,
+      productCount: products.length,
+      caseSkuConventionExceptions,
+    },
+  }, null, 2)}\n`);
+
   console.log(`[catalog] canonical ${products.length} SKU = ${retailProducts} lẻ + ${caseProducts} thùng from MASTER ${EXPECTED_MASTER_ROWS} rows`);
-  console.log(`[catalog] enrich only existing MASTER SKU from secondary sheets`);
+  console.log(`[catalog] case SKU convention exceptions: ${JSON.stringify(caseSkuConventionExceptions)}`);
+  console.log('[catalog] secondary sheets enrich only existing MASTER SKU; they cannot create product identity');
   console.log(`[catalog] ${sources[0]}: ${JSON.stringify(primary.diagnostics)}`);
   console.log(`[catalog] ${sources[1]}: ${JSON.stringify(secondary.diagnostics)}`);
 }
