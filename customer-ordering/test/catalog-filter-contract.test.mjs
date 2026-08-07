@@ -26,17 +26,21 @@ test("catalog keeps foodservice industries and compact filters", async () => {
   assert.match(catalog, /Mua lẻ/);
   assert.match(catalog, /Mua thùng/);
   assert.match(catalog, /<details className="catalog-filter-menu">/);
-  assert.match(catalog, /Thương hiệu/);
+  assert.match(catalog, /Nhãn hàng/);
+  assert.match(catalog, /productDisplayBrand/);
   assert.match(catalog, /activeDetailFilterCount/);
   assert.match(css, /\.catalog-filter-panel/);
   assert.match(css, /position: absolute/);
 });
 
-test("catalog and in-place quick view switch exact SKU variants before carting", async () => {
+test("catalog and in-place quick view keep exact SKU pricing after grouped variant selection", async () => {
   const [catalog, detail] = await Promise.all([read("components/product-catalog.tsx"), read("components/product-detail.tsx")]);
-  assert.match(catalog, /selectedVariantByFamily/);
-  assert.match(catalog, /selected\.sku/);
-  assert.match(catalog, /addProduct\(selected\)/);
+  assert.match(catalog, /selectedSkuByGroup/);
+  assert.match(catalog, /quickViewFlavorOptions/);
+  assert.match(catalog, /quickViewSizeOptions/);
+  assert.match(catalog, /quickViewPurchaseModes/);
+  assert.match(catalog, /quickViewProduct\.sku/);
+  assert.match(catalog, /formatPrice\(quickViewProduct\)/);
   assert.match(catalog, /role="dialog"/);
   assert.match(detail, /familyVariants/);
   assert.match(detail, /candidate\.familySku === item\.familySku/);

@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
+import { CustomerLogo } from "@/components/customer-logo";
 import { customerSignInAppearance } from "@/lib/auth/clerk-appearance";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -59,14 +59,7 @@ export function LoginCard() {
   return (
     <main className="login-page">
       <section className="login-card login-card-with-clerk">
-        <Image
-          alt="Logo Công ty Hưng Phát"
-          className="login-logo login-logo-compact"
-          height={96}
-          priority
-          src="/logo-transparent.png"
-          width={204}
-        />
+        <CustomerLogo className="login-logo login-logo-compact" height={96} priority width={204} />
 
         <div className="login-heading login-heading-compact">
           <h1>{authMode === "sign-in" ? "Đăng nhập" : "Đăng ký tài khoản"}</h1>
@@ -115,9 +108,7 @@ export function LoginCard() {
             <div className="clerk-auth-host" ref={authHostRef} />
             <div className="auth-privacy-note">
               <ShieldCheck aria-hidden="true" size={17} />
-              <span>
-                Google và mật khẩu do hệ thống xác thực bảo vệ; Hưng Phát không lưu mật khẩu của bạn.
-              </span>
+              <span>Google và mật khẩu do hệ thống xác thực bảo vệ; Hưng Phát không lưu mật khẩu của bạn.</span>
             </div>
           </>
         )}
