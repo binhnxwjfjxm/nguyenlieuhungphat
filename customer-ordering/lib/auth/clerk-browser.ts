@@ -49,6 +49,17 @@ export interface ClerkSignInProps {
   appearance?: ClerkAppearance;
 }
 
+export interface ClerkSignUpProps {
+  routing?: ClerkComponentRouting;
+  path?: string;
+  oauthFlow?: "redirect" | "popup" | "auto";
+  forceRedirectUrl?: string;
+  fallbackRedirectUrl?: string;
+  signInForceRedirectUrl?: string;
+  signInFallbackRedirectUrl?: string;
+  appearance?: ClerkAppearance;
+}
+
 export interface ClerkUserProfileProps {
   routing?: ClerkComponentRouting;
   path?: string;
@@ -75,6 +86,8 @@ export interface ClerkBrowser {
   }): Promise<unknown>;
   mountSignIn(node: HTMLDivElement, props?: ClerkSignInProps): void;
   unmountSignIn(node: HTMLDivElement): void;
+  mountSignUp(node: HTMLDivElement, props?: ClerkSignUpProps): void;
+  unmountSignUp(node: HTMLDivElement): void;
   mountUserProfile(node: HTMLDivElement, props?: ClerkUserProfileProps): void;
   unmountUserProfile(node: HTMLDivElement): void;
 }

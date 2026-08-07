@@ -65,14 +65,46 @@
 }
 
 .login-heading-compact {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .login-heading-compact h1 {
   font-size: 1.45rem;
 }
 
-.clerk-sign-in-host,
+.auth-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border: 1px solid var(--hp-border);
+  border-radius: 14px;
+  background: #f3f6f2;
+}
+
+.auth-mode-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hp-muted);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.auth-mode-tabs button.is-active {
+  background: #fff;
+  color: var(--hp-green-dark);
+  box-shadow: 0 4px 12px rgba(22, 58, 35, .08);
+}
+
+.auth-mode-tabs button:focus-visible {
+  outline: 3px solid rgba(25, 135, 84, .16);
+  outline-offset: 1px;
+}
+
+.clerk-auth-host,
 .clerk-user-profile-host {
   min-width: 0;
   width: 100%;
