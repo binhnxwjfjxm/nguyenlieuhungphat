@@ -1,5 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Boxes, ChevronRight, ClipboardList, Newspaper, PackageSearch, ShoppingBasket } from "lucide-react";
+
+const HERO_IMAGE_URL =
+  "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system/hero-app-customer.jpg";
 
 const categories = [
   { name: "Bột", emoji: "🌾" },
@@ -27,15 +31,21 @@ export function HomeScreen() {
         <input aria-label="Tìm sản phẩm và danh mục" placeholder="Tìm sản phẩm, danh mục..." />
       </label>
 
-      <section className="hero-card">
+      <section className="hero-card hero-card-r2">
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="hero-r2-image"
+          fill
+          priority
+          sizes="(max-width: 520px) calc(100vw - 36px), 484px"
+          src={HERO_IMAGE_URL}
+        />
+        <span aria-hidden="true" className="hero-r2-shade" />
         <div className="hero-copy">
           <span className="hero-kicker">Nguyên liệu chất lượng</span>
           <h2>Cho món ngon trọn vị</h2>
           <Link className="hero-button" href="/products">Xem ngay <ArrowRight aria-hidden="true" size={16} /></Link>
-        </div>
-        <div className="hero-illustration" aria-hidden="true">
-          <span className="bottle bottle-one" /><span className="bottle bottle-two" />
-          <span className="grain grain-one" /><span className="grain grain-two" />
         </div>
       </section>
 
