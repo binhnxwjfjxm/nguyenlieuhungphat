@@ -100,12 +100,10 @@ export function ProductCatalog() {
   const [visibleGroupCount, setVisibleGroupCount] = useState(INITIAL_VISIBLE_GROUPS);
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
   const [quickViewQuantity, setQuickViewQuantity] = useState(1);
-  const [portalReady, setPortalReady] = useState(false);
+  const portalReady = typeof document !== "undefined";
   const quickViewDialogRef = useRef<HTMLElement | null>(null);
   const quickViewCloseRef = useRef<HTMLButtonElement | null>(null);
   const quickViewOpenerRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => { setPortalReady(true); }, []);
 
   useEffect(() => {
     let cancelled = false;
