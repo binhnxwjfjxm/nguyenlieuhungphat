@@ -26,7 +26,7 @@ export function HomeScreen() {
   const products = MOCK_PRODUCTS.filter((product) => product.purchaseMode === "retail" && product.availability === "available").slice(0, 4);
 
   return (
-    <div className="screen-stack">
+    <div className="screen-stack home-depth-stack">
       <Link className="search-field home-search-link" href="/products">
         <PackageSearch aria-hidden="true" size={19} />
         <span>Tìm sản phẩm hoặc SKU</span>
@@ -45,7 +45,7 @@ export function HomeScreen() {
         <Link href="/news"><Newspaper aria-hidden="true" /><span>Tin tức</span></Link>
       </section>
 
-      <section className="content-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => {
+      <section className="content-section home-category-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => {
         const iconUrl = CATEGORY_ICON_BY_ID[category.id];
         return <Link className="category-chip home-category-card" href="/products" key={category.id}>
           {iconUrl ? <Image alt="" aria-hidden="true" className="home-category-image" fill sizes="82px" src={iconUrl} unoptimized /> : null}
@@ -53,7 +53,7 @@ export function HomeScreen() {
         </Link>;
       })}</div></section>
 
-      <section className="content-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <article className="product-card home-product-card" key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></article>)}</div></section>
+      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <article className="product-card home-product-card" key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></article>)}</div></section>
 
       <HomeAnnouncementPreview />
     </div>
