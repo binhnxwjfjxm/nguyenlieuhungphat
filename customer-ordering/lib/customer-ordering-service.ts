@@ -8,6 +8,7 @@ import type {
   DeliveryAddress,
   Product,
   ProductSearchInput,
+  ReorderOrderResult,
   SignInInput,
   SubmitOrderInput,
 } from "@/lib/contracts";
@@ -65,8 +66,20 @@ export class CustomerOrderingService {
     return this.adapter.submitOrder(input);
   }
 
+  listOrders(): Promise<CustomerOrder[]> {
+    return this.adapter.listOrders();
+  }
+
   getOrderById(orderId: string): Promise<CustomerOrder | null> {
     return this.adapter.getOrderById(orderId);
+  }
+
+  cancelOrder(orderId: string): Promise<CustomerOrder> {
+    return this.adapter.cancelOrder(orderId);
+  }
+
+  reorderOrder(orderId: string): Promise<ReorderOrderResult> {
+    return this.adapter.reorderOrder(orderId);
   }
 }
 

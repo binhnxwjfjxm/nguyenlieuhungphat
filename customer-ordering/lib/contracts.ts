@@ -94,10 +94,29 @@ export interface CustomerOrderLine {
   currency: "VND";
 }
 
+export type OrderStatus =
+  | "DRAFT"
+  | "SUBMITTED"
+  | "RECEIVED"
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "DELIVERING"
+  | "COMPLETED"
+  | "REJECTED"
+  | "CANCELLED";
+
+export interface OrderStatusEvent {
+  status: OrderStatus;
+  at: string;
+  note?: string;
+}
+
 export interface CustomerOrder {
   id: string;
   code: string;
   submittedAt: string;
+  status: OrderStatus;
+  statusTimeline: OrderStatusEvent[];
   address: DeliveryAddress;
   lines: CustomerOrderLine[];
   totalQuantity: number;
@@ -105,6 +124,12 @@ export interface CustomerOrder {
   hasPendingPrice: boolean;
   orderNote: string;
   submissionKey: string;
+}
+
+export interface ReorderOrderResult {
+  cart: Cart;
+  addedLineCount: number;
+  skippedLineCount: number;
 }
 
 export interface CustomerOrderingAdapter {
@@ -120,5 +145,8 @@ export interface CustomerOrderingAdapter {
   getCheckoutDraft(): Promise<CheckoutDraft>;
   saveCheckoutDraft(draft: CheckoutDraft): Promise<void>;
   submitOrder(input: SubmitOrderInput): Promise<CustomerOrder>;
+  listOrders(): Promise<CustomerOrder[]>;
   getOrderById(orderId: string): Promise<CustomerOrder | null>;
+  cancelOrder(orderId: string): Promise<CustomerOrder>;
+  reorderOrder(orderId: string): Promise<ReorderOrderResult>;
 }
