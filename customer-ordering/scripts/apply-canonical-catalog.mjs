@@ -8,6 +8,14 @@ const catalogPath = resolve(app, 'lib/adapters/mock/generated-catalog.json');
 const mapDir = resolve(app, 'data/canonical-product-map');
 const EXPECTED_FAMILIES = 606;
 const EXPECTED_PRODUCTS = 1212;
+const categoryIdByIndustryKey = {
+  'tra-sua': 'milk-tea',
+  'mi-cay': 'spicy-noodle',
+  'dong-lanh': 'frozen',
+  'an-vat': 'snacks',
+  'bao-bi': 'packaging',
+  'gia-vi-sot': 'sauce-seasoning',
+};
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const norm = (value) => clean(value)
@@ -67,8 +75,11 @@ for (const product of catalog.products) {
   if (amount === null) pendingPriceCount += 1;
   const canonicalFlavor = clean(flavor) || clean(variant) || null;
   const canonicalSeries = seriesName(productGroup, brandLine);
+  const categoryId = categoryIdByIndustryKey[clean(industryKey)];
+  if (!categoryId) throw new Error(`Canonical industry chưa map app category: ${industryKey}`);
 
-  product.categoryId = clean(industryKey);
+  product.categoryId = categoryId;
+  product.canonicalIndustryKey = clean(industryKey);
   product.productType = clean(productGroup);
   product.brand = clean(brandLine);
   product.flavor = canonicalFlavor;
@@ -82,7 +93,7 @@ for (const product of catalog.products) {
     currency: 'VND',
     status: amount === null ? 'customer_price_pending' : 'available',
   };
-  categories.set(clean(industryKey), clean(industry));
+  categories.set(categoryId, clean(industry));
 }
 
 if (missingFamilies.size) {
