@@ -57,11 +57,13 @@ test("catalog renders twenty product groups first and expands without rebuilding
   assert.match(catalog, /selected = chooseGroupPreferred\(visibleVariants\.length > 0 \? visibleVariants : variants/);
 });
 
-test("quick order renders every exact SKU with its own visible price", async () => {
+test("quick order renders every exact SKU through the memoized list with its own visible price", async () => {
   const source = await read("components/quick-order.tsx");
   assert.doesNotMatch(source, /groupProductChoicesByBrand/);
   assert.doesNotMatch(source, /<details className="quick-product-group"/);
-  assert.match(source, /visibleProducts\.map\(\(product\)/);
+  assert.match(source, /const QuickOrderProductList = memo/);
+  assert.match(source, /products\.map\(\(product\)/);
+  assert.match(source, /products=\{filteredProducts\}/);
   assert.match(source, /formatPrice\(product\)/);
   assert.match(source, /quick-product-mode-price/);
   assert.match(source, /quantities\[product\.sku\]/);
@@ -91,14 +93,15 @@ test("quick view is portaled above the app scroll container and the copy owns mo
   assert.match(catalog, /quickViewOpenerRef/);
 });
 
-test("shared customer logo reuses the website company asset instead of the temporary SVG mark", async () => {
+test("shared customer logo reuses the website company asset and lets Next optimize delivery", async () => {
   const [logo, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),
     read("components/app-shell.tsx"),
     read("components/login-card.tsx"),
   ]);
   assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-transparent\.png"/);
-  assert.match(logo, /unoptimized/);
+  assert.doesNotMatch(logo, /unoptimized/);
+  assert.match(logo, /sizes=\{`\$\{width\}px`\}/);
   assert.doesNotMatch(logo, /logo-mark\.svg/);
   assert.match(shell, /CustomerLogo/);
   assert.match(login, /CustomerLogo/);

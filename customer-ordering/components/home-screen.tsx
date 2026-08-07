@@ -4,17 +4,10 @@ import { ArrowRight, Boxes, ChevronRight, ClipboardList, Newspaper, PackageSearc
 import { HomeAnnouncementPreview } from "@/components/home-announcement-preview";
 import { ProductVisual } from "@/components/product-visual";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
+import { sortCustomerCategories } from "@/lib/category-order";
 
 const R2_IMAGE_BASE = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system";
 const HERO_IMAGE_URL = `${R2_IMAGE_BASE}/hero-app-customer.jpg`;
-const HOME_CATEGORY_PRIORITY = [
-  "milk-tea",
-  "spicy-noodle",
-  "frozen",
-  "snacks",
-  "packaging",
-  "sauce-seasoning",
-] as const;
 const CATEGORY_ICON_BY_ID: Readonly<Record<string, string>> = {
   "milk-tea": `${R2_IMAGE_BASE}/icon-tra-sua.webp`,
   "spicy-noodle": `${R2_IMAGE_BASE}/icon-mi-cay.webp`,
@@ -30,7 +23,7 @@ function formatPrice(amount: number | null): string {
 }
 
 export function HomeScreen() {
-  const categories = HOME_CATEGORY_PRIORITY.flatMap((categoryId) => MOCK_CATEGORIES.filter((category) => category.id === categoryId));
+  const categories = sortCustomerCategories(MOCK_CATEGORIES);
   const products = MOCK_PRODUCTS.filter((product) => product.purchaseMode === "retail" && product.availability === "available").slice(0, 4);
 
   return (
@@ -55,13 +48,13 @@ export function HomeScreen() {
 
       <section className="content-section home-category-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => {
         const iconUrl = CATEGORY_ICON_BY_ID[category.id];
-        return <Link className="category-chip home-category-card" href="/products" key={category.id}>
+        return <Link className="category-chip home-category-card" href={`/products?category=${encodeURIComponent(category.id)}`} key={category.id}>
           {iconUrl ? <Image alt="" aria-hidden="true" className="home-category-image" fill sizes="82px" src={iconUrl} unoptimized /> : null}
           <span className="home-category-label">{category.shortName}</span>
         </Link>;
       })}</div></section>
 
-      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <article className="product-card home-product-card" key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></article>)}</div></section>
+      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <Link aria-label={`Xem ${product.name}`} className="product-card home-product-card home-product-link" href={`/products/${encodeURIComponent(product.sku)}`} key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></Link>)}</div></section>
 
       <HomeAnnouncementPreview />
     </div>

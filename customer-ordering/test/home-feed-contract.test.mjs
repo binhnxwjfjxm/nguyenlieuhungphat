@@ -4,15 +4,18 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("home keeps products on one horizontal row and previews the latest customer-facing announcement through the service boundary", async () => {
-  const [home, preview, css] = await Promise.all([
+test("home keeps products on one horizontal row, shared category priority and latest customer-facing announcement", async () => {
+  const [home, categoryOrder, preview, css] = await Promise.all([
     read("components/home-screen.tsx"),
+    read("lib/category-order.ts"),
     read("components/home-announcement-preview.tsx"),
     read("app/home-category-icons.css"),
   ]);
 
-  assert.match(home, /const HOME_CATEGORY_PRIORITY = \[\s*"milk-tea",\s*"spicy-noodle",\s*"frozen",\s*"snacks",\s*"packaging",\s*"sauce-seasoning",\s*\] as const;/);
-  assert.match(home, /HOME_CATEGORY_PRIORITY\.flatMap\(\(categoryId\) => MOCK_CATEGORIES\.filter\(\(category\) => category\.id === categoryId\)\)/);
+  assert.match(home, /sortCustomerCategories\(MOCK_CATEGORIES\)/);
+  assert.match(home, /href=\{`\/products\?category=\$\{encodeURIComponent\(category\.id\)\}`\}/);
+  assert.match(categoryOrder, /CUSTOMER_CATEGORY_PRIORITY/);
+  for (const id of ["milk-tea", "spicy-noodle", "frozen", "snacks", "packaging", "sauce-seasoning"]) assert.match(categoryOrder, new RegExp(`"${id}"`));
   assert.match(home, /className="home-product-scroller"/);
   assert.doesNotMatch(home, /product-grid home-product-grid/);
   assert.match(home, /<HomeAnnouncementPreview \/>/);

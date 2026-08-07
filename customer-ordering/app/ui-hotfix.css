@@ -1,4 +1,4 @@
-/* Small post-merge UI corrections from production review. Loaded last. */
+/* Small post-merge UI corrections from production review. Loaded after the main UI layers. */
 
 .catalog-add-icon {
   position: relative;
@@ -15,10 +15,10 @@
 .catalog-add-icon > svg:first-child:not(:only-child) {
   position: absolute;
   z-index: 2;
-  top: 6px;
-  left: 6px;
-  width: 11px;
-  height: 11px;
+  top: 5px;
+  left: 5px;
+  width: 10px;
+  height: 10px;
   stroke-width: 2.5;
 }
 
@@ -40,4 +40,400 @@
 
 .push-permission-row button:not(:disabled):active {
   transform: scale(.98);
+}
+
+/* Issue #43: keep product-card controls aligned without increasing card height. */
+.catalog-family-footer {
+  align-items: end;
+}
+
+.catalog-family-footer .catalog-add-icon {
+  align-self: end;
+  height: 34px;
+}
+
+@media (max-width: 430px) {
+  .catalog-family-footer .catalog-add-icon {
+    height: 32px;
+  }
+}
+
+/* Issue #43: Quick Order stays dense and keeps only minus / direct input / plus. */
+.quick-order-direct-list {
+  display: grid;
+  gap: 7px;
+}
+
+.quick-order-direct-row {
+  min-height: 78px;
+  grid-template-columns: minmax(0, 1fr) 126px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+}
+
+.quick-order-direct-row .quick-product-copy h2 {
+  margin: 3px 0;
+  font-size: .76rem;
+  line-height: 1.2;
+}
+
+.quick-order-direct-row .quick-product-copy > p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--hp-muted);
+  font-size: .57rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-product-mode-price {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.quick-product-mode-price span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hp-muted);
+  font-size: .58rem;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-product-mode-price strong {
+  flex: none;
+  color: var(--hp-green-dark);
+  font-size: .7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-order-direct-row .quick-quantity-control {
+  width: 126px;
+  grid-template-columns: 31px minmax(0, 1fr) 33px;
+}
+
+.quick-order-direct-row .quick-quantity-control > button {
+  min-height: 38px;
+}
+
+.quick-order-direct-row .quick-quantity-control label {
+  min-width: 0;
+}
+
+.quick-order-direct-row .quick-quantity-control input {
+  font-size: .8rem;
+}
+
+.quick-order-row.is-selected {
+  border-color: rgba(25,135,84,.25);
+  box-shadow: inset 3px 0 0 var(--hp-green), 0 8px 20px rgba(22,58,35,.08);
+}
+
+.quick-order-summary-search {
+  bottom: max(6px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 7px 8px;
+  border-radius: 15px;
+}
+
+.quick-order-sticky-search {
+  grid-column: 1 / -1;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid rgba(25,135,84,.13);
+  border-radius: 10px;
+  background: rgba(247,251,248,.96);
+}
+
+.quick-order-sticky-search > svg {
+  color: var(--hp-green);
+}
+
+.quick-order-sticky-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--hp-ink);
+  font-size: .68rem;
+}
+
+.quick-order-sticky-search button {
+  display: grid;
+  width: 28px;
+  min-height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--hp-muted);
+}
+
+.quick-order-search.is-filtering {
+  border-color: rgba(25,135,84,.28);
+}
+
+.quick-order-summary-row {
+  grid-column: 1 / -1;
+  display: grid !important;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, auto);
+  align-items: center;
+  gap: 8px;
+}
+
+.quick-summary-count {
+  display: flex !important;
+  min-width: 0;
+  flex-direction: row !important;
+  align-items: baseline;
+  gap: 5px;
+  padding-left: 2px;
+}
+
+.quick-summary-count span {
+  white-space: nowrap;
+}
+
+.quick-summary-count strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-summary-add {
+  min-width: 0 !important;
+  max-width: 146px;
+  min-height: 38px !important;
+  padding-inline: 10px !important;
+  white-space: nowrap;
+}
+
+.quick-summary-add > span {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 430px) {
+  .quick-order-direct-row {
+    grid-template-columns: minmax(0, 1fr) 116px;
+    gap: 7px;
+    padding: 8px 9px;
+  }
+
+  .quick-order-direct-row .quick-quantity-control {
+    width: 116px;
+    grid-template-columns: 29px minmax(0, 1fr) 31px;
+  }
+}
+
+@media (max-width: 360px) {
+  .quick-order-direct-row {
+    grid-template-columns: minmax(0, 1fr) 108px;
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .quick-order-direct-row .quick-quantity-control {
+    width: 108px;
+    grid-template-columns: 28px minmax(0, 1fr) 30px;
+  }
+
+  .quick-order-direct-row .quick-product-copy > p {
+    display: none;
+  }
+
+  .quick-order-summary-row {
+    grid-template-columns: minmax(0, 1fr) 108px;
+  }
+
+  .quick-summary-count {
+    flex-direction: column !important;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .quick-summary-add {
+    width: 108px;
+    max-width: 108px;
+    padding-inline: 7px !important;
+    font-size: .6rem;
+  }
+}
+
+/* Issue #43: visible empty-address state and destructive confirmations. */
+.checkout-no-address {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px dashed rgba(25,135,84,.25);
+  border-radius: 14px;
+  background: rgba(235,245,233,.5);
+}
+
+.checkout-no-address strong {
+  font-size: .82rem;
+}
+
+.checkout-no-address p {
+  margin: 0;
+  color: var(--hp-muted);
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.checkout-no-address .secondary-link-button {
+  width: fit-content;
+  min-height: 40px;
+  padding-inline: 13px;
+}
+
+.checkout-address-warning {
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(255,193,7,.1);
+  color: #725500 !important;
+  font-weight: 720;
+}
+
+.cart-clear-confirm,
+.shop-registration-delete-confirm {
+  display: grid;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid rgba(192,57,43,.18);
+  border-radius: 13px;
+  background: rgba(192,57,43,.045);
+}
+
+.cart-clear-confirm p,
+.shop-registration-delete-confirm p {
+  margin: 0;
+  color: #7b3027;
+  font-size: .69rem;
+  line-height: 1.45;
+}
+
+.cart-clear-confirm > div,
+.shop-registration-delete-confirm > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Issue #43: Home product card is one clear tap target. */
+.home-product-link {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-product-link:focus-visible {
+  outline: 3px solid rgba(255,193,7,.95);
+  outline-offset: 2px;
+}
+
+/* Issue #43: News shows feed first; settings stay available but collapsed. */
+.notification-settings-collapsible {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.84);
+  border-radius: 17px;
+  background: rgba(255,255,255,.78);
+  box-shadow: 0 7px 18px rgba(22,58,35,.045);
+}
+
+.notification-settings-collapsible > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 14px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--hp-green-dark);
+  font-size: .72rem;
+  font-weight: 790;
+}
+
+.notification-settings-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.notification-settings-collapsible > summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-settings-chevron {
+  transition: transform 140ms ease;
+}
+
+.notification-settings-collapsible[open] .notification-settings-chevron {
+  transform: rotate(180deg);
+}
+
+.notification-settings-collapsible .notification-preferences-card {
+  margin: 0 8px 8px;
+  padding: 14px;
+  border-radius: 15px;
+  box-shadow: none;
+}
+
+/* Issue #43: auth hints and local-draft delete confirmation. */
+.auth-method-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(25,135,84,.11);
+  border-radius: 12px;
+  background: rgba(235,245,233,.7);
+  color: var(--hp-green-dark);
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.auth-method-hint svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+@media (max-width: 430px) {
+  .cart-clear-confirm > div,
+  .shop-registration-delete-confirm > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-settings-chevron {
+    transition: none;
+  }
 }

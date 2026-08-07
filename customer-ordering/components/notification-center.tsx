@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ChevronRight, Megaphone, PackageCheck, Sparkles } from "lucide-react";
+import { Bell, ChevronDown, ChevronRight, Megaphone, PackageCheck, Settings2, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
@@ -29,7 +29,6 @@ export function NotificationCenter() {
   const unreadCount = items?.filter((item) => !item.readAt).length ?? 0;
 
   return <div className="notification-center notification-center-compact">
-    <NotificationPreferences />
     <section className="notification-feed-section">
       <div className="notification-feed-toolbar"><span>{unreadCount > 0 ? `${unreadCount} chưa đọc` : "Đã đọc hết"}</span>{items ? <small>{items.length} nội dung</small> : null}</div>
       {error ? <div className="notification-empty-state">{error}</div> : null}
@@ -37,5 +36,10 @@ export function NotificationCenter() {
       {items?.length === 0 ? <div className="notification-empty-state">Chưa có thông báo mới.</div> : null}
       <div className="notification-feed-list">{items?.map((item) => { const meta = kindMeta[item.kind]; const Icon = meta.icon; return <Link className={["notification-feed-card", item.readAt ? "is-read" : "is-unread"].join(" ")} href={`/news/${item.id}`} key={item.id}><span className="notification-kind-icon"><Icon aria-hidden="true" size={20} /></span><span className="notification-feed-copy"><span className="notification-feed-meta"><span>{meta.label}</span><time dateTime={item.publishedAt}>{dateFormatter.format(new Date(item.publishedAt))}</time></span><strong>{item.title}</strong><span>{item.summary}</span>{!item.readAt ? <em>Chưa đọc</em> : null}</span><ChevronRight aria-hidden="true" className="notification-feed-chevron" size={19} /></Link>; })}</div>
     </section>
+
+    <details className="notification-settings-collapsible">
+      <summary><span><Settings2 aria-hidden="true" size={18} />Cài đặt thông báo</span><ChevronDown aria-hidden="true" className="notification-settings-chevron" size={18} /></summary>
+      <NotificationPreferences />
+    </details>
   </div>;
 }

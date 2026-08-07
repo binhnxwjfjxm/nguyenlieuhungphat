@@ -14,8 +14,8 @@ export function CustomerLogo({
       className={className}
       height={height}
       priority={priority}
+      sizes={`${width}px`}
       src={CUSTOMER_LOGO_SRC}
-      unoptimized
       width={width}
     />
   );

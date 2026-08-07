@@ -1,4 +1,5 @@
 import generatedCatalog from "@/lib/adapters/mock/generated-catalog.json";
+import { sortCustomerCategories } from "@/lib/category-order";
 import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
 import type { Category, Product, ProductSearchInput } from "@/lib/contracts";
 
@@ -10,7 +11,9 @@ interface GeneratedCatalog {
 
 const catalog = generatedCatalog as GeneratedCatalog;
 
-export const MOCK_CATEGORIES: Category[] = catalog.categories.map((category) => ({ ...category }));
+export const MOCK_CATEGORIES: Category[] = sortCustomerCategories(
+  catalog.categories.map((category) => ({ ...category })),
+);
 export const MOCK_PRODUCTS: Product[] = catalog.products.map((product) => ({
   ...product,
   aliases: [...product.aliases],

@@ -24,12 +24,14 @@ test("cart can switch exact retail and case SKU after adding", async () => {
   assert.match(source, /sku: targetSku/);
 });
 
-test("quick order includes retail and case filtering with visible exact SKU price", async () => {
+test("quick order loads catalog once and filters retail/case locally with visible exact SKU price", async () => {
   const source = await read("components/quick-order.tsx");
-  assert.match(source, /purchaseMode/);
+  assert.match(source, /Promise\.all\(\[service\.listCategories\(\), service\.listProducts\(\)\]\)/);
+  assert.match(source, /purchaseMode === "all" \|\| product\.purchaseMode === purchaseMode/);
+  assert.match(source, /productMatchesQuery\(product, deferredQuery\)/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
-  assert.match(source, /purchaseMode: purchaseMode === "all" \? null : purchaseMode/);
+  assert.doesNotMatch(source, /purchaseMode:\s*purchaseMode === "all" \? null : purchaseMode/);
   assert.match(source, /quick-product-mode-price/);
   assert.match(source, /formatPrice\(product\)/);
 });
