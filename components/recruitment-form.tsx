@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { PRIVACY_POLICY_PATH } from "@/lib/contact";
@@ -255,7 +256,7 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
 
       <p className="form-privacy-note">
         Bằng việc gửi hồ sơ, bạn đồng ý để Hưng Phát sử dụng thông tin và CV đã cung cấp cho mục đích tuyển dụng theo{" "}
-        <a href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</a>.
+        <Link href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</Link>.
       </p>
 
       <div className="form-actions">

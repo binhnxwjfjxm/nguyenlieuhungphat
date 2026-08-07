@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import { Check, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import { PRIVACY_POLICY_PATH } from "@/lib/contact";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import {
@@ -254,7 +255,7 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
 
       <p className="form-privacy-note">
         Bằng việc gửi yêu cầu, bạn đồng ý để Hưng Phát sử dụng thông tin đã cung cấp nhằm tư vấn và xử lý yêu cầu theo{" "}
-        <a href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</a>.
+        <Link href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</Link>.
       </p>
 
       <div className="form-actions">

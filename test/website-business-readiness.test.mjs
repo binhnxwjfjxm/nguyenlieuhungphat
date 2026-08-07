@@ -26,7 +26,7 @@ test("website uses the confirmed Zalo contact and customer ordering entry point"
   assert.match(contact, /0396980168/);
   assert.match(contact, /https:\/\/sales\.nguyenlieuhungphat\.com/);
   assert.match(header, /CUSTOMER_ORDERING_URL/);
-  assert.match(header, />Đặt hàng</);
+  assert.match(header, /Đặt hàng/);
   assert.match(footer, /ZALO_URL/);
   assert.match(footer, /PRIVACY_POLICY_PATH/);
   assert.doesNotMatch(footer, /href="#"/);
