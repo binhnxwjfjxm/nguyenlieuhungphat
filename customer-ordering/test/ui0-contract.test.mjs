@@ -3,11 +3,18 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("UI-0 uses the exact company logo asset", async () => {
-  const [shell, login] = await Promise.all([read("components/app-shell.tsx"), read("components/login-card.tsx")]);
-  assert.match(shell, /src="\/logo-transparent\.png"/);
-  assert.match(login, /src="\/logo-transparent\.png"/);
-  assert.match(shell, /Logo Công ty Hưng Phát/);
+test("UI-0 uses the shared R2-first company logo", async () => {
+  const [shell, login, logo] = await Promise.all([
+    read("components/app-shell.tsx"),
+    read("components/login-card.tsx"),
+    read("components/customer-logo.tsx"),
+  ]);
+  assert.match(shell, /CustomerLogo/);
+  assert.match(login, /CustomerLogo/);
+  assert.match(logo, /pub-7d2987fab97d4e3ebb2021a823973862\.r2\.dev/);
+  assert.match(logo, /app-customer\/image-system\/logo-app-customer\.png/);
+  assert.match(logo, /logo-transparent\.png/);
+  assert.match(logo, /Logo Công ty Hưng Phát/);
 });
 
 test("bottom navigation contains the five locked labels", async () => {

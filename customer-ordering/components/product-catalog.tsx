@@ -22,7 +22,10 @@ import {
   groupProductChoices,
   groupProductChoicesByBrand,
   productChoiceGroupKey,
+  productDisplayBrand,
+  productDisplayType,
   productFlavorValue,
+  productSizeLabel,
   productSizeValue,
   productVariantSummary,
 } from "@/lib/product-grouping";
@@ -41,8 +44,8 @@ function availabilityLabel(product: Product): string {
   return "Đang bán";
 }
 function purchaseModeLabel(mode: PurchaseMode): string { return mode === "case" ? "Thùng" : "Lẻ"; }
-function unique(values: Array<string | null>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value?.trim())))].sort((a, b) => a.localeCompare(b, "vi"));
+function unique(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "vi"));
 }
 function choosePreferred(candidates: Product[], current: Product | null): Product | null {
   if (candidates.length === 0) return null;
@@ -94,38 +97,38 @@ export function ProductCatalog() {
   }, [quickViewGroupKey]);
 
   const filterOptions = useMemo(() => ({
-    brands: unique(products.map((product) => product.brand)),
-    productTypes: unique(products.map((product) => product.productType)),
-    flavors: unique(products.map((product) => product.flavor)),
-    sizes: unique(products.map((product) => product.size)),
-  }), [products]);
+    brands: unique(products.map((product) => productDisplayBrand(product, categories))),
+    productTypes: unique(products.map((product) => productDisplayType(product, categories))),
+    flavors: unique(products.map((product) => productFlavorValue(product, categories))),
+    sizes: unique(products.map(productSizeLabel)),
+  }), [categories, products]);
   const activeDetailFilterCount = Object.values(filters).filter(Boolean).length;
 
   const filteredVariants = useMemo(() => products
     .filter((product) => !activeCategory || product.categoryId === activeCategory)
     .filter((product) => purchaseMode === "all" || product.purchaseMode === purchaseMode)
-    .filter((product) => !filters.brand || product.brand === filters.brand)
-    .filter((product) => !filters.productType || product.productType === filters.productType)
-    .filter((product) => !filters.flavor || product.flavor === filters.flavor)
-    .filter((product) => !filters.size || product.size === filters.size)
+    .filter((product) => !filters.brand || productDisplayBrand(product, categories) === filters.brand)
+    .filter((product) => !filters.productType || productDisplayType(product, categories) === filters.productType)
+    .filter((product) => !filters.flavor || productFlavorValue(product, categories) === filters.flavor)
+    .filter((product) => !filters.size || productSizeLabel(product) === filters.size)
     .filter((product) => productMatchesQuery(product, deferredQuery))
     .sort((left, right) => productSearchRank(left, deferredQuery) - productSearchRank(right, deferredQuery)
       || left.name.localeCompare(right.name, "vi") || left.sku.localeCompare(right.sku)),
-  [activeCategory, deferredQuery, filters, products, purchaseMode]);
+  [activeCategory, categories, deferredQuery, filters, products, purchaseMode]);
 
-  const productGroups = useMemo(() => groupProductChoices(filteredVariants), [filteredVariants]);
+  const productGroups = useMemo(() => groupProductChoices(filteredVariants, categories), [categories, filteredVariants]);
   const brandSections = useMemo(() => groupProductChoicesByBrand(productGroups), [productGroups]);
   const quickViewProducts = useMemo(() => quickViewGroupKey
-    ? filteredVariants.filter((product) => productChoiceGroupKey(product) === quickViewGroupKey)
-    : [], [filteredVariants, quickViewGroupKey]);
+    ? filteredVariants.filter((product) => productChoiceGroupKey(product, categories) === quickViewGroupKey)
+    : [], [categories, filteredVariants, quickViewGroupKey]);
   const quickViewProduct = quickViewProducts.find((product) => product.sku === quickViewSku)
     ?? quickViewProducts.find((product) => product.purchaseMode === "retail")
     ?? quickViewProducts[0]
     ?? null;
 
-  const quickViewFlavorOptions = useMemo(() => distinctProductValues(quickViewProducts, productFlavorValue), [quickViewProducts]);
-  const quickViewFlavor = quickViewProduct ? productFlavorValue(quickViewProduct) : "";
-  const quickViewFlavorProducts = useMemo(() => quickViewProducts.filter((product) => productFlavorValue(product) === quickViewFlavor), [quickViewFlavor, quickViewProducts]);
+  const quickViewFlavorOptions = useMemo(() => distinctProductValues(quickViewProducts, (product) => productFlavorValue(product, categories)), [categories, quickViewProducts]);
+  const quickViewFlavor = quickViewProduct ? productFlavorValue(quickViewProduct, categories) : "";
+  const quickViewFlavorProducts = useMemo(() => quickViewProducts.filter((product) => productFlavorValue(product, categories) === quickViewFlavor), [categories, quickViewFlavor, quickViewProducts]);
   const quickViewSizeOptions = useMemo(() => distinctProductValues(quickViewFlavorProducts, productSizeValue), [quickViewFlavorProducts]);
   const quickViewSize = quickViewProduct ? productSizeValue(quickViewProduct) : "";
   const quickViewDimensionProducts = useMemo(() => quickViewFlavorProducts.filter((product) => productSizeValue(product) === quickViewSize), [quickViewFlavorProducts, quickViewSize]);
@@ -136,14 +139,14 @@ export function ProductCatalog() {
 
   function selectQuickProduct(product: Product | null) {
     if (!product) return;
-    const groupKey = productChoiceGroupKey(product);
+    const groupKey = productChoiceGroupKey(product, categories);
     setQuickViewSku(product.sku);
     setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: product.sku }));
     setQuickViewQuantity(1);
   }
 
   function openQuickView(product: Product) {
-    const key = productChoiceGroupKey(product);
+    const key = productChoiceGroupKey(product, categories);
     setQuickViewGroupKey(key);
     setQuickViewSku(product.sku);
     setSelectedSkuByGroup((current) => ({ ...current, [key]: product.sku }));
@@ -167,7 +170,7 @@ export function ProductCatalog() {
     <section className="catalog-screen catalog-screen-compact">
       <label className="catalog-search">
         <Search aria-hidden="true" size={19} /><span className="sr-only">Tìm sản phẩm</span>
-        <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tên hoặc SKU" type="search" value={query} />
+        <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tên, nhãn hoặc SKU" type="search" value={query} />
         {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={17} /></button> : null}
       </label>
 
@@ -215,7 +218,7 @@ export function ProductCatalog() {
                   <div className="catalog-product-copy catalog-product-copy-compact">
                     <div className="catalog-product-meta"><span>{selected.sku}</span><span className={`availability-${selected.availability}`}>{availabilityLabel(selected)}</span></div>
                     <h2>{group.productType}</h2>
-                    <span className="catalog-group-variant-line">{productVariantSummary(selected)}</span>
+                    <span className="catalog-group-variant-line">{productVariantSummary(selected, categories)}</span>
                     <strong className={selected.price.status === "available" ? "" : "is-pending"}>{formatPrice(selected)}</strong>
                   </div>
                 </button>
@@ -236,19 +239,22 @@ export function ProductCatalog() {
           <ProductVisual product={quickViewProduct} />
           <div className="product-quick-view-copy">
             <div className="catalog-product-meta"><span>{quickViewProduct.sku}</span><span className={`availability-${quickViewProduct.availability}`}>{availabilityLabel(quickViewProduct)}</span></div>
-            <p className="product-quick-view-brand">{quickViewProduct.brand}</p>
-            <h2>{quickViewProduct.productType}</h2>
+            <p className="product-quick-view-brand">{productDisplayBrand(quickViewProduct, categories)}</p>
+            <h2>{productDisplayType(quickViewProduct, categories)}</h2>
             <strong className="product-quick-view-name">{quickViewProduct.name}</strong>
 
-            {quickViewFlavorOptions.length > 1 ? <div className="product-choice-block"><span>Vị</span><div className="product-choice-chips" role="group" aria-label="Chọn vị">{quickViewFlavorOptions.map((flavor) => <button aria-pressed={flavor === quickViewFlavor} className={flavor === quickViewFlavor ? "is-active" : ""} key={flavor || "default"} onClick={() => selectQuickProduct(choosePreferred(quickViewProducts.filter((product) => productFlavorValue(product) === flavor), quickViewProduct))} type="button">{flavor || "Không vị"}</button>)}</div></div> : null}
+            {quickViewFlavorOptions.length > 1 ? <div className="product-choice-block"><span>Vị</span><div className="product-choice-chips" role="group" aria-label="Chọn vị">{quickViewFlavorOptions.map((flavor) => <button aria-pressed={flavor === quickViewFlavor} className={flavor === quickViewFlavor ? "is-active" : ""} key={flavor || "default"} onClick={() => selectQuickProduct(choosePreferred(quickViewProducts.filter((product) => productFlavorValue(product, categories) === flavor), quickViewProduct))} type="button">{flavor || "Không vị"}</button>)}</div></div> : null}
 
-            {quickViewSizeOptions.length > 1 ? <div className="product-choice-block"><span>Dung tích / size</span><div className="product-choice-chips" role="group" aria-label="Chọn dung tích hoặc size">{quickViewSizeOptions.map((size) => <button aria-pressed={size === quickViewSize} className={size === quickViewSize ? "is-active" : ""} key={size || "default"} onClick={() => selectQuickProduct(choosePreferred(quickViewFlavorProducts.filter((product) => productSizeValue(product) === size), quickViewProduct))} type="button">{size || "Mặc định"}</button>)}</div></div> : null}
+            {quickViewSizeOptions.length > 1 ? <div className="product-choice-block"><span>Dung tích / size</span><div className="product-choice-chips" role="group" aria-label="Chọn dung tích hoặc size">{quickViewSizeOptions.map((size) => {
+              const representative = quickViewFlavorProducts.find((product) => productSizeValue(product) === size);
+              return <button aria-pressed={size === quickViewSize} className={size === quickViewSize ? "is-active" : ""} key={size || "default"} onClick={() => selectQuickProduct(choosePreferred(quickViewFlavorProducts.filter((product) => productSizeValue(product) === size), quickViewProduct))} type="button">{representative ? productSizeLabel(representative) : size || "Mặc định"}</button>;
+            })}</div></div> : null}
 
             {quickViewPurchaseModes.length > 1 ? <div className="product-choice-block"><span>Mua</span><div className="product-choice-chips product-choice-mode" role="group" aria-label="Chọn mua lẻ hoặc thùng">{quickViewPurchaseModes.map((mode) => <button aria-pressed={mode === quickViewProduct.purchaseMode} className={mode === quickViewProduct.purchaseMode ? "is-active" : ""} key={mode} onClick={() => selectQuickProduct(choosePreferred(quickViewDimensionProducts.filter((product) => product.purchaseMode === mode), quickViewProduct))} type="button">{purchaseModeLabel(mode)}</button>)}</div></div> : null}
 
             {quickViewExactCandidates.length > 1 ? <div className="product-choice-block"><span>SKU</span><div className="product-choice-chips product-choice-sku" role="group" aria-label="Chọn SKU chính xác">{quickViewExactCandidates.map((product) => <button aria-pressed={product.sku === quickViewProduct.sku} className={product.sku === quickViewProduct.sku ? "is-active" : ""} key={product.sku} onClick={() => selectQuickProduct(product)} type="button">{product.sku}</button>)}</div></div> : null}
 
-            <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{quickViewProduct.size || "—"}</dd></div><div><dt>Vị</dt><dd>{quickViewProduct.flavor || "—"}</dd></div><div><dt>SKU</dt><dd>{quickViewProduct.sku}</dd></div></dl>
+            <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{productSizeLabel(quickViewProduct) || "—"}</dd></div><div><dt>Vị</dt><dd>{productFlavorValue(quickViewProduct, categories) || "—"}</dd></div><div><dt>SKU</dt><dd>{quickViewProduct.sku}</dd></div></dl>
             <div className="product-quick-view-price"><span>{quickViewProduct.purchaseMode === "case" ? "Giá thùng" : "Giá lẻ"}</span><strong>{formatPrice(quickViewProduct)}</strong></div>
             <div className="product-quick-view-order"><div className="quantity-stepper"><button aria-label="Giảm số lượng" disabled={quickViewQuantity <= 1} onClick={() => setQuickViewQuantity((current) => Math.max(1, current - 1))} type="button"><Minus aria-hidden="true" size={17} /></button><output>{quickViewQuantity}</output><button aria-label="Tăng số lượng" disabled={quickViewQuantity >= 99} onClick={() => setQuickViewQuantity((current) => Math.min(99, current + 1))} type="button"><Plus aria-hidden="true" size={17} /></button></div><button className="product-quick-view-add" disabled={quickViewProduct.availability !== "available"} onClick={() => void addProduct(quickViewProduct, quickViewQuantity)} type="button"><ShoppingCart aria-hidden="true" size={18} />{addedSku === quickViewProduct.sku ? "Đã thêm" : "Thêm vào giỏ"}</button></div>
           </div>

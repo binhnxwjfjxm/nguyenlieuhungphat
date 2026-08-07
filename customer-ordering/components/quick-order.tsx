@@ -6,7 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { announceCartUpdated } from "@/lib/cart-events";
 import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
 import type { Category, Product, PurchaseMode } from "@/lib/contracts";
-import { groupProductChoices, groupProductChoicesByBrand, productVariantSummary } from "@/lib/product-grouping";
+import { groupProductChoices, groupProductChoicesByBrand, productFlavorValue, productSizeLabel } from "@/lib/product-grouping";
 
 type PurchaseModeFilter = "all" | PurchaseMode;
 
@@ -53,7 +53,7 @@ export function QuickOrder() {
   }, [activeCategory, deferredQuery, purchaseMode, queryKey, service]);
 
   const visibleProducts = selectedOnly ? products.filter((product) => (quantities[product.sku] ?? 0) > 0) : products;
-  const productGroups = useMemo(() => groupProductChoices(visibleProducts), [visibleProducts]);
+  const productGroups = useMemo(() => groupProductChoices(visibleProducts, categories), [categories, visibleProducts]);
   const brandSections = useMemo(() => groupProductChoicesByBrand(productGroups), [productGroups]);
   const selectedEntries = Object.entries(quantities).filter(([, quantity]) => quantity > 0);
   const selectedLines = selectedEntries.length;
@@ -128,9 +128,10 @@ export function QuickOrder() {
                 const quantity = quantities[product.sku] ?? 0;
                 const checked = quantity > 0;
                 const canOrder = product.availability === "available";
+                const flavor = productFlavorValue(product, categories);
                 return <article className={`quick-order-row quick-order-choice-row ${canOrder ? "" : "is-disabled"}`} key={product.sku}>
                   <label className="quick-product-checkbox"><input aria-label={`Chọn ${product.name}`} checked={checked} disabled={!canOrder} onChange={(event) => toggleProduct(product, event.target.checked)} type="checkbox" /></label>
-                  <div className="quick-product-copy"><div className="quick-product-heading"><span>{product.sku}</span><span className={`availability-${product.availability}`}>{availabilityLabel(product)}</span></div><h2>{product.flavor || product.name}</h2><p>{productVariantSummary(product)} · {purchaseModeLabel(product.purchaseMode)}</p><strong className="quick-product-price">{formatPrice(product)}</strong></div>
+                  <div className="quick-product-copy"><div className="quick-product-heading"><span>{product.sku}</span><span className={`availability-${product.availability}`}>{availabilityLabel(product)}</span></div><h2>{flavor || product.name}</h2><p>{productSizeLabel(product) || product.packaging} · {purchaseModeLabel(product.purchaseMode)}</p><strong className="quick-product-price">{formatPrice(product)}</strong></div>
                   {checked ? <div className="quick-quantity-control quick-quantity-checked" aria-label={`Số lượng ${product.name}`}><button aria-label={`Giảm ${product.name}`} disabled={!canOrder || quantity <= 1} onClick={() => changeQuantity(product, quantity - 1)} type="button"><Minus aria-hidden="true" size={16} /></button><label><span className="sr-only">Số lượng {product.name}</span><input disabled={!canOrder} inputMode="numeric" max={999} min={1} onChange={(event) => changeQuantity(product, Number(event.target.value))} onFocus={(event) => event.currentTarget.select()} type="number" value={quantity} /><small>{product.unit}</small></label><div className="quick-step-buttons"><button aria-label={`Tăng ${product.name}`} disabled={!canOrder || quantity >= 999} onClick={() => changeQuantity(product, quantity + 1)} type="button"><ChevronUp aria-hidden="true" size={15} /></button><button aria-label={`Giảm ${product.name}`} disabled={!canOrder || quantity <= 1} onClick={() => changeQuantity(product, quantity - 1)} type="button"><ChevronDown aria-hidden="true" size={15} /></button></div><button aria-label={`Tăng nhanh ${product.name}`} className="quick-plus-button" disabled={!canOrder || quantity >= 999} onClick={() => changeQuantity(product, quantity + 1)} type="button"><Plus aria-hidden="true" size={17} /></button></div> : <span className="quick-check-hint">Chọn</span>}
                 </article>;
               })}</div>

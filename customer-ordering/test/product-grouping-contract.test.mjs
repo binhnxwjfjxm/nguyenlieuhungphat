@@ -4,13 +4,16 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("catalog groups products by brand and product type while keeping exact SKU selection", async () => {
+test("catalog groups brand-first while preserving exact SKU selection and price", async () => {
   const [catalog, grouping] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("lib/product-grouping.ts"),
   ]);
-  assert.match(grouping, /product\.brand/);
-  assert.match(grouping, /product\.productType/);
+  assert.match(grouping, /productDisplayBrand/);
+  assert.match(grouping, /productDisplayType/);
+  assert.match(grouping, /inferredBrandFromDetail/);
+  assert.match(grouping, /productFlavorValue/);
+  assert.match(grouping, /productSizeLabel/);
   assert.match(catalog, /groupProductChoicesByBrand/);
   assert.match(catalog, /quickViewFlavorOptions/);
   assert.match(catalog, /quickViewSizeOptions/);
@@ -26,6 +29,8 @@ test("quick order supports grouped multi-selection with exact SKU quantities", a
   assert.match(source, /type="checkbox"/);
   assert.match(source, /quantities\[product\.sku\]/);
   assert.match(source, /nextLines\.push\(\{ sku, quantity \}\)/);
+  assert.match(source, /productFlavorValue/);
+  assert.match(source, /productSizeLabel/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
 });
