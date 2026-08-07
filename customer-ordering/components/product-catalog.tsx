@@ -2,6 +2,8 @@
 
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Minus,
   PackageSearch,
   Plus,
@@ -27,6 +29,7 @@ interface CatalogFilters { brand: string; flavor: string; size: string; }
 const EMPTY_FILTERS: CatalogFilters = { brand: "", flavor: "", size: "" };
 const INITIAL_VISIBLE_GROUPS = 20;
 const LOAD_MORE_GROUPS = 20;
+const INITIAL_VISIBLE_VARIANTS = 6;
 
 function formatPrice(product: Product | null | undefined): string {
   if (!product) return "—";
@@ -74,6 +77,15 @@ function choosePreferred(candidates: Product[], current: Product): Product {
     ?? current;
 }
 
+function chooseBulkProduct(candidates: Product[], mode: PurchaseMode, size: string, current: Product): Product | null {
+  return candidates.find((product) => product.purchaseMode === mode && (!size || clean(product.size) === size))
+    ?? candidates.find((product) => product.purchaseMode === mode)
+    ?? candidates.find((product) => product.purchaseMode === current.purchaseMode && (!size || clean(product.size) === size))
+    ?? candidates.find((product) => product.purchaseMode === "retail")
+    ?? candidates[0]
+    ?? null;
+}
+
 function seriesGroupFor(index: ProductSeriesIndex, product: Product): ProductSeriesGroup | null {
   const key = index.groupKeyBySku.get(product.sku);
   return key ? index.groupsByKey.get(key) ?? null : null;
@@ -100,6 +112,12 @@ export function ProductCatalog() {
   const [visibleGroupCount, setVisibleGroupCount] = useState(INITIAL_VISIBLE_GROUPS);
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
   const [quickViewQuantity, setQuickViewQuantity] = useState(1);
+  const [variantExpanded, setVariantExpanded] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkPurchaseMode, setBulkPurchaseMode] = useState<PurchaseMode>("retail");
+  const [bulkSize, setBulkSize] = useState("");
+  const [bulkSelected, setBulkSelected] = useState<Record<string, number>>({});
+  const [bulkAdded, setBulkAdded] = useState(false);
   const portalReady = typeof document !== "undefined";
   const quickViewDialogRef = useRef<HTMLElement | null>(null);
   const quickViewCloseRef = useRef<HTMLButtonElement | null>(null);
@@ -241,6 +259,10 @@ export function ProductCatalog() {
     () => distinctProductValues(quickRelatedProducts, (product) => productSeriesVariantLabel(product, quickViewGroup)).filter(Boolean),
     [quickRelatedProducts, quickViewGroup],
   );
+  const visibleVariantOptions = variantExpanded
+    ? quickViewVariantOptions
+    : quickViewVariantOptions.slice(0, INITIAL_VISIBLE_VARIANTS);
+  const hiddenVariantCount = Math.max(0, quickViewVariantOptions.length - visibleVariantOptions.length);
   const quickViewVariantProducts = useMemo(
     () => quickViewVariantOptions.length === 0
       ? quickRelatedProducts
@@ -248,7 +270,7 @@ export function ProductCatalog() {
     [quickRelatedProducts, quickViewGroup, quickViewVariant, quickViewVariantOptions],
   );
   const quickViewSizeOptions = useMemo(
-    () => distinctProductValues(quickViewVariantProducts, (product) => clean(product.size)),
+    () => distinctProductValues(quickViewVariantProducts, (product) => clean(product.size)).filter(Boolean),
     [quickViewVariantProducts],
   );
   const quickViewDimensionProducts = useMemo(
@@ -273,6 +295,24 @@ export function ProductCatalog() {
   );
   const quickViewRetail = quickViewFamilyVariants.find((product) => product.purchaseMode === "retail") ?? null;
   const quickViewCase = quickViewFamilyVariants.find((product) => product.purchaseMode === "case") ?? null;
+  const bulkSizeOptions = useMemo(
+    () => distinctProductValues(quickRelatedProducts, (product) => clean(product.size)).filter(Boolean),
+    [quickRelatedProducts],
+  );
+  const bulkChoices = useMemo(() => {
+    if (!quickViewProduct) return new Map<string, Product>();
+    const choices = new Map<string, Product>();
+    for (const variant of quickViewVariantOptions) {
+      const candidates = quickRelatedProducts.filter((product) => productSeriesVariantLabel(product, quickViewGroup) === variant);
+      const chosen = chooseBulkProduct(candidates, bulkPurchaseMode, bulkSize, quickViewProduct);
+      if (chosen) choices.set(variant, chosen);
+    }
+    return choices;
+  }, [bulkPurchaseMode, bulkSize, quickRelatedProducts, quickViewGroup, quickViewProduct, quickViewVariantOptions]);
+  const bulkSelectedEntries = Object.entries(bulkSelected)
+    .filter(([variant, quantity]) => quantity > 0 && bulkChoices.has(variant));
+  const bulkSelectedCount = bulkSelectedEntries.length;
+  const bulkSelectedQuantity = bulkSelectedEntries.reduce((total, [, quantity]) => total + quantity, 0);
 
   async function addProduct(product: Product, quantity = 1) {
     if (product.availability !== "available") return;
@@ -289,10 +329,40 @@ export function ProductCatalog() {
     window.setTimeout(() => setAddedSku((current) => current === product.sku ? null : current), 1400);
   }
 
+  async function addBulkToCart() {
+    if (!quickViewProduct || bulkSelectedEntries.length === 0) return;
+    const cart = await service.getCart();
+    const nextLines = [...cart.lines];
+    for (const [variant, quantity] of bulkSelectedEntries) {
+      const product = bulkChoices.get(variant);
+      if (!product || product.availability !== "available") continue;
+      const existingIndex = nextLines.findIndex((line) => line.sku === product.sku);
+      if (existingIndex >= 0) {
+        nextLines[existingIndex] = {
+          ...nextLines[existingIndex],
+          quantity: Math.min(999, nextLines[existingIndex].quantity + quantity),
+        };
+      } else {
+        nextLines.push({ sku: product.sku, quantity });
+      }
+    }
+    await service.saveCart({ lines: nextLines, updatedAt: new Date().toISOString() });
+    announceCartUpdated();
+    setBulkSelected({});
+    setBulkAdded(true);
+    window.setTimeout(() => setBulkAdded(false), 1600);
+  }
+
   function openQuickView(product: Product, opener: HTMLElement) {
     quickViewOpenerRef.current = opener;
     setQuickViewSku(product.sku);
     setQuickViewQuantity(1);
+    setVariantExpanded(false);
+    setBulkMode(false);
+    setBulkSelected({});
+    setBulkPurchaseMode(product.purchaseMode);
+    setBulkSize(clean(product.size));
+    setBulkAdded(false);
   }
 
   function selectQuickProduct(product: Product) {
@@ -300,6 +370,36 @@ export function ProductCatalog() {
     const groupKey = seriesIndex.groupKeyBySku.get(product.sku) ?? `family:${product.familySku}`;
     setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: product.sku }));
     setQuickViewQuantity(1);
+  }
+
+  function toggleBulkMode() {
+    if (!quickViewProduct) return;
+    if (bulkMode) {
+      setBulkMode(false);
+      setBulkSelected({});
+      return;
+    }
+    setBulkMode(true);
+    setBulkPurchaseMode(quickViewProduct.purchaseMode);
+    setBulkSize(clean(quickViewProduct.size));
+    setBulkSelected(quickViewVariant ? { [quickViewVariant]: 1 } : {});
+  }
+
+  function toggleBulkVariant(variant: string) {
+    setBulkAdded(false);
+    setBulkSelected((current) => {
+      if (current[variant]) {
+        const next = { ...current };
+        delete next[variant];
+        return next;
+      }
+      return { ...current, [variant]: 1 };
+    });
+  }
+
+  function changeBulkQuantity(variant: string, nextValue: number) {
+    const next = Math.min(99, Math.max(1, Math.trunc(Number.isFinite(nextValue) ? nextValue : 1)));
+    setBulkSelected((current) => ({ ...current, [variant]: next }));
   }
 
   function selectCategory(categoryId: string | null) {
@@ -343,7 +443,7 @@ export function ProductCatalog() {
           <div className="catalog-filter-panel">
             <div className="catalog-filter-panel-heading"><strong>Lọc chi tiết</strong>{activeDetailFilterCount ? <button onClick={() => { setFilters(EMPTY_FILTERS); setVisibleGroupCount(INITIAL_VISIBLE_GROUPS); }} type="button"><X aria-hidden="true" size={15} /> Xóa lọc</button> : null}</div>
             <div className="catalog-filter-grid">
-              {([['brand','Nhãn hàng',filterOptions.brands],['flavor','Vị / loại',filterOptions.flavors],['size','Size',filterOptions.sizes]] as const).map(([field,label,options]) => (
+              {([["brand", "Nhãn hàng", filterOptions.brands], ["flavor", "Vị / loại", filterOptions.flavors], ["size", "Size", filterOptions.sizes]] as const).map(([field, label, options]) => (
                 <label key={field}><span>{label}</span><select onChange={(event) => updateFilter(field, event.target.value)} value={filters[field]}><option value="">Tất cả</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
               ))}
             </div>
@@ -403,7 +503,7 @@ export function ProductCatalog() {
               </div>
             </article>;
           })}</div>
-          {visibleGroupCount < productGroups.length ? <button className="primary-button" onClick={() => setVisibleGroupCount((current) => Math.min(productGroups.length, current + LOAD_MORE_GROUPS))} style={{ marginTop: 12, width: "100%" }} type="button">
+          {visibleGroupCount < productGroups.length ? <button className="primary-button catalog-load-more" onClick={() => setVisibleGroupCount((current) => Math.min(productGroups.length, current + LOAD_MORE_GROUPS))} type="button">
             Xem thêm {Math.min(LOAD_MORE_GROUPS, productGroups.length - visibleGroupCount)} sản phẩm
           </button> : null}
         </>}
@@ -415,24 +515,41 @@ export function ProductCatalog() {
           <div className="product-quick-view-copy">
             <div className="catalog-product-meta"><span>{quickViewProduct.sku}</span><span className={`availability-${quickViewProduct.availability}`}>{availabilityLabel(quickViewProduct)}</span></div>
             <p className="product-quick-view-brand">{quickViewProduct.brand}</p>
-            <h2>{quickViewGroup?.name ?? quickViewProduct.productType}</h2>
-            <strong className="product-quick-view-name">{quickViewProduct.name}</strong>
+            <div className="product-quick-view-title-row"><div><h2>{quickViewGroup?.name ?? quickViewProduct.productType}</h2><strong className="product-quick-view-name">{quickViewProduct.name}</strong></div>{quickViewVariantOptions.length > 1 ? <button aria-pressed={bulkMode} className={`bulk-mode-toggle ${bulkMode ? "is-active" : ""}`} onClick={toggleBulkMode} type="button">{bulkMode ? "Chọn từng vị" : "Chọn nhiều vị"}</button> : null}</div>
 
-            {quickViewVariantOptions.length > 1 ? <div className="product-choice-block"><span>Vị / loại</span><div className="product-choice-chips" role="group" aria-label="Chọn vị hoặc loại">{quickViewVariantOptions.map((variant) => <button aria-pressed={variant === quickViewVariant} className={variant === quickViewVariant ? "is-active" : ""} key={variant} onClick={() => selectQuickProduct(choosePreferred(quickRelatedProducts.filter((product) => productSeriesVariantLabel(product, quickViewGroup) === variant), quickViewProduct))} type="button">{variant}</button>)}</div></div> : null}
+            {!bulkMode ? <>
+              {quickViewVariantOptions.length > 1 ? <div className="product-choice-block"><span>Vị / loại</span><div className="product-choice-chips" role="group" aria-label="Chọn vị hoặc loại">{visibleVariantOptions.map((variant) => <button aria-pressed={variant === quickViewVariant} className={variant === quickViewVariant ? "is-active" : ""} key={variant} onClick={() => selectQuickProduct(choosePreferred(quickRelatedProducts.filter((product) => productSeriesVariantLabel(product, quickViewGroup) === variant), quickViewProduct))} type="button">{variant}</button>)}{hiddenVariantCount > 0 ? <button className="choice-more-button" onClick={() => setVariantExpanded(true)} type="button">+{hiddenVariantCount} vị khác</button> : variantExpanded && quickViewVariantOptions.length > INITIAL_VISIBLE_VARIANTS ? <button className="choice-more-button" onClick={() => setVariantExpanded(false)} type="button">Thu gọn</button> : null}</div></div> : null}
 
-            {quickViewSizeOptions.length > 1 ? <div className="product-choice-block"><span>Dung tích / size</span><div className="product-choice-chips" role="group" aria-label="Chọn dung tích hoặc size">{quickViewSizeOptions.map((size) => {
-              const candidates = quickViewVariantProducts.filter((product) => clean(product.size) === size);
-              const representative = candidates[0];
-              return <button aria-pressed={size === quickViewSize} className={size === quickViewSize ? "is-active" : ""} key={size || "default"} onClick={() => selectQuickProduct(choosePreferred(candidates, quickViewProduct))} type="button">{representative ? productSizeLabel(representative) || size || "Mặc định" : size || "Mặc định"}</button>;
-            })}</div></div> : null}
+              {quickViewSizeOptions.length > 1 ? <div className="product-choice-block"><span>Dung tích / size</span><div className="product-choice-chips" role="group" aria-label="Chọn dung tích hoặc size">{quickViewSizeOptions.map((size) => {
+                const candidates = quickViewVariantProducts.filter((product) => clean(product.size) === size);
+                const representative = candidates[0];
+                return <button aria-pressed={size === quickViewSize} className={size === quickViewSize ? "is-active" : ""} key={size || "default"} onClick={() => selectQuickProduct(choosePreferred(candidates, quickViewProduct))} type="button">{representative ? productSizeLabel(representative) || size || "Mặc định" : size || "Mặc định"}</button>;
+              })}</div></div> : null}
 
-            {quickViewPurchaseModes.length > 1 ? <div className="product-choice-block"><span>Mua</span><div className="product-choice-chips product-choice-mode" role="group" aria-label="Chọn mua lẻ hoặc thùng">{quickViewPurchaseModes.map((mode) => <button aria-pressed={mode === quickViewProduct.purchaseMode} className={mode === quickViewProduct.purchaseMode ? "is-active" : ""} key={mode} onClick={() => selectQuickProduct(choosePreferred(quickViewDimensionProducts.filter((product) => product.purchaseMode === mode), quickViewProduct))} type="button">{purchaseModeLabel(mode)}</button>)}</div></div> : null}
+              {quickViewPurchaseModes.length > 1 ? <div className="product-choice-block"><span>Mua</span><div className="product-choice-chips product-choice-mode" role="group" aria-label="Chọn mua lẻ hoặc thùng">{quickViewPurchaseModes.map((mode) => <button aria-pressed={mode === quickViewProduct.purchaseMode} className={mode === quickViewProduct.purchaseMode ? "is-active" : ""} key={mode} onClick={() => selectQuickProduct(choosePreferred(quickViewDimensionProducts.filter((product) => product.purchaseMode === mode), quickViewProduct))} type="button">{purchaseModeLabel(mode)}</button>)}</div></div> : null}
 
-            {quickViewExactCandidates.length > 1 ? <div className="product-choice-block"><span>SKU</span><div className="product-choice-chips product-choice-sku" role="group" aria-label="Chọn SKU chính xác">{quickViewExactCandidates.map((product) => <button aria-pressed={product.sku === quickViewProduct.sku} className={product.sku === quickViewProduct.sku ? "is-active" : ""} key={product.sku} onClick={() => selectQuickProduct(product)} type="button">{product.sku}</button>)}</div></div> : null}
+              {quickViewExactCandidates.length > 1 ? <div className="product-choice-block"><span>SKU</span><div className="product-choice-chips product-choice-sku" role="group" aria-label="Chọn SKU chính xác">{quickViewExactCandidates.map((product) => <button aria-pressed={product.sku === quickViewProduct.sku} className={product.sku === quickViewProduct.sku ? "is-active" : ""} key={product.sku} onClick={() => selectQuickProduct(product)} type="button">{product.sku}</button>)}</div></div> : null}
 
-            <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{productSizeLabel(quickViewProduct) || "—"}</dd></div><div><dt>Vị / loại</dt><dd>{quickViewVariant || "—"}</dd></div><div><dt>SKU</dt><dd>{quickViewProduct.sku}</dd></div></dl>
-            <div className="product-quick-view-price-pair" aria-label="Giá lẻ và giá thùng"><div><span>Giá lẻ</span><strong>{formatPrice(quickViewRetail)}</strong></div><div><span>Giá thùng</span><strong>{formatPrice(quickViewCase)}</strong></div></div>
-            <div className="product-quick-view-order"><div className="quantity-stepper"><button aria-label="Giảm số lượng" disabled={quickViewQuantity <= 1} onClick={() => setQuickViewQuantity((current) => Math.max(1, current - 1))} type="button"><Minus aria-hidden="true" size={17} /></button><output>{quickViewQuantity}</output><button aria-label="Tăng số lượng" disabled={quickViewQuantity >= 99} onClick={() => setQuickViewQuantity((current) => Math.min(99, current + 1))} type="button"><Plus aria-hidden="true" size={17} /></button></div><button className="product-quick-view-add" disabled={quickViewProduct.availability !== "available"} onClick={() => void addProduct(quickViewProduct, quickViewQuantity)} type="button"><ShoppingCart aria-hidden="true" size={18} />{addedSku === quickViewProduct.sku ? "Đã thêm" : `Thêm ${purchaseModeLabel(quickViewProduct.purchaseMode).toLowerCase()} vào giỏ`}</button></div>
+              <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{productSizeLabel(quickViewProduct) || "—"}</dd></div><div><dt>Vị / loại</dt><dd>{quickViewVariant || "—"}</dd></div><div><dt>SKU</dt><dd>{quickViewProduct.sku}</dd></div></dl>
+              <div className="product-quick-view-price-pair" aria-label="Giá lẻ và giá thùng"><div><span>Giá lẻ</span><strong>{formatPrice(quickViewRetail)}</strong></div><div><span>Giá thùng</span><strong>{formatPrice(quickViewCase)}</strong></div></div>
+              <div className="product-quick-view-order"><div className="quantity-stepper"><button aria-label="Giảm số lượng" disabled={quickViewQuantity <= 1} onClick={() => setQuickViewQuantity((current) => Math.max(1, current - 1))} type="button"><Minus aria-hidden="true" size={17} /></button><output>{quickViewQuantity}</output><button aria-label="Tăng số lượng" disabled={quickViewQuantity >= 99} onClick={() => setQuickViewQuantity((current) => Math.min(99, current + 1))} type="button"><Plus aria-hidden="true" size={17} /></button></div><button className="product-quick-view-add" disabled={quickViewProduct.availability !== "available"} onClick={() => void addProduct(quickViewProduct, quickViewQuantity)} type="button"><ShoppingCart aria-hidden="true" size={18} />{addedSku === quickViewProduct.sku ? "Đã thêm" : `Thêm ${purchaseModeLabel(quickViewProduct.purchaseMode).toLowerCase()} vào giỏ`}</button></div>
+            </> : <div className="bulk-choice-panel">
+              <div className="bulk-choice-toolbar">
+                <div className="product-choice-block"><span>Mua chung</span><div className="product-choice-chips product-choice-mode" role="group" aria-label="Quy cách cho các vị đã chọn">{(["retail", "case"] as const).map((mode) => <button aria-pressed={bulkPurchaseMode === mode} className={bulkPurchaseMode === mode ? "is-active" : ""} key={mode} onClick={() => setBulkPurchaseMode(mode)} type="button">{purchaseModeLabel(mode)}</button>)}</div></div>
+                {bulkSizeOptions.length > 1 ? <label className="bulk-size-select"><span>Size ưu tiên</span><select onChange={(event) => setBulkSize(event.target.value)} value={bulkSize}><option value="">Tự chọn phù hợp</option>{bulkSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</select></label> : null}
+              </div>
+              <div className="bulk-variant-grid" aria-label="Chọn nhiều vị để thêm một lần">{visibleVariantOptions.map((variant) => {
+                const product = bulkChoices.get(variant);
+                const selected = (bulkSelected[variant] ?? 0) > 0;
+                const available = product?.availability === "available";
+                return <div className={`bulk-variant-row ${selected ? "is-selected" : ""} ${available ? "" : "is-disabled"}`} key={variant}>
+                  <button aria-pressed={selected} className="bulk-variant-toggle" disabled={!product || !available} onClick={() => toggleBulkVariant(variant)} type="button"><span className="bulk-check">{selected ? <Check aria-hidden="true" size={14} /> : null}</span><span className="bulk-variant-copy"><strong>{variant}</strong><small>{product ? `${productSizeLabel(product) || product.packaging} · ${formatPrice(product)}` : "Không có quy cách phù hợp"}</small></span></button>
+                  {selected ? <div className="bulk-mini-stepper"><button aria-label={`Giảm ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) - 1)} type="button"><ChevronDown aria-hidden="true" size={14} /></button><output>{bulkSelected[variant]}</output><button aria-label={`Tăng ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) + 1)} type="button"><ChevronUp aria-hidden="true" size={14} /></button></div> : null}
+                </div>;
+              })}</div>
+              {hiddenVariantCount > 0 ? <button className="bulk-expand-button" onClick={() => setVariantExpanded(true)} type="button">Xem thêm {hiddenVariantCount} vị</button> : variantExpanded && quickViewVariantOptions.length > INITIAL_VISIBLE_VARIANTS ? <button className="bulk-expand-button" onClick={() => setVariantExpanded(false)} type="button">Thu gọn danh sách vị</button> : null}
+              <div className="bulk-add-summary"><span>{bulkSelectedCount} vị · {bulkSelectedQuantity} sản phẩm</span><button disabled={bulkSelectedCount === 0} onClick={() => void addBulkToCart()} type="button"><ShoppingCart aria-hidden="true" size={18} />{bulkAdded ? "Đã thêm" : `Thêm ${bulkSelectedCount || ""} vị vào giỏ`}</button></div>
+            </div>}
           </div>
         </section>
       </div>, document.body) : null}
