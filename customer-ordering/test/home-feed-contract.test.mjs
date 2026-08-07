@@ -11,6 +11,8 @@ test("home keeps products on one horizontal row and previews the latest customer
     read("app/home-category-icons.css"),
   ]);
 
+  assert.match(home, /const HOME_CATEGORY_PRIORITY = \[\s*"milk-tea",\s*"spicy-noodle",\s*"frozen",\s*"snacks",\s*"packaging",\s*"sauce-seasoning",\s*\] as const;/);
+  assert.match(home, /HOME_CATEGORY_PRIORITY\.flatMap\(\(categoryId\) => MOCK_CATEGORIES\.filter\(\(category\) => category\.id === categoryId\)\)/);
   assert.match(home, /className="home-product-scroller"/);
   assert.doesNotMatch(home, /product-grid home-product-grid/);
   assert.match(home, /<HomeAnnouncementPreview \/>/);
