@@ -8,7 +8,8 @@ test("catalog cards stay compact and product detail opens in-place", async () =>
   const source = await read("components/product-catalog.tsx");
   assert.match(source, /catalog-product-card-compact/);
   assert.match(source, /role="dialog"/);
-  assert.match(source, /catalog-card-action-row/);
+  assert.match(source, /catalog-family-footer/);
+  assert.match(source, /catalog-price-columns/);
   assert.match(source, /ShoppingCart/);
   assert.doesNotMatch(source, /Xem chi tiết/);
   assert.doesNotMatch(source, /catalog-product-spec/);
@@ -23,12 +24,14 @@ test("cart can switch exact retail and case SKU after adding", async () => {
   assert.match(source, /sku: targetSku/);
 });
 
-test("quick order includes retail and case filtering", async () => {
+test("quick order includes retail and case filtering with visible exact SKU price", async () => {
   const source = await read("components/quick-order.tsx");
   assert.match(source, /purchaseMode/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
   assert.match(source, /purchaseMode: purchaseMode === "all" \? null : purchaseMode/);
+  assert.match(source, /quick-product-mode-price/);
+  assert.match(source, /formatPrice\(product\)/);
 });
 
 test("orders keep a reusable purchased-products tab", async () => {
@@ -79,10 +82,11 @@ test("customer-facing screens do not expose implementation or demo copy", async 
   assert.doesNotMatch(sources[5], /notification-center-hero/);
 });
 
-test("experience polish styles are loaded last", async () => {
+test("experience polish styles are loaded before the catalog repair overrides", async () => {
   const layout = await read("app/layout.tsx");
   const css = await read("app/experience-polish.css");
   assert.match(layout, /experience-polish\.css/);
+  assert.match(layout, /product-grouping\.css/);
   assert.match(css, /product-quick-view-backdrop/);
   assert.match(css, /catalog-add-icon/);
   assert.match(css, /orders-inner-tabs/);

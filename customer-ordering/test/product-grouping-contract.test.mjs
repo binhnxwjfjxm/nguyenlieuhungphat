@@ -4,48 +4,46 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("catalog groups brand-first while preserving exact SKU selection and price", async () => {
+test("catalog groups strictly by family SKU and never invents a brand from product type", async () => {
   const [catalog, grouping] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("lib/product-grouping.ts"),
   ]);
-  assert.match(grouping, /productDisplayBrand/);
-  assert.match(grouping, /productDisplayType/);
-  assert.match(grouping, /inferredBrandFromDetail/);
-  assert.match(grouping, /productFlavorValue/);
-  assert.match(grouping, /productSizeLabel/);
-  assert.match(catalog, /groupProductChoicesByBrand/);
+  assert.match(grouping, /return clean\(product\.brand, "Hưng Phát"\)/);
+  assert.match(grouping, /return clean\(product\.productType/);
+  assert.match(grouping, /return clean\(product\.familySku, product\.sku\)/);
+  assert.doesNotMatch(grouping, /inferredBrandFromDetail/);
+  assert.doesNotMatch(catalog, /groupProductChoicesByBrand/);
+  assert.match(catalog, /selectedSkuByFamily/);
+  assert.match(catalog, /catalog-price-columns/);
   assert.match(catalog, /quickViewFlavorOptions/);
   assert.match(catalog, /quickViewSizeOptions/);
   assert.match(catalog, /quickViewPurchaseModes/);
-  assert.match(catalog, /quickViewProduct\.sku/);
-  assert.match(catalog, /formatPrice\(quickViewProduct\)/);
 });
 
-test("quick order supports grouped multi-selection with exact SKU quantities", async () => {
+test("quick order renders every exact SKU with its own visible price", async () => {
   const source = await read("components/quick-order.tsx");
-  assert.match(source, /groupProductChoicesByBrand/);
-  assert.match(source, /toggleGroupSelection/);
-  assert.match(source, /type="checkbox"/);
+  assert.doesNotMatch(source, /groupProductChoicesByBrand/);
+  assert.doesNotMatch(source, /<details className="quick-product-group"/);
+  assert.match(source, /visibleProducts\.map\(\(product\)/);
+  assert.match(source, /formatPrice\(product\)/);
+  assert.match(source, /quick-product-mode-price/);
   assert.match(source, /quantities\[product\.sku\]/);
   assert.match(source, /nextLines\.push\(\{ sku, quantity \}\)/);
-  assert.match(source, /productFlavorValue/);
-  assert.match(source, /productSizeLabel/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
 });
 
-test("product quick view is tall, touch-scrollable, and traps focus", async () => {
+test("quick view scrolls on the backdrop and option chips wrap instead of horizontal scrolling", async () => {
   const [catalog, css] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("app/product-grouping.css"),
   ]);
-  assert.match(css, /height:\s*min\(92dvh,\s*860px\)/);
-  assert.match(css, /height:\s*94dvh/);
-  assert.match(css, /overflow-y:\s*auto/);
-  assert.match(css, /overscroll-behavior:\s*contain/);
-  assert.match(css, /-webkit-overflow-scrolling:\s*touch/);
-  assert.match(css, /touch-action:\s*pan-y/);
+  assert.match(css, /\.product-quick-view-backdrop[\s\S]*overflow-y:\s*auto/);
+  assert.match(css, /\.product-quick-view-tall[\s\S]*max-height:\s*none/);
+  assert.match(css, /\.product-choice-chips[\s\S]*flex-wrap:\s*wrap/);
+  assert.match(css, /\.product-choice-chips[\s\S]*overflow:\s*visible/);
+  assert.doesNotMatch(css, /\.product-choice-chips\s*\{[^}]*overflow-x:\s*auto/s);
   assert.match(catalog, /quickViewDialogRef/);
   assert.match(catalog, /quickViewCloseRef/);
   assert.match(catalog, /quickViewOpenerRef/);
@@ -53,31 +51,22 @@ test("product quick view is tall, touch-scrollable, and traps focus", async () =
   assert.match(catalog, /opener\?\.focus\(\)/);
 });
 
-test("quick view keeps the flavorless option when a group mixes flavored and unflavored SKUs", async () => {
-  const [catalog, grouping] = await Promise.all([
-    read("components/product-catalog.tsx"),
-    read("lib/product-grouping.ts"),
-  ]);
-  assert.match(grouping, /new Set\(products\.map\(selector\)\)/);
-  assert.doesNotMatch(grouping, /products\.map\(selector\)\.filter\(Boolean\)/);
-  assert.match(catalog, /Không vị/);
-});
-
-test("shared customer logo prefers the R2 image for header and login", async () => {
-  const [logo, shell, login] = await Promise.all([
+test("shared customer logo accepts the exact public R2 object URL from browser config", async () => {
+  const [logo, env, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),
+    read(".env.example"),
     read("components/app-shell.tsx"),
     read("components/login-card.tsx"),
   ]);
-  assert.match(logo, /pub-7d2987fab97d4e3ebb2021a823973862\.r2\.dev/);
-  assert.match(logo, /app-customer\/image-system\/logo-app-customer\.png/);
-  assert.match(logo, /unoptimized=\{remote\}/);
+  assert.match(logo, /NEXT_PUBLIC_CUSTOMER_LOGO_URL/);
+  assert.match(logo, /app-customer\/image-system/);
   assert.match(logo, /logo-transparent\.png/);
+  assert.match(env, /NEXT_PUBLIC_CUSTOMER_LOGO_URL=/);
   assert.match(shell, /CustomerLogo/);
   assert.match(login, /CustomerLogo/);
 });
 
-test("product grouping styles load after earlier customer ordering styles", async () => {
+test("catalog repair styles load after earlier customer ordering styles", async () => {
   const layout = await read("app/layout.tsx");
   assert.match(layout, /experience-polish\.css";\nimport "\.\/product-grouping\.css";/);
 });

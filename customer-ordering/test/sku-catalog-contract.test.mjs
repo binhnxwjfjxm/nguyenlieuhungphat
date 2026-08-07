@@ -24,6 +24,20 @@ test("pricing workbooks generate exactly the canonical 606 retail + 606 case SKU
   }
 });
 
+test("catalog taxonomy keeps source product group separate from brand", async () => {
+  const [generated, generator] = await Promise.all([
+    read("lib/adapters/mock/generated-catalog.json").then(JSON.parse),
+    read("scripts/generate-catalog-sku.mjs"),
+  ]);
+  const torani = generated.products.find((product) => product.sku === "TORDLU");
+  assert.ok(torani, "TORDLU must remain in the canonical catalog");
+  assert.equal(torani.categoryId, "milk-tea");
+  assert.equal(torani.productType, "Siro");
+  assert.equal(torani.brand, "Torani");
+  assert.match(generator, /productType: \['loai san pham'/);
+  assert.match(generator, /brand: \[[^\]]*'nhom chi tiet'[^\]]*'nhom cap 2'/);
+});
+
 test("product identity is SKU end-to-end for future Core integration", async () => {
   const [contracts, service, adapter, catalog, detail, cart, checkout, quick, orderDetail, orders] = await Promise.all([
     read("lib/contracts.ts"), read("lib/customer-ordering-service.ts"), read("lib/adapters/mock/mock-customer-ordering-adapter.ts"),
