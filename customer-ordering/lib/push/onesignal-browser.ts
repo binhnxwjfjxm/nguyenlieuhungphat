@@ -49,10 +49,9 @@ type OneSignalDeferredCallback = (sdk: OneSignalSdk) => void | Promise<void>;
 
 const ONESIGNAL_SCRIPT_ID = "hp-onesignal-web-sdk";
 const ONESIGNAL_SCRIPT_URL = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
-export const ONESIGNAL_APP_ID =
-  process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID?.trim() || "e1404fc3-14c4-44f0-b010-20ad08336833";
-export const ONESIGNAL_WORKER_PATH = "push/onesignal/OneSignalSDKWorker.js";
-export const ONESIGNAL_WORKER_SCOPE = "/push/onesignal/";
+export const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID?.trim() || "e1404fc3-14c4-44f0-b010-20ad08336833";
+export const ONESIGNAL_WORKER_PATH = "OneSignalSDKWorker.js";
+export const ONESIGNAL_WORKER_SCOPE = "/";
 
 declare global {
   interface Window {
@@ -63,7 +62,11 @@ declare global {
 }
 
 export function oneSignalErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Không thể khởi tạo thông báo đẩy.";
+  const message = error instanceof Error ? error.message : "";
+  if (/ServiceWorker|bad HTTP response|404/i.test(message)) {
+    return "Không tải được bộ nhận thông báo. Hãy tải lại ứng dụng rồi thử bật thông báo.";
+  }
+  return message || "Không thể khởi tạo thông báo đẩy.";
 }
 
 export function readOneSignalPushSnapshot(sdk: OneSignalSdk): OneSignalPushSnapshot {
@@ -113,11 +116,7 @@ export function loadOneSignalBrowser(): Promise<OneSignalSdk> {
     script.src = ONESIGNAL_SCRIPT_URL;
     script.defer = true;
     script.crossOrigin = "anonymous";
-    script.addEventListener(
-      "error",
-      () => reject(new Error("Không tải được OneSignal Web SDK.")),
-      { once: true },
-    );
+    script.addEventListener("error", () => reject(new Error("Không tải được OneSignal Web SDK.")), { once: true });
     document.head.appendChild(script);
   });
 

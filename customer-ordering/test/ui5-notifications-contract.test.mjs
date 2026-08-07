@@ -23,33 +23,41 @@ test("UI-5 replaces the news placeholder with an inbox and detail route", async 
   assert.match(service, /markAnnouncementRead/);
 });
 
-test("OneSignal uses the v16 browser SDK, Clerk identity and subscription change synchronization", async () => {
-  const [browser, provider, preferences, layout, worker] = await Promise.all([
+test("OneSignal uses one root combined worker so PWA caching and push cannot replace each other", async () => {
+  const [browser, provider, preferences, layout, worker, registration] = await Promise.all([
     read("lib/push/onesignal-browser.ts"),
     read("components/onesignal-provider.tsx"),
     read("components/notification-preferences.tsx"),
     read("app/layout.tsx"),
-    read("public/push/onesignal/OneSignalSDKWorker.js"),
+    read("public/OneSignalSDKWorker.js"),
+    read("components/service-worker-registration.tsx"),
   ]);
 
   assert.match(browser, /OneSignalSDK\.page\.js/);
-  assert.match(browser, /ONESIGNAL_WORKER_PATH = "push\/onesignal\/OneSignalSDKWorker\.js"/);
-  assert.match(browser, /ONESIGNAL_WORKER_SCOPE = "\/push\/onesignal\/"/);
-  assert.doesNotMatch(browser, /ONESIGNAL_WORKER_PATH = "\/push\/onesignal\//);
+  assert.match(browser, /ONESIGNAL_WORKER_PATH = "OneSignalSDKWorker\.js"/);
+  assert.match(browser, /ONESIGNAL_WORKER_SCOPE = "\/"/);
   assert.match(browser, /serviceWorkerPath: ONESIGNAL_WORKER_PATH/);
   assert.match(browser, /serviceWorkerParam: \{ scope: ONESIGNAL_WORKER_SCOPE \}/);
+  assert.match(provider, /loadOneSignalBrowser\(\)/);
   assert.match(provider, /loaded\.login\(user\.id\)/);
   assert.match(provider, /loaded\.logout\(\)/);
   assert.match(provider, /requestPermission/);
   assert.match(provider, /waitForPushSubscriptionMutation/);
   assert.match(provider, /PushSubscription\.addEventListener\("change"/);
+  assert.match(provider, /window\.setInterval/);
   assert.match(provider, /PushSubscription\.optIn/);
   assert.match(provider, /PushSubscription\.optOut/);
   assert.match(provider, /visibilitychange/);
   assert.match(preferences, /push\.permission/);
   assert.match(preferences, /Đồng bộ lại/);
   assert.match(layout, /OneSignalProvider/);
+  assert.match(layout, /ServiceWorkerRegistration/);
   assert.match(worker, /OneSignalSDK\.sw\.js/);
+  assert.match(worker, /CACHE_NAME/);
+  assert.match(worker, /request\.mode === "navigate"/);
+  assert.match(registration, /COMBINED_WORKER_PATH = "\/OneSignalSDKWorker\.js"/);
+  assert.match(registration, /getRegistration\("\/"\)/);
+  assert.doesNotMatch(registration, /register\("\/sw\.js"/);
   assert.doesNotMatch(browser, /os_v2_app_/);
   assert.doesNotMatch(provider, /os_v2_app_/);
 });
