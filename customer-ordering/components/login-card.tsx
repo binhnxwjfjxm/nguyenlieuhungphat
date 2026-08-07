@@ -3,26 +3,42 @@
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
 import { customerSignInAppearance } from "@/lib/auth/clerk-appearance";
+
+type AuthMode = "sign-in" | "sign-up";
 
 export function LoginCard() {
   const router = useRouter();
   const { status, clerk, error: providerError } = useCustomerAuth();
-  const signInHostRef = useRef<HTMLDivElement>(null);
+  const authHostRef = useRef<HTMLDivElement>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>("sign-in");
 
   useEffect(() => {
     if (status === "signed-in") router.replace("/");
   }, [router, status]);
 
   useEffect(() => {
-    const node = signInHostRef.current;
+    const node = authHostRef.current;
     if (!node || !clerk || status !== "signed-out") return;
+
+    if (authMode === "sign-up") {
+      clerk.mountSignUp(node, {
+        routing: "hash",
+        oauthFlow: "redirect",
+        forceRedirectUrl: "/",
+        fallbackRedirectUrl: "/",
+        signInForceRedirectUrl: "/",
+        signInFallbackRedirectUrl: "/",
+        appearance: customerSignInAppearance,
+      });
+      return () => clerk.unmountSignUp(node);
+    }
 
     clerk.mountSignIn(node, {
       routing: "hash",
-      withSignUp: true,
+      withSignUp: false,
       oauthFlow: "redirect",
       forceRedirectUrl: "/",
       fallbackRedirectUrl: "/",
@@ -32,7 +48,7 @@ export function LoginCard() {
     });
 
     return () => clerk.unmountSignIn(node);
-  }, [clerk, status]);
+  }, [authMode, clerk, status]);
 
   const unavailableMessage = useMemo(() => {
     if (status === "unconfigured") return "Dịch vụ đăng nhập chưa được cấu hình.";
@@ -53,9 +69,36 @@ export function LoginCard() {
         />
 
         <div className="login-heading login-heading-compact">
-          <h1>Đăng nhập hoặc đăng ký</h1>
-          <p>Dùng Google, email hoặc tên đăng nhập để tiếp tục đặt hàng.</p>
+          <h1>{authMode === "sign-in" ? "Đăng nhập" : "Đăng ký tài khoản"}</h1>
+          <p>
+            {authMode === "sign-in"
+              ? "Dùng Google, email hoặc tên đăng nhập để tiếp tục đặt hàng."
+              : "Tạo tài khoản khách hàng Hưng Phát bằng phương thức bạn đã chọn."}
+          </p>
         </div>
+
+        {!unavailableMessage ? (
+          <div className="auth-mode-tabs" role="tablist" aria-label="Đăng nhập hoặc đăng ký">
+            <button
+              aria-selected={authMode === "sign-in"}
+              className={authMode === "sign-in" ? "is-active" : undefined}
+              onClick={() => setAuthMode("sign-in")}
+              role="tab"
+              type="button"
+            >
+              Đăng nhập
+            </button>
+            <button
+              aria-selected={authMode === "sign-up"}
+              className={authMode === "sign-up" ? "is-active" : undefined}
+              onClick={() => setAuthMode("sign-up")}
+              role="tab"
+              type="button"
+            >
+              Đăng ký
+            </button>
+          </div>
+        ) : null}
 
         {unavailableMessage ? (
           <div className="auth-config-warning" role="alert">
@@ -66,10 +109,10 @@ export function LoginCard() {
           <>
             {status === "loading" ? (
               <div className="auth-embed-loading" aria-live="polite">
-                Đang tải phương thức đăng nhập…
+                Đang tải phương thức xác thực…
               </div>
             ) : null}
-            <div className="clerk-sign-in-host" ref={signInHostRef} />
+            <div className="clerk-auth-host" ref={authHostRef} />
             <div className="auth-privacy-note">
               <ShieldCheck aria-hidden="true" size={17} />
               <span>

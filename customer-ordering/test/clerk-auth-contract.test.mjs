@@ -23,16 +23,23 @@ test("Customer Ordering loads Clerk UI and browser SDK through a public key only
   assert.doesNotMatch(exampleEnv, /^CLERK_SECRET_KEY=/m);
 });
 
-test("Hưng Phát login embeds Clerk sign-in-or-up with configured providers", async () => {
-  const [login, appearance] = await Promise.all([
+test("Hưng Phát login exposes explicit Clerk sign-in and sign-up modes", async () => {
+  const [login, browser, appearance] = await Promise.all([
     read("components/login-card.tsx"),
+    read("lib/auth/clerk-browser.ts"),
     read("lib/auth/clerk-appearance.ts"),
   ]);
   assert.match(login, /mountSignIn/);
-  assert.match(login, /withSignUp: true/);
+  assert.match(login, /mountSignUp/);
+  assert.match(login, /unmountSignUp/);
+  assert.match(login, /authMode === "sign-up"/);
+  assert.match(login, /role="tablist"/);
+  assert.match(login, />\s*Đăng ký\s*</);
+  assert.match(login, /withSignUp: false/);
   assert.match(login, /oauthFlow: "redirect"/);
   assert.match(login, /src="\/logo-transparent\.png"/);
-  assert.match(login, /Google, email hoặc tên đăng nhập/);
+  assert.match(browser, /mountSignUp\(node: HTMLDivElement/);
+  assert.match(browser, /unmountSignUp\(node: HTMLDivElement/);
   assert.doesNotMatch(login, /function GoogleMark/);
   assert.doesNotMatch(login, /authenticateWithRedirect/);
   assert.match(appearance, /socialButtonsBlockButton/);
