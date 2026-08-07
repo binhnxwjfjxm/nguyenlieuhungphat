@@ -32,6 +32,9 @@ test("OneSignal uses the v16 browser SDK, Clerk identity and a dedicated worker 
   ]);
 
   assert.match(browser, /OneSignalSDK\.page\.js/);
+  assert.match(browser, /ONESIGNAL_WORKER_PATH = "push\/onesignal\/OneSignalSDKWorker\.js"/);
+  assert.match(browser, /ONESIGNAL_WORKER_SCOPE = "\/push\/onesignal\/"/);
+  assert.doesNotMatch(browser, /ONESIGNAL_WORKER_PATH = "\/push\/onesignal\//);
   assert.match(browser, /serviceWorkerPath: ONESIGNAL_WORKER_PATH/);
   assert.match(browser, /serviceWorkerParam: \{ scope: ONESIGNAL_WORKER_SCOPE \}/);
   assert.match(provider, /loaded\.login\(user\.id\)/);

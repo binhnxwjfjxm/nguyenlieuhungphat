@@ -347,9 +347,12 @@ export function ProductCatalog() {
               </div>
             </button>
             <div className="catalog-family-footer">
-              <div className="catalog-price-columns" aria-label={`Giá lẻ và giá thùng ${familyName(variants)}`}>
-                {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: retail.sku }))} type="button"><span>Lẻ</span><strong>{formatPrice(retail)}</strong></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span><strong>—</strong></div>}
-                {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: caseVariant.sku }))} type="button"><span>Thùng</span><strong>{formatPrice(caseVariant)}</strong></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span><strong>—</strong></div>}
+              <div className="catalog-family-purchase">
+                <strong className="catalog-card-price">{formatPrice(selected)}</strong>
+                <div className="catalog-price-columns" aria-label={`Chọn mua lẻ hoặc thùng ${familyName(variants)}`}>
+                  {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: retail.sku }))} type="button"><span>Lẻ</span></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span></div>}
+                  {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: caseVariant.sku }))} type="button"><span>Thùng</span></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span></div>}
+                </div>
               </div>
               <button aria-label={`Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={() => void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
             </div>

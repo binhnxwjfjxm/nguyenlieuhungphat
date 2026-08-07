@@ -16,6 +16,10 @@ test("catalog groups strictly by family SKU and never invents a brand from produ
   assert.doesNotMatch(catalog, /groupProductChoicesByBrand/);
   assert.match(catalog, /selectedSkuByFamily/);
   assert.match(catalog, /catalog-price-columns/);
+  assert.match(catalog, /catalog-card-price/);
+  assert.match(catalog, /catalog-card-price">\{formatPrice\(selected\)\}/);
+  assert.doesNotMatch(catalog, /formatPrice\(retail\)/);
+  assert.doesNotMatch(catalog, /formatPrice\(caseVariant\)/);
   assert.match(catalog, /quickViewFlavorOptions/);
   assert.match(catalog, /quickViewSizeOptions/);
   assert.match(catalog, /quickViewPurchaseModes/);
@@ -34,16 +38,19 @@ test("quick order renders every exact SKU with its own visible price", async () 
   assert.match(source, /Mua thùng/);
 });
 
-test("quick view scrolls on the backdrop and option chips wrap instead of horizontal scrolling", async () => {
+test("quick view keeps the page locked while the modal owns bounded vertical scrolling", async () => {
   const [catalog, css] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("app/product-grouping.css"),
   ]);
-  assert.match(css, /\.product-quick-view-backdrop[\s\S]*overflow-y:\s*auto/);
-  assert.match(css, /\.product-quick-view-tall[\s\S]*max-height:\s*none/);
+  assert.match(css, /\.product-quick-view-backdrop\s*\{[^}]*overflow:\s*hidden/);
+  assert.match(css, /\.product-quick-view-tall\s*\{[^}]*max-height:\s*min\(88dvh,\s*760px\)/);
+  assert.match(css, /\.product-quick-view-tall\s*\{[^}]*overflow-y:\s*auto/);
+  assert.doesNotMatch(css, /\.product-quick-view-tall\s*\{[^}]*max-height:\s*none/);
   assert.match(css, /\.product-choice-chips[\s\S]*flex-wrap:\s*wrap/);
   assert.match(css, /\.product-choice-chips[\s\S]*overflow:\s*visible/);
   assert.doesNotMatch(css, /\.product-choice-chips\s*\{[^}]*overflow-x:\s*auto/s);
+  assert.match(catalog, /document\.body\.style\.overflow = "hidden"/);
   assert.match(catalog, /quickViewDialogRef/);
   assert.match(catalog, /quickViewCloseRef/);
   assert.match(catalog, /quickViewOpenerRef/);
@@ -51,17 +58,16 @@ test("quick view scrolls on the backdrop and option chips wrap instead of horizo
   assert.match(catalog, /opener\?\.focus\(\)/);
 });
 
-test("shared customer logo accepts the exact public R2 object URL from browser config", async () => {
-  const [logo, env, shell, login] = await Promise.all([
+test("shared customer logo uses the bundled known-good asset", async () => {
+  const [logo, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),
-    read(".env.example"),
     read("components/app-shell.tsx"),
     read("components/login-card.tsx"),
   ]);
-  assert.match(logo, /NEXT_PUBLIC_CUSTOMER_LOGO_URL/);
-  assert.match(logo, /app-customer\/image-system/);
-  assert.match(logo, /logo-transparent\.png/);
-  assert.match(env, /NEXT_PUBLIC_CUSTOMER_LOGO_URL=/);
+  assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-transparent\.png"/);
+  assert.match(logo, /src=\{CUSTOMER_LOGO_SRC\}/);
+  assert.doesNotMatch(logo, /NEXT_PUBLIC_CUSTOMER_LOGO_URL/);
+  assert.doesNotMatch(logo, /app-customer\/image-system/);
   assert.match(shell, /CustomerLogo/);
   assert.match(login, /CustomerLogo/);
 });

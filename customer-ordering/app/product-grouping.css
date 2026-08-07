@@ -66,6 +66,25 @@
   padding: 0 9px 9px;
 }
 
+.catalog-family-purchase {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.catalog-card-price {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hp-green-dark);
+  font-size: .74rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .catalog-price-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -76,16 +95,15 @@
 .catalog-price-cell {
   display: grid;
   min-width: 0;
-  min-height: 44px;
+  min-height: 34px;
   align-content: center;
-  gap: 2px;
   padding: 5px 6px;
   overflow: hidden;
   border: 1px solid rgba(220, 229, 221, .92);
   border-radius: 10px;
   background: #f7f9f7;
   color: var(--hp-muted);
-  text-align: left;
+  text-align: center;
 }
 
 button.catalog-price-cell {
@@ -93,23 +111,14 @@ button.catalog-price-cell {
 }
 
 .catalog-price-cell span {
-  font-size: .52rem;
-  font-weight: 760;
-}
-
-.catalog-price-cell strong {
-  overflow: hidden;
-  color: var(--hp-green-dark);
-  font-size: .62rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: .56rem;
+  font-weight: 780;
 }
 
 .catalog-price-cell.is-active {
   border-color: rgba(25, 135, 84, .36);
   background: var(--hp-green-soft);
+  color: var(--hp-green-dark);
   box-shadow: inset 0 0 0 1px rgba(25, 135, 84, .06);
 }
 
@@ -118,19 +127,20 @@ button.catalog-price-cell {
 }
 
 .product-quick-view-backdrop {
-  align-items: flex-start;
-  overflow-x: hidden;
-  overflow-y: auto;
+  align-items: center;
+  overflow: hidden;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .product-quick-view-tall {
   width: min(520px, 100%);
   height: auto;
-  max-height: none;
-  margin: auto 0;
-  overflow: visible;
+  max-height: min(88dvh, 760px);
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   align-content: start;
 }
 
@@ -298,13 +308,13 @@ button.catalog-price-cell {
     padding: 0 7px 7px;
   }
 
-  .catalog-price-cell {
-    min-height: 42px;
-    padding-inline: 5px;
+  .catalog-card-price {
+    font-size: .68rem;
   }
 
-  .catalog-price-cell strong {
-    font-size: .58rem;
+  .catalog-price-cell {
+    min-height: 32px;
+    padding-inline: 5px;
   }
 
   .product-quick-view-backdrop {
@@ -314,8 +324,8 @@ button.catalog-price-cell {
   .product-quick-view-tall {
     width: 100%;
     height: auto;
-    max-height: none;
-    margin: auto 0;
+    max-height: calc(100dvh - 16px);
+    margin: 0;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
     border-radius: 22px;
   }
