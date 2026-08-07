@@ -53,6 +53,16 @@ test("product quick view is tall, touch-scrollable, and traps focus", async () =
   assert.match(catalog, /opener\?\.focus\(\)/);
 });
 
+test("quick view keeps the flavorless option when a group mixes flavored and unflavored SKUs", async () => {
+  const [catalog, grouping] = await Promise.all([
+    read("components/product-catalog.tsx"),
+    read("lib/product-grouping.ts"),
+  ]);
+  assert.match(grouping, /new Set\(products\.map\(selector\)\)/);
+  assert.doesNotMatch(grouping, /products\.map\(selector\)\.filter\(Boolean\)/);
+  assert.match(catalog, /Không vị/);
+});
+
 test("shared customer logo prefers the R2 image for header and login", async () => {
   const [logo, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),

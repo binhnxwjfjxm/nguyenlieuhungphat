@@ -169,7 +169,7 @@ export function groupProductChoicesByBrand(groups: ProductChoiceGroup[]): Produc
 }
 
 export function distinctProductValues(products: Product[], selector: (product: Product) => string): string[] {
-  return [...new Set(products.map(selector).filter(Boolean))].sort((left, right) => left.localeCompare(right, "vi"));
+  return [...new Set(products.map(selector))].sort((left, right) => left.localeCompare(right, "vi"));
 }
 
 export function productVariantSummary(product: Product, categories: Category[] = []): string {
