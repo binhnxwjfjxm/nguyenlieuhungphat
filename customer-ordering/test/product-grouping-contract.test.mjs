@@ -1,34 +1,60 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { buildProductSeriesIndex, normalizeSeriesText, productSeriesVariantLabel } from "../lib/product-series.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("catalog cards and quick view share the same safe variant-series grouping", async () => {
-  const [catalog, grouping] = await Promise.all([
-    read("components/product-catalog.tsx"),
-    read("lib/product-grouping.ts"),
-  ]);
-  assert.match(grouping, /return clean\(product\.brand, "Hưng Phát"\)/);
-  assert.match(grouping, /return clean\(product\.productType/);
-  assert.match(grouping, /return clean\(product\.familySku, product\.sku\)/);
-  assert.doesNotMatch(grouping, /inferredBrandFromDetail/);
-  assert.doesNotMatch(catalog, /groupProductChoicesByBrand/);
-  assert.match(catalog, /function productSeriesName\(product: Product\)/);
-  assert.match(catalog, /function productCardGroupKey\(product: Product\)/);
-  assert.match(catalog, /normalizeGroupText\(seriesName\) === normalizeGroupText\(baseName\)/);
-  assert.match(catalog, /const quickViewGroupKey = productCardGroupKey\(quickViewProduct\)/);
-  assert.match(catalog, /productCardGroupKey\(product\) === quickViewGroupKey/);
-  assert.match(catalog, /selectedSkuByFamily/);
-  assert.match(catalog, /flavorCount > 1 \? `\$\{flavorCount\} vị`/);
+test("generated catalog groups real Siro Mama flavor families into one card", async () => {
+  const generated = JSON.parse(await read("lib/adapters/mock/generated-catalog.json"));
+  const products = generated.products;
+  const index = buildProductSeriesIndex(products);
+  const mamaRetail = products.filter((product) =>
+    product.purchaseMode === "retail"
+    && normalizeSeriesText(product.name).startsWith("siro mama "));
+
+  assert.ok(mamaRetail.length >= 4, `expected several Siro Mama variants, got ${mamaRetail.length}`);
+  const groupKeys = new Set(mamaRetail.map((product) => index.groupKeyBySku.get(product.sku)));
+  assert.equal(groupKeys.size, 1);
+  const groupKey = [...groupKeys][0];
+  const group = index.groupsByKey.get(groupKey);
+  assert.ok(group);
+  assert.equal(normalizeSeriesText(group.name), "siro mama");
+  const variantLabels = new Set(mamaRetail.map((product) => normalizeSeriesText(productSeriesVariantLabel(product, group))).filter(Boolean));
+  assert.ok(variantLabels.size >= 4, `expected Siro Mama flavor labels, got ${[...variantLabels].join(", ")}`);
+
+  const overGrouped = index.groups.filter((candidate) => {
+    const familyCount = new Set(candidate.products.map((product) => product.familySku)).size;
+    if (familyCount < 2) return false;
+    return normalizeSeriesText(candidate.name) === normalizeSeriesText(candidate.products[0]?.productType);
+  });
+  assert.equal(overGrouped.length, 0, `generic product types must not become series: ${overGrouped.map((groupItem) => groupItem.name).join(", ")}`);
+});
+
+test("catalog cards and quick view consume the same product series index", async () => {
+  const catalog = await read("components/product-catalog.tsx");
+  assert.match(catalog, /buildProductSeriesIndex\(products\)/);
+  assert.match(catalog, /seriesIndex\.groupKeyBySku/);
+  assert.match(catalog, /seriesIndex\.groupsByKey/);
+  assert.match(catalog, /productSeriesVariantLabel/);
+  assert.match(catalog, /selectedSkuByGroup/);
   assert.match(catalog, /catalog-price-columns/);
   assert.match(catalog, /catalog-card-price/);
   assert.match(catalog, /catalog-card-price">\{formatPrice\(selected\)\}/);
-  assert.doesNotMatch(catalog, /formatPrice\(retail\)/);
-  assert.doesNotMatch(catalog, /formatPrice\(caseVariant\)/);
-  assert.match(catalog, /quickViewFlavorOptions/);
-  assert.match(catalog, /quickViewSizeOptions/);
-  assert.match(catalog, /quickViewPurchaseModes/);
+  assert.doesNotMatch(catalog, /function productCardGroupKey/);
+  assert.doesNotMatch(catalog, /stripTrailingVariantValue/);
+});
+
+test("catalog renders twenty product groups first and expands without rebuilding every group on card toggle", async () => {
+  const catalog = await read("components/product-catalog.tsx");
+  assert.match(catalog, /INITIAL_VISIBLE_GROUPS = 20/);
+  assert.match(catalog, /LOAD_MORE_GROUPS = 20/);
+  assert.match(catalog, /productGroups\.slice\(0, visibleGroupCount\)/);
+  assert.match(catalog, /visibleProductGroups\.map/);
+  assert.match(catalog, /Xem thêm/);
+  assert.match(catalog, /const entries = new Map/);
+  assert.doesNotMatch(catalog, /const visibleVariants = filteredVariants\.filter/);
+  assert.match(catalog, /selected = chooseGroupPreferred\(visibleVariants\.length > 0 \? visibleVariants : variants/);
 });
 
 test("quick order renders every exact SKU with its own visible price", async () => {
@@ -44,36 +70,39 @@ test("quick order renders every exact SKU with its own visible price", async () 
   assert.match(source, /Mua thùng/);
 });
 
-test("quick view keeps the page locked while the modal owns bounded vertical scrolling", async () => {
+test("quick view is portaled above the app scroll container and the copy owns mobile scrolling", async () => {
   const [catalog, css] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("app/product-grouping.css"),
   ]);
-  assert.match(css, /\.product-quick-view-backdrop\s*\{[^}]*overflow:\s*hidden/);
-  assert.match(css, /\.product-quick-view-tall\s*\{[^}]*max-height:\s*min\(88dvh,\s*760px\)/);
-  assert.match(css, /\.product-quick-view-tall\s*\{[^}]*overflow-y:\s*auto/);
-  assert.doesNotMatch(css, /\.product-quick-view-tall\s*\{[^}]*max-height:\s*none/);
-  assert.match(css, /\.product-choice-chips[\s\S]*flex-wrap:\s*wrap/);
-  assert.match(css, /\.product-choice-chips[\s\S]*overflow:\s*visible/);
-  assert.doesNotMatch(css, /\.product-choice-chips\s*\{[^}]*overflow-x:\s*auto/s);
+  assert.match(catalog, /createPortal/);
+  assert.match(catalog, /document\.body/);
+  assert.match(catalog, /onClick=\{\(\) => setQuickViewSku\(null\)\}/);
+  assert.match(catalog, /onClick=\{\(event\) => event\.stopPropagation\(\)\}/);
+  assert.doesNotMatch(catalog, /onMouseDown=/);
+  assert.match(css, /\.product-quick-view-backdrop\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /\.product-quick-view-copy,[\s\S]*overflow-y:\s*auto/);
+  assert.match(css, /\.product-quick-view-copy,[\s\S]*touch-action:\s*pan-y/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*align-items:\s*flex-end/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*max-height:\s*calc\(100dvh - 8px - env\(safe-area-inset-top\)\)/);
   assert.match(catalog, /document\.body\.style\.overflow = "hidden"/);
   assert.match(catalog, /quickViewDialogRef/);
   assert.match(catalog, /quickViewCloseRef/);
   assert.match(catalog, /quickViewOpenerRef/);
-  assert.match(catalog, /event\.key !== "Tab"/);
-  assert.match(catalog, /opener\?\.focus\(\)/);
 });
 
-test("shared customer logo uses the bundled known-good asset", async () => {
-  const [logo, shell, login] = await Promise.all([
+test("shared customer logo uses the small verified SVG mark rather than the mislabeled PNG", async () => {
+  const [logo, svg, shell, login] = await Promise.all([
     read("components/customer-logo.tsx"),
+    read("public/logo-mark.svg"),
     read("components/app-shell.tsx"),
     read("components/login-card.tsx"),
   ]);
-  assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-transparent\.png"/);
-  assert.match(logo, /src=\{CUSTOMER_LOGO_SRC\}/);
-  assert.doesNotMatch(logo, /NEXT_PUBLIC_CUSTOMER_LOGO_URL/);
-  assert.doesNotMatch(logo, /app-customer\/image-system/);
+  assert.match(logo, /CUSTOMER_LOGO_SRC = "\/logo-mark\.svg"/);
+  assert.match(logo, /unoptimized/);
+  assert.doesNotMatch(logo, /logo-transparent\.png/);
+  assert.match(svg, /<svg/);
+  assert.match(svg, /stroke="#6B4027"/);
   assert.match(shell, /CustomerLogo/);
   assert.match(login, /CustomerLogo/);
 });

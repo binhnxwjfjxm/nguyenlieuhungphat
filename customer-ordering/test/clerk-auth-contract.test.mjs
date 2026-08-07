@@ -27,9 +27,11 @@ test("Hưng Phát login exposes explicit Clerk sign-in and sign-up modes", async
   assert.match(appearance, /socialButtonsBlockButton/);
 });
 
-test("account tab combines structured shop registration with Clerk account management", async () => {
+test("account tab keeps shop registration and Clerk account management compact until opened", async () => {
   const [account, location, profile] = await Promise.all([read("components/account-auth-card.tsx"), read("components/vietnam-address-fields.tsx"), read("components/clerk-user-profile.tsx")]);
   assert.match(account, /Đăng ký điểm bán/);
+  assert.match(account, /account-collapsible/);
+  assert.match(account, /<details/);
   assert.match(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
   assert.match(account, /window\.localStorage\.getItem/);
   assert.match(account, /window\.localStorage\.setItem/);
@@ -41,6 +43,8 @@ test("account tab combines structured shop registration with Clerk account manag
   assert.match(location, /navigator\.geolocation\.getCurrentPosition/);
   assert.match(location, /provinces\.open-api\.vn\/api\/v2\/w/);
   assert.match(account, /ClerkUserProfilePanel/);
+  assert.match(profile, /onToggle/);
+  assert.match(profile, /open && status === "signed-in"/);
   assert.match(profile, /mountUserProfile/);
   assert.match(profile, /routing: "hash"/);
   assert.doesNotMatch(account, /NPP Core|Giai đoạn UI|Mock UI/);

@@ -44,7 +44,51 @@ const INITIAL_SNAPSHOT: PushContextValue = {
   refreshPushState: async () => undefined,
 };
 
+const PUSH_SYNC_TIMEOUT_MS = 4000;
 const PushContext = createContext<PushContextValue | null>(null);
+
+async function waitForPushSubscriptionMutation(
+  sdk: OneSignalSdk,
+  expectedOptedIn: boolean,
+  mutate: () => Promise<void> | void,
+): Promise<OneSignalPushSnapshot> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let timeoutId: number | null = null;
+
+    const cleanup = () => {
+      sdk.User.PushSubscription.removeEventListener("change", handleChange);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(readOneSignalPushSnapshot(sdk));
+    };
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const handleChange = (event: PushSubscriptionChangeEvent) => {
+      if (event.current.optedIn === expectedOptedIn) finish();
+    };
+
+    sdk.User.PushSubscription.addEventListener("change", handleChange);
+    timeoutId = window.setTimeout(finish, PUSH_SYNC_TIMEOUT_MS);
+
+    try {
+      Promise.resolve(mutate()).then(() => {
+        const next = readOneSignalPushSnapshot(sdk);
+        if (next.subscribed === expectedOptedIn) finish();
+      }, fail);
+    } catch (error) {
+      fail(error);
+    }
+  });
+}
 
 export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { status: authStatus, user } = useCustomerAuth();
@@ -66,6 +110,8 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
     let sdk: OneSignalSdk | null = null;
     let permissionListener: ((permission: boolean) => void) | null = null;
     let subscriptionListener: ((event: PushSubscriptionChangeEvent) => void) | null = null;
+    let focusListener: (() => void) | null = null;
+    let visibilityListener: (() => void) | null = null;
 
     if (authStatus !== "signed-in" || !user?.id) {
       const linkedUserId = linkedUserIdRef.current;
@@ -99,8 +145,14 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
 
         permissionListener = () => updateFromSdk(loaded);
         subscriptionListener = () => updateFromSdk(loaded);
+        focusListener = () => updateFromSdk(loaded);
+        visibilityListener = () => {
+          if (document.visibilityState === "visible") updateFromSdk(loaded);
+        };
         loaded.Notifications.addEventListener("permissionChange", permissionListener);
         loaded.User.PushSubscription.addEventListener("change", subscriptionListener);
+        window.addEventListener("focus", focusListener);
+        document.addEventListener("visibilitychange", visibilityListener);
         updateFromSdk(loaded);
       })
       .catch((error: unknown) => {
@@ -120,6 +172,8 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
       if (sdk && subscriptionListener) {
         sdk.User.PushSubscription.removeEventListener("change", subscriptionListener);
       }
+      if (focusListener) window.removeEventListener("focus", focusListener);
+      if (visibilityListener) document.removeEventListener("visibilitychange", visibilityListener);
     };
   }, [authStatus, updateFromSdk, user?.id]);
 
@@ -148,16 +202,19 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
       if (!sdk.Notifications.permission) {
         await sdk.Notifications.requestPermission();
       }
-      if (sdk.Notifications.permission) {
-        await sdk.User.PushSubscription.optIn();
-      }
-      const next = readOneSignalPushSnapshot(sdk);
+
+      const next = sdk.Notifications.permission
+        ? await waitForPushSubscriptionMutation(sdk, true, () => sdk.User.PushSubscription.optIn())
+        : readOneSignalPushSnapshot(sdk);
+      const syncError = next.permission && !next.subscribed
+        ? "Trình duyệt đã cấp quyền nhưng OneSignal chưa đồng bộ xong thiết bị. Nhấn Đồng bộ lại."
+        : null;
       setSnapshot((current) => ({
         ...current,
         ...next,
-        status: next.supported ? "ready" : "unsupported",
+        status: syncError ? "error" : next.supported ? "ready" : "unsupported",
         busy: false,
-        error: null,
+        error: syncError,
       }));
     } catch (error) {
       setSnapshot((current) => ({
@@ -173,8 +230,7 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
     setSnapshot((current) => ({ ...current, busy: true, error: null }));
     try {
       const sdk = await loadOneSignalBrowser();
-      await sdk.User.PushSubscription.optOut();
-      const next = readOneSignalPushSnapshot(sdk);
+      const next = await waitForPushSubscriptionMutation(sdk, false, () => sdk.User.PushSubscription.optOut());
       setSnapshot((current) => ({
         ...current,
         ...next,

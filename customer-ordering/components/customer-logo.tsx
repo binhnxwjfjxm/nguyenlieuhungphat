@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const CUSTOMER_LOGO_SRC = "/logo-transparent.png";
+const CUSTOMER_LOGO_SRC = "/logo-mark.svg";
 
 export function CustomerLogo({
   className,
@@ -15,6 +15,7 @@ export function CustomerLogo({
       height={height}
       priority={priority}
       src={CUSTOMER_LOGO_SRC}
+      unoptimized
       width={width}
     />
   );

@@ -32,10 +32,10 @@ test("catalog keeps industries, product groups and brands as separate axes", asy
   assert.match(css, /position: absolute/);
 });
 
-test("catalog keeps the selected SKU price on-card while retail and case stay as selectors", async () => {
+test("catalog keeps the selected exact SKU price on-card while group variants stay selectable", async () => {
   const [catalog, detail] = await Promise.all([read("components/product-catalog.tsx"), read("components/product-detail.tsx")]);
-  assert.match(catalog, /selectedSkuByFamily/);
-  assert.match(catalog, /product\.familySku === familySku/);
+  assert.match(catalog, /selectedSkuByGroup/);
+  assert.match(catalog, /familyVariants = variants\.filter\(\(product\) => product\.familySku === selected\.familySku\)/);
   assert.match(catalog, /purchaseMode === "retail"/);
   assert.match(catalog, /purchaseMode === "case"/);
   assert.match(catalog, /catalog-card-price/);
