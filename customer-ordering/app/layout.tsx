@@ -9,6 +9,7 @@ import "./ui2.css";
 import "./ui3.css";
 import "./ui4.css";
 import "./ui5.css";
+import "./ui6.css";
 
 export const metadata: Metadata = {
   title: {
