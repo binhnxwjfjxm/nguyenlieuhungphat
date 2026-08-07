@@ -7,6 +7,14 @@ import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog
 
 const R2_IMAGE_BASE = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system";
 const HERO_IMAGE_URL = `${R2_IMAGE_BASE}/hero-app-customer.jpg`;
+const HOME_CATEGORY_PRIORITY = [
+  "milk-tea",
+  "spicy-noodle",
+  "frozen",
+  "snacks",
+  "packaging",
+  "sauce-seasoning",
+] as const;
 const CATEGORY_ICON_BY_ID: Readonly<Record<string, string>> = {
   "milk-tea": `${R2_IMAGE_BASE}/icon-tra-sua.webp`,
   "spicy-noodle": `${R2_IMAGE_BASE}/icon-mi-cay.webp`,
@@ -22,7 +30,7 @@ function formatPrice(amount: number | null): string {
 }
 
 export function HomeScreen() {
-  const categories = MOCK_CATEGORIES.slice(0, 6);
+  const categories = HOME_CATEGORY_PRIORITY.flatMap((categoryId) => MOCK_CATEGORIES.filter((category) => category.id === categoryId));
   const products = MOCK_PRODUCTS.filter((product) => product.purchaseMode === "retail" && product.availability === "available").slice(0, 4);
 
   return (
