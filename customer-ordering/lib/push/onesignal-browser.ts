@@ -51,7 +51,7 @@ const ONESIGNAL_SCRIPT_ID = "hp-onesignal-web-sdk";
 const ONESIGNAL_SCRIPT_URL = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
 export const ONESIGNAL_APP_ID =
   process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID?.trim() || "e1404fc3-14c4-44f0-b010-20ad08336833";
-export const ONESIGNAL_WORKER_PATH = "/push/onesignal/OneSignalSDKWorker.js";
+export const ONESIGNAL_WORKER_PATH = "push/onesignal/OneSignalSDKWorker.js";
 export const ONESIGNAL_WORKER_SCOPE = "/push/onesignal/";
 
 declare global {
