@@ -1,0 +1,43 @@
+/* Small post-merge UI corrections from production review. Loaded last. */
+
+.catalog-add-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0;
+}
+
+.catalog-add-icon > svg {
+  flex: none;
+  margin: 0;
+}
+
+.catalog-add-icon > svg:first-child:not(:only-child) {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  left: 6px;
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.5;
+}
+
+.catalog-add-icon > svg:last-child:not(:only-child) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.catalog-add-icon > svg:only-child {
+  position: static;
+  transform: none;
+}
+
+.push-permission-row button[aria-busy="true"] {
+  cursor: wait;
+}
+
+.push-permission-row button:not(:disabled):active {
+  transform: scale(.98);
+}

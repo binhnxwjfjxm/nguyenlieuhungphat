@@ -27,8 +27,6 @@ export function HomeScreen() {
 
   return (
     <div className="screen-stack">
-      <section className="welcome-row"><div><p className="eyebrow">Xin chào,</p><h1>Khách hàng Hưng Phát</h1></div></section>
-
       <Link className="search-field home-search-link" href="/products">
         <PackageSearch aria-hidden="true" size={19} />
         <span>Tìm sản phẩm hoặc SKU</span>

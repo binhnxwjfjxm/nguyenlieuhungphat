@@ -82,7 +82,15 @@ async function waitForPushSubscriptionMutation(
 
     sdk.User.PushSubscription.addEventListener("change", handleChange);
     pollId = window.setInterval(() => { if (matchesExpectedState()) finish(); }, PUSH_SYNC_POLL_MS);
-    timeoutId = window.setTimeout(finish, PUSH_SYNC_TIMEOUT_MS);
+    timeoutId = window.setTimeout(() => {
+      if (matchesExpectedState()) {
+        finish();
+        return;
+      }
+      fail(new Error(expectedOptedIn
+        ? "Thiết bị chưa đăng ký nhận thông báo. Hãy thử lại."
+        : "Thiết bị chưa tắt đăng ký thông báo. Hãy thử lại."));
+    }, PUSH_SYNC_TIMEOUT_MS);
 
     try {
       Promise.resolve(mutate()).then(() => {
@@ -175,24 +183,32 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
         setSnapshot((current) => ({ ...current, busy: false, supported: false, status: "unsupported" }));
         return;
       }
+
+      if (!sdk.Notifications.permission) await sdk.Notifications.requestPermission();
+      const permissionSnapshot = readOneSignalPushSnapshot(sdk);
+      if (!permissionSnapshot.permission) {
+        setSnapshot((current) => ({
+          ...current,
+          ...permissionSnapshot,
+          busy: false,
+          status: "error",
+          error: "Trình duyệt chưa cấp quyền thông báo. Hãy cho phép rồi thử lại.",
+        }));
+        return;
+      }
+
       if (user?.id && sdk.User.externalId !== user.id) {
         await sdk.login(user.id);
         linkedUserIdRef.current = user.id;
       }
-      if (!sdk.Notifications.permission) await sdk.Notifications.requestPermission();
 
-      const next = sdk.Notifications.permission
-        ? await waitForPushSubscriptionMutation(sdk, true, () => sdk.User.PushSubscription.optIn())
-        : readOneSignalPushSnapshot(sdk);
-      const syncError = next.permission && !next.subscribed
-        ? "Trình duyệt đã cấp quyền nhưng thiết bị chưa đăng ký xong. Nhấn Đồng bộ lại."
-        : null;
+      const next = await waitForPushSubscriptionMutation(sdk, true, () => sdk.User.PushSubscription.optIn());
       setSnapshot((current) => ({
         ...current,
         ...next,
-        status: syncError ? "error" : next.supported ? "ready" : "unsupported",
+        status: next.supported ? "ready" : "unsupported",
         busy: false,
-        error: syncError,
+        error: null,
       }));
     } catch (error) {
       setSnapshot((current) => ({ ...current, busy: false, status: "error", error: oneSignalErrorMessage(error) }));

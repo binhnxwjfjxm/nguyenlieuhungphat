@@ -15,6 +15,7 @@ import "./experience-polish.css";
 import "./product-grouping.css";
 import "./home-category-icons.css";
 import "./interaction-polish.css";
+import "./ui-hotfix.css";
 
 export const metadata: Metadata = {
   title: { default: "Hưng Phát Đặt Hàng", template: "%s | Hưng Phát" },
