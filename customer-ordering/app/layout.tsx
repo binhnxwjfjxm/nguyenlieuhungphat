@@ -10,6 +10,7 @@ import "./ui3.css";
 import "./ui4.css";
 import "./ui5.css";
 import "./ui6.css";
+import "./catalog-polish.css";
 
 export const metadata: Metadata = {
   title: {
