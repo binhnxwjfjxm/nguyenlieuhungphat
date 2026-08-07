@@ -16,31 +16,33 @@ test("catalog models retail and case SKUs as separate purchasable variants", asy
   assert.match(generator, /casePrice/);
 });
 
-test("catalog keeps foodservice industries and compact filters", async () => {
-  const [generator, home, catalog, css] = await Promise.all([
-    read("scripts/generate-catalog-sku.mjs"), read("components/home-screen.tsx"), read("components/product-catalog.tsx"), read("app/catalog-polish.css"),
+test("catalog keeps industries, product groups and brands as separate axes", async () => {
+  const [generator, home, catalog, grouping, css] = await Promise.all([
+    read("scripts/generate-catalog-sku.mjs"), read("components/home-screen.tsx"), read("components/product-catalog.tsx"), read("lib/product-grouping.ts"), read("app/catalog-polish.css"),
   ]);
   for (const label of ["Trà sữa", "Mỳ cay", "Đông lạnh", "Ăn vặt", "Bao bì"]) assert.match(generator, new RegExp(label));
   assert.match(home, /MOCK_CATEGORIES/);
   assert.match(home, /MOCK_PRODUCTS/);
-  assert.match(catalog, /Mua lẻ/);
-  assert.match(catalog, /Mua thùng/);
-  assert.match(catalog, /<details className="catalog-filter-menu">/);
+  assert.match(catalog, /Nhóm hàng/);
   assert.match(catalog, /Nhãn hàng/);
-  assert.match(catalog, /productDisplayBrand/);
-  assert.match(catalog, /activeDetailFilterCount/);
+  assert.match(catalog, /product\.productType === activeProductType/);
+  assert.match(catalog, /product\.brand === filters\.brand/);
+  assert.doesNotMatch(grouping, /inferredBrandFromDetail/);
   assert.match(css, /\.catalog-filter-panel/);
   assert.match(css, /position: absolute/);
 });
 
-test("catalog and in-place quick view keep exact SKU pricing after grouped variant selection", async () => {
+test("catalog keeps exact family SKU prices in separate retail and case columns", async () => {
   const [catalog, detail] = await Promise.all([read("components/product-catalog.tsx"), read("components/product-detail.tsx")]);
-  assert.match(catalog, /selectedSkuByGroup/);
-  assert.match(catalog, /quickViewFlavorOptions/);
-  assert.match(catalog, /quickViewSizeOptions/);
-  assert.match(catalog, /quickViewPurchaseModes/);
-  assert.match(catalog, /quickViewProduct\.sku/);
-  assert.match(catalog, /formatPrice\(quickViewProduct\)/);
+  assert.match(catalog, /selectedSkuByFamily/);
+  assert.match(catalog, /product\.familySku === familySku/);
+  assert.match(catalog, /purchaseMode === "retail"/);
+  assert.match(catalog, /purchaseMode === "case"/);
+  assert.match(catalog, /catalog-price-columns/);
+  assert.match(catalog, /formatPrice\(retail\)/);
+  assert.match(catalog, /formatPrice\(caseVariant\)/);
+  assert.match(catalog, /quickViewRetail/);
+  assert.match(catalog, /quickViewCase/);
   assert.match(catalog, /role="dialog"/);
   assert.match(detail, /familyVariants/);
   assert.match(detail, /candidate\.familySku === item\.familySku/);
