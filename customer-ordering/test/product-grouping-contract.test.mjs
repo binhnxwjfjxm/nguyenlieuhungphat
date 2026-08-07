@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("catalog groups strictly by family SKU and never invents a brand from product type", async () => {
+test("catalog cards and quick view share the same safe variant-series grouping", async () => {
   const [catalog, grouping] = await Promise.all([
     read("components/product-catalog.tsx"),
     read("lib/product-grouping.ts"),
@@ -14,7 +14,13 @@ test("catalog groups strictly by family SKU and never invents a brand from produ
   assert.match(grouping, /return clean\(product\.familySku, product\.sku\)/);
   assert.doesNotMatch(grouping, /inferredBrandFromDetail/);
   assert.doesNotMatch(catalog, /groupProductChoicesByBrand/);
+  assert.match(catalog, /function productSeriesName\(product: Product\)/);
+  assert.match(catalog, /function productCardGroupKey\(product: Product\)/);
+  assert.match(catalog, /normalizeGroupText\(seriesName\) === normalizeGroupText\(baseName\)/);
+  assert.match(catalog, /const quickViewGroupKey = productCardGroupKey\(quickViewProduct\)/);
+  assert.match(catalog, /productCardGroupKey\(product\) === quickViewGroupKey/);
   assert.match(catalog, /selectedSkuByFamily/);
+  assert.match(catalog, /flavorCount > 1 \? `\$\{flavorCount\} vị`/);
   assert.match(catalog, /catalog-price-columns/);
   assert.match(catalog, /catalog-card-price/);
   assert.match(catalog, /catalog-card-price">\{formatPrice\(selected\)\}/);

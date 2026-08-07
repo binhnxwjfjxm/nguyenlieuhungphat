@@ -47,10 +47,50 @@ function clean(value: string | null | undefined): string {
   return value?.trim() ?? "";
 }
 
-function familyName(variants: Product[]): string {
-  const retail = variants.find((product) => product.purchaseMode === "retail");
-  const source = retail ?? variants[0];
-  return source?.name.replace(/\s*-\s*THÙNG\s*$/iu, "") ?? "Sản phẩm";
+function normalizeGroupText(value: string): string {
+  return clean(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripTrailingVariantValue(name: string, value: string): string {
+  const token = clean(value);
+  if (!token) return name;
+  const flexibleToken = escapeRegExp(token).replace(/\s+/g, "\\s+");
+  return name.replace(new RegExp(`(?:\\s*[-–—]\\s*|\\s+)${flexibleToken}\\s*$`, "iu"), "").trim();
+}
+
+function productSeriesName(product: Product): string {
+  const baseName = clean(product.name).replace(/\s*-\s*THÙNG\s*$/iu, "").trim();
+  let seriesName = baseName;
+  for (const token of [clean(product.flavor), productSizeLabel(product), clean(product.size)]) {
+    const stripped = stripTrailingVariantValue(seriesName, token);
+    if (stripped) seriesName = stripped;
+  }
+  return seriesName || baseName || "Sản phẩm";
+}
+
+function productCardGroupKey(product: Product): string {
+  const baseName = clean(product.name).replace(/\s*-\s*THÙNG\s*$/iu, "").trim();
+  const seriesName = productSeriesName(product);
+  if (normalizeGroupText(seriesName) === normalizeGroupText(baseName)) {
+    return `family:${clean(product.familySku) || product.sku}`;
+  }
+  return [
+    "series",
+    product.categoryId,
+    normalizeGroupText(product.brand),
+    normalizeGroupText(product.productType),
+    normalizeGroupText(seriesName),
+  ].join(":");
 }
 
 function chooseFamilyPreferred(
@@ -190,24 +230,25 @@ export function ProductCatalog() {
   [activeCategory, activeProductType, deferredQuery, filters, products, purchaseMode]);
 
   const productFamilies = useMemo(() => {
-    const familyOrder: string[] = [];
+    const groupOrder: string[] = [];
     const seen = new Set<string>();
     for (const product of filteredVariants) {
-      if (!seen.has(product.familySku)) {
-        seen.add(product.familySku);
-        familyOrder.push(product.familySku);
+      const groupKey = productCardGroupKey(product);
+      if (!seen.has(groupKey)) {
+        seen.add(groupKey);
+        groupOrder.push(groupKey);
       }
     }
-    return familyOrder.map((familySku) => {
+    return groupOrder.map((groupKey) => {
+      const visibleVariants = filteredVariants.filter((product) => productCardGroupKey(product) === groupKey);
       const variants = products
-        .filter((product) => product.familySku === familySku)
-        .sort((left, right) => left.purchaseMode === right.purchaseMode
-          ? left.sku.localeCompare(right.sku, "vi")
-          : left.purchaseMode === "retail" ? -1 : 1);
+        .filter((product) => productCardGroupKey(product) === groupKey)
+        .sort((left, right) => left.name.localeCompare(right.name, "vi")
+          || (left.purchaseMode === right.purchaseMode ? left.sku.localeCompare(right.sku, "vi") : left.purchaseMode === "retail" ? -1 : 1));
       return {
-        familySku,
+        groupKey,
         variants,
-        selected: chooseFamilyPreferred(variants, selectedSkuByFamily[familySku], purchaseMode),
+        selected: chooseFamilyPreferred(visibleVariants.length > 0 ? visibleVariants : variants, selectedSkuByFamily[groupKey], purchaseMode),
       };
     });
   }, [filteredVariants, products, purchaseMode, selectedSkuByFamily]);
@@ -215,10 +256,8 @@ export function ProductCatalog() {
   const quickViewProduct = quickViewSku ? products.find((product) => product.sku === quickViewSku) ?? null : null;
   const quickRelatedProducts = useMemo(() => {
     if (!quickViewProduct) return [];
-    return products.filter((product) =>
-      product.categoryId === quickViewProduct.categoryId
-      && product.productType === quickViewProduct.productType
-      && product.brand === quickViewProduct.brand);
+    const quickViewGroupKey = productCardGroupKey(quickViewProduct);
+    return products.filter((product) => productCardGroupKey(product) === quickViewGroupKey);
   }, [products, quickViewProduct]);
 
   const quickViewFlavor = clean(quickViewProduct?.flavor);
@@ -279,7 +318,8 @@ export function ProductCatalog() {
 
   function selectQuickProduct(product: Product) {
     setQuickViewSku(product.sku);
-    setSelectedSkuByFamily((current) => ({ ...current, [product.familySku]: product.sku }));
+    const groupKey = productCardGroupKey(product);
+    setSelectedSkuByFamily((current) => ({ ...current, [groupKey]: product.sku }));
     setQuickViewQuantity(1);
   }
 
@@ -332,26 +372,35 @@ export function ProductCatalog() {
       {catalogError ? <div className="catalog-state-card is-error" role="alert"><PackageSearch aria-hidden="true" size={28} /><strong>Chưa tải được sản phẩm</strong><span>{catalogError}</span></div>
         : !loaded ? <div aria-label="Đang tải sản phẩm" className="catalog-grid">{Array.from({ length: 4 }, (_, index) => <div className="catalog-product-card is-skeleton" key={index}><span /><span /><span /></div>)}</div>
         : productFamilies.length === 0 ? <div className="catalog-state-card"><PackageSearch aria-hidden="true" size={30} /><strong>Không tìm thấy sản phẩm</strong></div>
-        : <div className="catalog-grid">{productFamilies.map(({ familySku, variants, selected }) => {
-          const retail = variants.find((variant) => variant.purchaseMode === "retail") ?? null;
-          const caseVariant = variants.find((variant) => variant.purchaseMode === "case") ?? null;
+        : <div className="catalog-grid">{productFamilies.map(({ groupKey, variants, selected }) => {
+          const familySku = selected.familySku;
+          const familyVariants = variants.filter((product) => product.familySku === familySku);
+          const retail = familyVariants.find((variant) => variant.purchaseMode === "retail") ?? null;
+          const caseVariant = familyVariants.find((variant) => variant.purchaseMode === "case") ?? null;
           const canOrder = selected.availability === "available";
-          const productSubtitle = [selected.productType, selected.flavor, productSizeLabel(selected)].filter(Boolean).join(" · ");
-          return <article className="catalog-product-card catalog-product-card-compact catalog-family-card" key={familySku}>
+          const flavorCount = distinctProductValues(variants, (product) => clean(product.flavor)).filter(Boolean).length;
+          const sizeCount = distinctProductValues(variants, (product) => clean(product.size)).filter(Boolean).length;
+          const productSubtitle = [
+            selected.productType,
+            flavorCount > 1 ? `${flavorCount} vị` : selected.flavor,
+            sizeCount > 1 ? `${sizeCount} size` : productSizeLabel(selected),
+          ].filter(Boolean).join(" · ");
+          const cardName = productSeriesName(selected);
+          return <article className="catalog-product-card catalog-product-card-compact catalog-family-card" key={groupKey}>
             <button className="catalog-product-main" onClick={(event) => openQuickView(selected, event.currentTarget)} type="button">
               <ProductVisual product={selected} />
               <div className="catalog-product-copy catalog-product-copy-compact">
                 <div className="catalog-product-meta"><span>{selected.brand}</span><span className={`availability-${selected.availability}`}>{availabilityLabel(selected)}</span></div>
-                <h2>{familyName(variants)}</h2>
+                <h2>{cardName}</h2>
                 <span className="catalog-family-subtitle">{productSubtitle || selected.packaging}</span>
               </div>
             </button>
             <div className="catalog-family-footer">
               <div className="catalog-family-purchase">
                 <strong className="catalog-card-price">{formatPrice(selected)}</strong>
-                <div className="catalog-price-columns" aria-label={`Chọn mua lẻ hoặc thùng ${familyName(variants)}`}>
-                  {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: retail.sku }))} type="button"><span>Lẻ</span></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span></div>}
-                  {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [familySku]: caseVariant.sku }))} type="button"><span>Thùng</span></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span></div>}
+                <div className="catalog-price-columns" aria-label={`Chọn mua lẻ hoặc thùng ${cardName}`}>
+                  {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [groupKey]: retail.sku }))} type="button"><span>Lẻ</span></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span></div>}
+                  {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByFamily((current) => ({ ...current, [groupKey]: caseVariant.sku }))} type="button"><span>Thùng</span></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span></div>}
                 </div>
               </div>
               <button aria-label={`Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={() => void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
