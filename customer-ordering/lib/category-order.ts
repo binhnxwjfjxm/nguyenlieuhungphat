@@ -10,7 +10,7 @@ export const CUSTOMER_CATEGORY_PRIORITY = [
 ] as const;
 
 const CATEGORY_PRIORITY_RANK = new Map<string, number>(
-  CUSTOMER_CATEGORY_PRIORITY.map((categoryId, index) => [categoryId, index]),
+  CUSTOMER_CATEGORY_PRIORITY.map((categoryId, index) => [categoryId, index] as const),
 );
 
 export function sortCustomerCategories(categories: Category[]): Category[] {

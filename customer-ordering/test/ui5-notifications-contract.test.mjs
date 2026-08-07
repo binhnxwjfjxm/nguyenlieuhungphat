@@ -62,11 +62,12 @@ test("OneSignal uses one root combined worker so PWA caching and push cannot rep
   assert.doesNotMatch(provider, /os_v2_app_/);
 });
 
-test("notification preferences live in the notification tab rather than the account tab", async () => {
-  const [adapter, accountPage, newsPage, preferences, badge] = await Promise.all([
+test("notification preferences stay in the notification tab, below the feed and without a duplicate page-level copy", async () => {
+  const [adapter, accountPage, newsPage, center, preferences, badge] = await Promise.all([
     read("lib/adapters/mock/mock-customer-ordering-adapter.ts"),
     read("app/account/page.tsx"),
     read("app/news/page.tsx"),
+    read("components/notification-center.tsx"),
     read("components/notification-preferences.tsx"),
     read("components/notification-badge.tsx"),
   ]);
@@ -75,7 +76,9 @@ test("notification preferences live in the notification tab rather than the acco
   assert.match(adapter, /NOTIFICATION_PREFERENCE_KEY/);
   assert.match(adapter, /saveNotificationPreference/);
   assert.doesNotMatch(accountPage, /NotificationPreferences/);
-  assert.match(newsPage, /NotificationPreferences/);
+  assert.doesNotMatch(newsPage, /NotificationPreferences/);
+  assert.match(center, /<NotificationPreferences \/>/);
+  assert.ok(center.indexOf("notification-feed-section") < center.indexOf("notification-settings-collapsible"));
   assert.match(preferences, /Cập nhật đơn hàng/);
   assert.match(preferences, /Chương trình & khuyến mại/);
   assert.match(badge, /listAnnouncements/);

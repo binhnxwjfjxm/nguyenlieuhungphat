@@ -43,9 +43,10 @@ test("header cart badge and navigation use the requested glass treatment", async
   assert.match(layout, /import "\.\/ui2\.css"/);
 });
 
-test("product routes use SKU rather than synthetic product ids", async () => {
+test("product routes use SKU and can initialize the selected category from Home", async () => {
   const [listingPage, detailPage] = await Promise.all([read("app/products/page.tsx"), read("app/products/[sku]/page.tsx")]);
-  assert.match(listingPage, /<ProductCatalog \/>/);
+  assert.match(listingPage, /<ProductCatalog initialCategoryId=\{initialCategoryId\} \/>/);
+  assert.match(listingPage, /CUSTOMER_CATEGORY_PRIORITY/);
   assert.match(detailPage, /<ProductDetail sku=\{sku\}/);
   assert.doesNotMatch(detailPage, /productId/);
 });

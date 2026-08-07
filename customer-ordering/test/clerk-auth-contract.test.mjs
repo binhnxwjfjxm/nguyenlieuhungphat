@@ -23,13 +23,17 @@ test("Hưng Phát login exposes explicit Clerk sign-in and sign-up modes", async
   assert.match(login, /role="tablist"/);
   assert.match(login, />\s*Đăng ký\s*</);
   assert.match(login, /oauthFlow: "redirect"/);
+  assert.match(login, /tên đăng nhập và mật khẩu/i);
+  assert.doesNotMatch(login, /0900000000/);
   assert.match(browser, /mountSignUp\(node: HTMLDivElement/);
   assert.match(appearance, /socialButtonsBlockButton/);
 });
 
-test("account tab keeps shop registration and Clerk account management compact until opened", async () => {
+test("account tab keeps the local shop draft and Clerk account management compact until opened", async () => {
   const [account, location, profile] = await Promise.all([read("components/account-auth-card.tsx"), read("components/vietnam-address-fields.tsx"), read("components/clerk-user-profile.tsx")]);
-  assert.match(account, /Đăng ký điểm bán/);
+  assert.match(account, /Bản nháp điểm bán/);
+  assert.match(account, /Lưu bản nháp/);
+  assert.match(account, /Đã lưu bản nháp trên thiết bị/);
   assert.match(account, /account-collapsible/);
   assert.match(account, /<details/);
   assert.match(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
@@ -39,7 +43,8 @@ test("account tab keeps shop registration and Clerk account management compact u
   assert.match(account, /VietnamAddressFields/);
   assert.match(account, /provinceCode/);
   assert.match(account, /wardCode/);
-  assert.match(account, />Xóa</);
+  assert.match(account, /Xóa bản nháp/);
+  assert.match(account, /confirmDeleteDraft/);
   assert.match(location, /navigator\.geolocation\.getCurrentPosition/);
   assert.match(location, /provinces\.open-api\.vn\/api\/v2\/w/);
   assert.match(account, /ClerkUserProfilePanel/);
