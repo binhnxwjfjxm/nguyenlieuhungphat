@@ -29,20 +29,19 @@ test("issue 43 keeps one category priority and opens Home categories/products co
 });
 
 test("Quick Order filters locally without collapsing the list on every keystroke", async () => {
-  const [quickOrder, groupingCss, interactionCss] = await Promise.all([
+  const [quickOrder, hotfix] = await Promise.all([
     read("components/quick-order.tsx"),
-    read("app/product-grouping.css"),
-    read("app/interaction-polish.css"),
+    read("app/ui-hotfix.css"),
   ]);
 
   assert.match(quickOrder, /Promise\.all\(\[service\.listCategories\(\), service\.listProducts\(\)\]\)/);
   assert.match(quickOrder, /productMatchesQuery\(product, deferredQuery\)/);
   assert.match(quickOrder, /const QuickOrderProductList = memo/);
   assert.doesNotMatch(quickOrder, /loadedQueryKey|queryKey|quick-step-buttons|ChevronUp|ChevronDown/);
-  assert.match(quickOrder, /grid-template-columns|quick-summary-add/);
-  assert.match(groupingCss, /grid-template-columns:\s*31px minmax\(0, 1fr\) 33px/);
-  assert.match(interactionCss, /\.quick-order-summary-search[\s\S]*padding:\s*7px 8px/);
-  assert.match(interactionCss, /\.quick-summary-add[\s\S]*white-space:\s*nowrap/);
+  assert.match(quickOrder, /quick-summary-add/);
+  assert.match(hotfix, /grid-template-columns:\s*31px minmax\(0, 1fr\) 33px/);
+  assert.match(hotfix, /\.quick-order-summary-search[\s\S]*padding:\s*7px 8px/);
+  assert.match(hotfix, /\.quick-summary-add[\s\S]*white-space:\s*nowrap/);
 });
 
 test("customer-facing copy and destructive actions do not expose implementation details", async () => {
