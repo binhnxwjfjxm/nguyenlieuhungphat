@@ -3,12 +3,15 @@
 import { useEffect } from "react";
 
 const COMBINED_WORKER_PATH = "/OneSignalSDKWorker.js";
+const FALLBACK_DELAY_MS = 1800;
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
 
     let active = true;
+    let timerId: number | null = null;
+
     const ensureFallbackRegistration = async () => {
       try {
         const existing = await navigator.serviceWorker.getRegistration("/");
@@ -23,10 +26,18 @@ export function ServiceWorkerRegistration() {
       }
     };
 
-    const timerId = window.setTimeout(() => { void ensureFallbackRegistration(); }, 1800);
+    const scheduleRegistration = () => {
+      if (!active || timerId !== null) return;
+      timerId = window.setTimeout(() => { void ensureFallbackRegistration(); }, FALLBACK_DELAY_MS);
+    };
+
+    if (document.readyState === "complete") scheduleRegistration();
+    else window.addEventListener("load", scheduleRegistration, { once: true });
+
     return () => {
       active = false;
-      window.clearTimeout(timerId);
+      window.removeEventListener("load", scheduleRegistration);
+      if (timerId !== null) window.clearTimeout(timerId);
     };
   }, []);
 
