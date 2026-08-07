@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ProductCatalog } from "@/components/product-catalog";
 import { QuoteCta } from "@/components/quote-cta";
 import { productApplications, productCategories, productOrigins, products } from "@/data/products";
+import { CUSTOMER_ORDERING_URL } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
@@ -33,6 +34,11 @@ export default async function ProductsPage({
             <p className="eyebrow">DANH MỤC SẢN PHẨM</p>
             <h1 className="gradient-heading">Tìm nguyên liệu phù hợp</h1>
             <p>Tìm theo tên, nhóm hàng hoặc nhu cầu để vào đúng danh mục nhanh hơn.</p>
+            <div className="hero-actions">
+              <a className="button button-primary" href={`${CUSTOMER_ORDERING_URL}/products`}>
+                Xem catalog đầy đủ &amp; đặt hàng
+              </a>
+            </div>
           </div>
           <div className="page-hero-image">
             <Image

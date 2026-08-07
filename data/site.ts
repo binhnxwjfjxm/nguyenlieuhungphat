@@ -51,6 +51,7 @@ export const trustItems = [
 export const categories = [
   {
     slug: "nguyen-lieu-pha-che",
+    orderingCategoryId: "milk-tea",
     title: "Trà sữa & pha chế",
     count: "Đang cập nhật",
     description: "Siro, trà, bột, topping và nguyên liệu phục vụ trà sữa, cà phê, đá xay và đồ uống.",
@@ -60,6 +61,7 @@ export const categories = [
   },
   {
     slug: "nguyen-lieu-mi-cay",
+    orderingCategoryId: "spicy-noodle",
     title: "Mì cay",
     count: "Đang cập nhật",
     description: "Mì, sốt, topping và nguyên liệu phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
@@ -69,6 +71,7 @@ export const categories = [
   },
   {
     slug: "hang-dong-lanh",
+    orderingCategoryId: "frozen",
     title: "Đông lạnh",
     count: "Đang cập nhật",
     description: "Thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
@@ -78,6 +81,7 @@ export const categories = [
   },
   {
     slug: "an-vat",
+    orderingCategoryId: "snacks",
     title: "Ăn vặt",
     count: "Đang cập nhật",
     description: "Nhóm bánh tráng, đồ ăn vặt và nguyên liệu đi kèm cho quán, cửa hàng và đại lý.",
@@ -87,6 +91,7 @@ export const categories = [
   },
   {
     slug: "bao-bi",
+    orderingCategoryId: "packaging",
     title: "Bao bì",
     count: "Đang cập nhật",
     description: "Ly, nắp, hộp, túi và vật tư bao bì phục vụ vận hành F&B.",
@@ -96,6 +101,7 @@ export const categories = [
   },
   {
     slug: "gia-vi-sot",
+    orderingCategoryId: "sauce-seasoning",
     title: "Gia vị & sốt",
     count: "Đang cập nhật",
     description: "Gia vị, sốt và nguyên liệu nêm nếm phục vụ bếp, quán ăn và bán lại.",

@@ -8,6 +8,7 @@ import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
 import { products } from "@/data/products";
+import { getCustomerOrderingCategoryUrl } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -38,6 +39,7 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
   if (!category) notFound();
 
   const categoryProducts = products.filter((product) => product.categorySlug === category.slug);
+  const orderingUrl = getCustomerOrderingCategoryUrl(category.orderingCategoryId);
 
   return (
     <main className="content-page">
@@ -47,9 +49,14 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             <p className="eyebrow">NGÀNH HÀNG</p>
             <h1 className="gradient-heading">{category.title}</h1>
             <p>{category.description}</p>
-            <Link className="text-link" href="/nganh-hang">
-              <ArrowLeft size={17} /> Quay lại danh mục
-            </Link>
+            <div className="hero-actions">
+              <Link className="button button-secondary" href="/nganh-hang">
+                <ArrowLeft size={17} /> Quay lại cẩm nang
+              </Link>
+              <a className="button button-primary" href={orderingUrl}>
+                Xem catalog &amp; đặt hàng
+              </a>
+            </div>
           </div>
           <div className="page-hero-image">
             <Image src={category.image} alt={category.title} fill priority sizes="(max-width: 900px) 100vw, 40vw" />
@@ -80,8 +87,11 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             <Reveal>
               <div className="catalog-empty">
                 <PackageSearch size={34} />
-                <h2 className="gradient-heading">Chưa có sản phẩm phù hợp</h2>
-                <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
+                <h2 className="gradient-heading">Danh mục website đang cập nhật</h2>
+                <p>Catalog đặt hàng đầy đủ vẫn có thể được xem theo đúng ngành hàng này.</p>
+                <a className="button button-primary" href={orderingUrl}>
+                  Xem catalog đầy đủ &amp; đặt hàng
+                </a>
               </div>
             </Reveal>
           )}

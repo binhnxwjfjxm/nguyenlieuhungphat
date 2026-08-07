@@ -4,14 +4,14 @@ import { RecruitmentForm } from "@/components/recruitment-form";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Tuyển Dụng Hưng Phát 2026",
+  title: "Tuyển dụng nhân viên kinh doanh miền Tây",
   description:
-    "Tin tuyển Hưng Phát hiển thị dạng hàng ngang. Bấm vào từng tin để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
+    "Hưng Phát tuyển nhân viên kinh doanh thị trường miền Tây, phụ trách chăm sóc khách hàng, phát triển đại lý và theo dõi đơn hàng.",
   alternates: { canonical: "/tuyen-dung" },
   openGraph: {
-    title: "Tuyển Dụng Hưng Phát 2026",
+    title: "Tuyển dụng nhân viên kinh doanh miền Tây | Hưng Phát",
     description:
-      "Tin tuyển Hưng Phát hiển thị dạng hàng ngang. Bấm vào từng tin để xem mô tả công việc, lương thưởng và cách ứng tuyển.",
+      "Cơ hội nhân viên kinh doanh thị trường miền Tây tại Hưng Phát, với hai khu vực phụ trách và chính sách thu nhập theo hiệu quả.",
     url: getAbsoluteUrl("/tuyen-dung"),
   },
 };
@@ -21,8 +21,11 @@ export default function TuyenDungPage() {
     <main className="content-page">
       <section className="page-hero">
         <div className="container page-hero-inner">
-          <p className="eyebrow">TUYỂN DỤNG</p>
-          <h1 className="gradient-heading">Tuyển Dụng Hưng Phát 2026</h1>
+          <div>
+            <p className="eyebrow">TUYỂN DỤNG</p>
+            <h1 className="gradient-heading">Tuyển nhân viên kinh doanh thị trường miền Tây</h1>
+            <p>Chọn khu vực phù hợp, xem mô tả công việc và gửi CV trực tiếp cho Hưng Phát.</p>
+          </div>
         </div>
       </section>
 

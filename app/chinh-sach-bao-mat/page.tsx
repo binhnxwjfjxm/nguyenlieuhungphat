@@ -5,11 +5,12 @@ import { getAbsoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Chính sách bảo mật",
-  description: "Chính sách bảo mật thông tin khách hàng, yêu cầu báo giá và hồ sơ tuyển dụng tại Hưng Phát.",
+  description:
+    "Chính sách bảo mật thông tin khách hàng, yêu cầu báo giá, hội thoại hỗ trợ và hồ sơ tuyển dụng tại Hưng Phát.",
   alternates: { canonical: "/chinh-sach-bao-mat" },
   openGraph: {
     title: "Chính sách bảo mật | Hưng Phát",
-    description: "Cách Hưng Phát tiếp nhận và sử dụng thông tin phục vụ tư vấn, báo giá và tuyển dụng.",
+    description: "Cách Hưng Phát tiếp nhận và sử dụng thông tin phục vụ tư vấn, báo giá, hỗ trợ và tuyển dụng.",
     url: getAbsoluteUrl("/chinh-sach-bao-mat"),
   },
 };
@@ -22,7 +23,7 @@ export default function PrivacyPolicyPage() {
           <div>
             <p className="eyebrow">QUYỀN RIÊNG TƯ</p>
             <h1 className="gradient-heading">Chính sách bảo mật</h1>
-            <p>Thông tin được tiếp nhận để xử lý đúng nhu cầu tư vấn, báo giá hoặc tuyển dụng.</p>
+            <p>Thông tin được tiếp nhận để xử lý đúng nhu cầu tư vấn, báo giá, hỗ trợ hoặc tuyển dụng.</p>
           </div>
         </div>
       </section>
@@ -36,20 +37,24 @@ export default function PrivacyPolicyPage() {
               số lượng, khu vực giao hàng và nội dung ghi chú.
             </p>
             <p>
+              Với hội thoại hỗ trợ trực tuyến, thông tin có thể gồm nội dung trao đổi, mã phiên, trang đang xem và số điện thoại nếu người dùng
+              chủ động gửi trong tin nhắn.
+            </p>
+            <p>
               Với hồ sơ tuyển dụng, thông tin có thể gồm họ tên, thông tin liên hệ, vị trí ứng tuyển, kinh nghiệm, đường dẫn hồ sơ và
               tệp CV do ứng viên chủ động gửi.
             </p>
 
             <h2>2. Mục đích sử dụng</h2>
             <p>
-              Hưng Phát sử dụng thông tin để liên hệ lại, tư vấn sản phẩm, xử lý yêu cầu báo giá, phối hợp giao nhận khi cần và tiếp nhận,
-              đánh giá hồ sơ tuyển dụng. Thông tin không được dùng cho mục đích khác ngoài phạm vi cần thiết nếu chưa có sự đồng ý phù hợp.
+              Hưng Phát sử dụng thông tin để liên hệ lại, hỗ trợ hội thoại, tư vấn sản phẩm, xử lý yêu cầu báo giá, phối hợp giao nhận khi cần và
+              tiếp nhận, đánh giá hồ sơ tuyển dụng. Thông tin không được dùng cho mục đích khác ngoài phạm vi cần thiết nếu chưa có sự đồng ý phù hợp.
             </p>
 
             <h2>3. Hệ thống xử lý thông tin</h2>
             <p>
-              Thông tin có thể đi qua các dịch vụ kỹ thuật cần thiết để website tiếp nhận, chuyển tiếp và lưu vết yêu cầu. Hưng Phát giới hạn
-              việc sử dụng dữ liệu theo mục đích vận hành của từng yêu cầu và theo cấu hình thực tế của hệ thống.
+              Thông tin có thể đi qua các dịch vụ kỹ thuật cần thiết cho hội thoại tự động, chuyển tiếp thông báo, tiếp nhận biểu mẫu và lưu vết
+              yêu cầu. Hưng Phát giới hạn việc sử dụng dữ liệu theo mục đích vận hành của từng yêu cầu và theo cấu hình thực tế của hệ thống.
             </p>
 
             <h2>4. Thời gian lưu giữ</h2>

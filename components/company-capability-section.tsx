@@ -52,8 +52,8 @@ export function CompanyCapabilitySection() {
                   <small>Kinh nghiệm thực tế</small>
                 </span>
                 <span>
-                  <strong>3</strong>
-                  <small>Nhóm hàng chính</small>
+                  <strong>6</strong>
+                  <small>Ngành hàng ưu tiên</small>
                 </span>
                 <span>
                   <strong>B2B</strong>
