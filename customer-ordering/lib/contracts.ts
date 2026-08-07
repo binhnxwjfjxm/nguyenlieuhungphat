@@ -132,6 +132,27 @@ export interface ReorderOrderResult {
   skippedLineCount: number;
 }
 
+export type AnnouncementKind = "order" | "company" | "promotion" | "system";
+
+export interface Announcement {
+  id: string;
+  kind: AnnouncementKind;
+  title: string;
+  summary: string;
+  body: string;
+  publishedAt: string;
+  featured: boolean;
+  targetHref?: string;
+  readAt: string | null;
+}
+
+export interface NotificationPreference {
+  orderUpdates: boolean;
+  companyNews: boolean;
+  promotions: boolean;
+  updatedAt: string;
+}
+
 export interface CustomerOrderingAdapter {
   signIn(input: SignInInput): Promise<CustomerSession>;
   getSession(): Promise<CustomerSession | null>;
@@ -149,4 +170,9 @@ export interface CustomerOrderingAdapter {
   getOrderById(orderId: string): Promise<CustomerOrder | null>;
   cancelOrder(orderId: string): Promise<CustomerOrder>;
   reorderOrder(orderId: string): Promise<ReorderOrderResult>;
+  listAnnouncements(): Promise<Announcement[]>;
+  getAnnouncementById(announcementId: string): Promise<Announcement | null>;
+  markAnnouncementRead(announcementId: string): Promise<Announcement>;
+  getNotificationPreference(): Promise<NotificationPreference>;
+  saveNotificationPreference(preference: NotificationPreference): Promise<NotificationPreference>;
 }

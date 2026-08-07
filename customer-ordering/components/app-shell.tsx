@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { Bell, ClipboardList, Home, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
 import { CartBadge } from "@/components/cart-badge";
 import { CustomerAuthGate } from "@/components/customer-auth-gate";
+import { NotificationBadge } from "@/components/notification-badge";
 
 const navigation = [
   { href: "/", label: "Trang chủ", icon: Home, emphasized: false },
@@ -41,7 +42,7 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
           <div className="header-actions">
             <Link className="icon-button" href="/news" aria-label="Thông báo">
               <Bell aria-hidden="true" size={20} strokeWidth={1.8} />
-              <span className="notification-dot" />
+              <NotificationBadge />
             </Link>
             <CartBadge />
           </div>
