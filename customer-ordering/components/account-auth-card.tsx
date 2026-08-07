@@ -107,9 +107,10 @@ export function AccountAuthCard() {
   return <div className="account-hub">
     <section className="account-identity-card"><div className="account-avatar"><UserRound aria-hidden="true" size={30} /></div><div className="account-identity-copy"><h1>{displayName}</h1><p className="account-email"><Mail aria-hidden="true" size={17} />{email}</p></div><button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button"><LogOut aria-hidden="true" size={18} />{signingOut ? "Đang đăng xuất..." : "Đăng xuất"}</button></section>
 
-    <section className="account-section account-link-summary"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><h2>Chưa liên kết điểm bán</h2></div></div></section>
+    <section className="account-section account-link-summary"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán</p><h2>{shopSavedAt ? "Đã lưu thông tin điểm bán" : "Chưa liên kết điểm bán"}</h2><p>{shopSavedAt ? "Mở mục bên dưới khi cần cập nhật thông tin cửa hàng." : "Đăng ký thông tin cửa hàng để chuẩn bị liên kết tài khoản khách hàng."}</p></div></div></section>
 
-    <section className="account-section shop-registration-section"><div className="account-section-heading"><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><h2>Đăng ký điểm bán</h2></div></div>
+    <details className="account-section account-collapsible shop-registration-section">
+      <summary className="account-section-heading" style={{ cursor: "pointer", listStyle: "none" }}><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><p className="eyebrow">Thông tin cửa hàng</p><h2>Đăng ký điểm bán</h2><p>Chỉ mở biểu mẫu khi cần nhập hoặc chỉnh sửa.</p></div><span className="status-pill">Chỉnh sửa</span></summary>
       <form className="shop-registration-form" onSubmit={handleShopSubmit}>
         <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" onChange={(event) => updateShopField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={shopDraft.shopName} /></div></label>
         <label><span>Người liên hệ</span><div className="input-with-icon"><UserRound aria-hidden="true" size={18} /><input autoComplete="name" onChange={(event) => updateShopField("contactName", event.target.value)} placeholder="Họ và tên" required value={shopDraft.contactName} /></div></label>
@@ -119,7 +120,7 @@ export function AccountAuthCard() {
         {shopSavedAt ? <div className="shop-registration-notice"><CheckCircle2 aria-hidden="true" size={18} /><span>Đã lưu thông tin điểm bán.</span></div> : null}
         <div className="shop-registration-actions"><button className="primary-button shop-registration-submit" type="submit"><Save aria-hidden="true" size={18} />Lưu thông tin</button>{shopSavedAt ? <button className="shop-registration-delete" onClick={handleDeleteShopDraft} type="button"><Trash2 aria-hidden="true" size={17} />Xóa</button> : null}</div>
       </form>
-    </section>
+    </details>
     <ClerkUserProfilePanel />
   </div>;
 }

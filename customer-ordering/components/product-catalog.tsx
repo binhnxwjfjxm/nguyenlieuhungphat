@@ -25,6 +25,8 @@ import type { ProductSeriesGroup, ProductSeriesIndex } from "@/lib/product-serie
 type PurchaseModeFilter = "all" | PurchaseMode;
 interface CatalogFilters { brand: string; flavor: string; size: string; }
 const EMPTY_FILTERS: CatalogFilters = { brand: "", flavor: "", size: "" };
+const INITIAL_VISIBLE_GROUPS = 20;
+const LOAD_MORE_GROUPS = 20;
 
 function formatPrice(product: Product | null | undefined): string {
   if (!product) return "—";
@@ -95,6 +97,7 @@ export function ProductCatalog() {
   const [catalogError, setCatalogError] = useState("");
   const [addedSku, setAddedSku] = useState<string | null>(null);
   const [selectedSkuByGroup, setSelectedSkuByGroup] = useState<Record<string, string>>({});
+  const [visibleGroupCount, setVisibleGroupCount] = useState(INITIAL_VISIBLE_GROUPS);
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
   const [quickViewQuantity, setQuickViewQuantity] = useState(1);
   const [portalReady, setPortalReady] = useState(false);
@@ -198,26 +201,36 @@ export function ProductCatalog() {
 
   const productGroups = useMemo(() => {
     const groupOrder: string[] = [];
-    const seen = new Set<string>();
+    const entries = new Map<string, {
+      groupKey: string;
+      group: ProductSeriesGroup;
+      variants: Product[];
+      visibleVariants: Product[];
+    }>();
+
     for (const product of filteredVariants) {
       const groupKey = seriesIndex.groupKeyBySku.get(product.sku) ?? `family:${product.familySku}`;
-      if (!seen.has(groupKey)) {
-        seen.add(groupKey);
+      let entry = entries.get(groupKey);
+      if (!entry) {
+        const group = seriesIndex.groupsByKey.get(groupKey);
+        if (!group) continue;
+        entry = { groupKey, group, variants: group.products, visibleVariants: [] };
+        entries.set(groupKey, entry);
         groupOrder.push(groupKey);
       }
+      entry.visibleVariants.push(product);
     }
+
     return groupOrder.flatMap((groupKey) => {
-      const group = seriesIndex.groupsByKey.get(groupKey);
-      if (!group) return [];
-      const visibleVariants = filteredVariants.filter((product) => seriesIndex.groupKeyBySku.get(product.sku) === groupKey);
-      return [{
-        groupKey,
-        group,
-        variants: group.products,
-        selected: chooseGroupPreferred(visibleVariants.length > 0 ? visibleVariants : group.products, selectedSkuByGroup[groupKey], purchaseMode),
-      }];
+      const entry = entries.get(groupKey);
+      return entry ? [entry] : [];
     });
-  }, [filteredVariants, purchaseMode, selectedSkuByGroup, seriesIndex]);
+  }, [filteredVariants, seriesIndex]);
+
+  const visibleProductGroups = useMemo(
+    () => productGroups.slice(0, visibleGroupCount),
+    [productGroups, visibleGroupCount],
+  );
 
   const quickViewProduct = quickViewSku ? products.find((product) => product.sku === quickViewSku) ?? null : null;
   const quickViewGroup = useMemo(() => quickViewProduct ? seriesGroupFor(seriesIndex, quickViewProduct) : null, [quickViewProduct, seriesIndex]);
@@ -295,29 +308,45 @@ export function ProductCatalog() {
     setActiveCategory(categoryId);
     setActiveProductType(null);
     setFilters(EMPTY_FILTERS);
+    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
+  }
+
+  function selectPurchaseMode(mode: PurchaseModeFilter) {
+    setPurchaseMode(mode);
+    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
+  }
+
+  function updateFilter(field: keyof CatalogFilters, value: string) {
+    setFilters((current) => ({ ...current, [field]: value }));
+    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
+  }
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
   }
 
   return (
     <section className="catalog-screen catalog-screen-compact">
       <label className="catalog-search">
         <Search aria-hidden="true" size={19} /><span className="sr-only">Tìm sản phẩm</span>
-        <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tên, nhãn hoặc SKU" type="search" value={query} />
-        {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={17} /></button> : null}
+        <input autoComplete="off" onChange={(event) => updateQuery(event.target.value)} placeholder="Tên, nhãn hoặc SKU" type="search" value={query} />
+        {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => updateQuery("")} type="button"><RotateCcw aria-hidden="true" size={17} /></button> : null}
       </label>
 
       <div className="catalog-primary-filter-row">
         <div aria-label="Chọn quy cách mua" className="catalog-purchase-mode" role="group">
           {([["all", "Tất cả"], ["retail", "Mua lẻ"], ["case", "Mua thùng"]] as const).map(([mode, label]) => (
-            <button aria-pressed={purchaseMode === mode} className={purchaseMode === mode ? "is-active" : ""} key={mode} onClick={() => setPurchaseMode(mode)} type="button">{label}</button>
+            <button aria-pressed={purchaseMode === mode} className={purchaseMode === mode ? "is-active" : ""} key={mode} onClick={() => selectPurchaseMode(mode)} type="button">{label}</button>
           ))}
         </div>
         <details className="catalog-filter-menu">
           <summary><SlidersHorizontal aria-hidden="true" size={17} /><span>Bộ lọc</span>{activeDetailFilterCount > 0 ? <b aria-label={`${activeDetailFilterCount} bộ lọc đang bật`}>{activeDetailFilterCount}</b> : null}</summary>
           <div className="catalog-filter-panel">
-            <div className="catalog-filter-panel-heading"><strong>Lọc chi tiết</strong>{activeDetailFilterCount ? <button onClick={() => setFilters(EMPTY_FILTERS)} type="button"><X aria-hidden="true" size={15} /> Xóa lọc</button> : null}</div>
+            <div className="catalog-filter-panel-heading"><strong>Lọc chi tiết</strong>{activeDetailFilterCount ? <button onClick={() => { setFilters(EMPTY_FILTERS); setVisibleGroupCount(INITIAL_VISIBLE_GROUPS); }} type="button"><X aria-hidden="true" size={15} /> Xóa lọc</button> : null}</div>
             <div className="catalog-filter-grid">
               {([['brand','Nhãn hàng',filterOptions.brands],['flavor','Vị / loại',filterOptions.flavors],['size','Size',filterOptions.sizes]] as const).map(([field,label,options]) => (
-                <label key={field}><span>{label}</span><select onChange={(event) => setFilters((current) => ({ ...current, [field]: event.target.value }))} value={filters[field]}><option value="">Tất cả</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+                <label key={field}><span>{label}</span><select onChange={(event) => updateFilter(field, event.target.value)} value={filters[field]}><option value="">Tất cả</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
               ))}
             </div>
           </div>
@@ -332,48 +361,54 @@ export function ProductCatalog() {
       {activeCategory && productTypeOptions.length > 0 ? <div className="catalog-type-filter" aria-label="Nhóm hàng trong ngành">
         <span>Nhóm hàng</span>
         <div className="catalog-type-row" role="group">
-          <button aria-pressed={activeProductType === null} className={activeProductType === null ? "is-active" : ""} onClick={() => { setActiveProductType(null); setFilters(EMPTY_FILTERS); }} type="button">Tất cả</button>
-          {productTypeOptions.map((productType) => <button aria-pressed={activeProductType === productType} className={activeProductType === productType ? "is-active" : ""} key={productType} onClick={() => { setActiveProductType(productType); setFilters(EMPTY_FILTERS); }} type="button">{productType}</button>)}
+          <button aria-pressed={activeProductType === null} className={activeProductType === null ? "is-active" : ""} onClick={() => { setActiveProductType(null); setFilters(EMPTY_FILTERS); setVisibleGroupCount(INITIAL_VISIBLE_GROUPS); }} type="button">Tất cả</button>
+          {productTypeOptions.map((productType) => <button aria-pressed={activeProductType === productType} className={activeProductType === productType ? "is-active" : ""} key={productType} onClick={() => { setActiveProductType(productType); setFilters(EMPTY_FILTERS); setVisibleGroupCount(INITIAL_VISIBLE_GROUPS); }} type="button">{productType}</button>)}
         </div>
       </div> : null}
 
       {catalogError ? <div className="catalog-state-card is-error" role="alert"><PackageSearch aria-hidden="true" size={28} /><strong>Chưa tải được sản phẩm</strong><span>{catalogError}</span></div>
         : !loaded ? <div aria-label="Đang tải sản phẩm" className="catalog-grid">{Array.from({ length: 4 }, (_, index) => <div className="catalog-product-card is-skeleton" key={index}><span /><span /><span /></div>)}</div>
         : productGroups.length === 0 ? <div className="catalog-state-card"><PackageSearch aria-hidden="true" size={30} /><strong>Không tìm thấy sản phẩm</strong></div>
-        : <div className="catalog-grid">{productGroups.map(({ groupKey, group, variants, selected }) => {
-          const familyVariants = variants.filter((product) => product.familySku === selected.familySku);
-          const retail = familyVariants.find((variant) => variant.purchaseMode === "retail") ?? null;
-          const caseVariant = familyVariants.find((variant) => variant.purchaseMode === "case") ?? null;
-          const canOrder = selected.availability === "available";
-          const variantCount = distinctProductValues(variants, (product) => productSeriesVariantLabel(product, group)).filter(Boolean).length;
-          const sizeCount = distinctProductValues(variants, (product) => clean(product.size)).filter(Boolean).length;
-          const selectedVariant = productSeriesVariantLabel(selected, group);
-          const productSubtitle = [
-            selected.productType,
-            variantCount > 1 ? `${variantCount} vị / loại` : selectedVariant,
-            sizeCount > 1 ? `${sizeCount} size` : productSizeLabel(selected),
-          ].filter(Boolean).join(" · ");
-          return <article className="catalog-product-card catalog-product-card-compact catalog-family-card" key={groupKey}>
-            <button className="catalog-product-main" onClick={(event) => openQuickView(selected, event.currentTarget)} type="button">
-              <ProductVisual product={selected} />
-              <div className="catalog-product-copy catalog-product-copy-compact">
-                <div className="catalog-product-meta"><span>{selected.brand}</span><span className={`availability-${selected.availability}`}>{availabilityLabel(selected)}</span></div>
-                <h2>{group.name}</h2>
-                <span className="catalog-family-subtitle">{productSubtitle || selected.packaging}</span>
-              </div>
-            </button>
-            <div className="catalog-family-footer">
-              <div className="catalog-family-purchase">
-                <strong className="catalog-card-price">{formatPrice(selected)}</strong>
-                <div className="catalog-price-columns" aria-label={`Chọn mua lẻ hoặc thùng ${group.name}`}>
-                  {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: retail.sku }))} type="button"><span>Lẻ</span></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span></div>}
-                  {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: caseVariant.sku }))} type="button"><span>Thùng</span></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span></div>}
+        : <>
+          <div className="catalog-grid">{visibleProductGroups.map(({ groupKey, group, variants, visibleVariants }) => {
+            const selected = chooseGroupPreferred(visibleVariants.length > 0 ? visibleVariants : variants, selectedSkuByGroup[groupKey], purchaseMode);
+            const familyVariants = variants.filter((product) => product.familySku === selected.familySku);
+            const retail = familyVariants.find((variant) => variant.purchaseMode === "retail") ?? null;
+            const caseVariant = familyVariants.find((variant) => variant.purchaseMode === "case") ?? null;
+            const canOrder = selected.availability === "available";
+            const variantCount = distinctProductValues(variants, (product) => productSeriesVariantLabel(product, group)).filter(Boolean).length;
+            const sizeCount = distinctProductValues(variants, (product) => clean(product.size)).filter(Boolean).length;
+            const selectedVariant = productSeriesVariantLabel(selected, group);
+            const productSubtitle = [
+              selected.productType,
+              variantCount > 1 ? `${variantCount} vị / loại` : selectedVariant,
+              sizeCount > 1 ? `${sizeCount} size` : productSizeLabel(selected),
+            ].filter(Boolean).join(" · ");
+            return <article className="catalog-product-card catalog-product-card-compact catalog-family-card" key={groupKey}>
+              <button className="catalog-product-main" onClick={(event) => openQuickView(selected, event.currentTarget)} type="button">
+                <ProductVisual product={selected} />
+                <div className="catalog-product-copy catalog-product-copy-compact">
+                  <div className="catalog-product-meta"><span>{selected.brand}</span><span className={`availability-${selected.availability}`}>{availabilityLabel(selected)}</span></div>
+                  <h2>{group.name}</h2>
+                  <span className="catalog-family-subtitle">{productSubtitle || selected.packaging}</span>
                 </div>
+              </button>
+              <div className="catalog-family-footer">
+                <div className="catalog-family-purchase">
+                  <strong className="catalog-card-price">{formatPrice(selected)}</strong>
+                  <div className="catalog-price-columns" aria-label={`Chọn mua lẻ hoặc thùng ${group.name}`}>
+                    {retail ? <button aria-pressed={selected.sku === retail.sku} className={selected.sku === retail.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: retail.sku }))} type="button"><span>Lẻ</span></button> : <div className="catalog-price-cell is-missing"><span>Lẻ</span></div>}
+                    {caseVariant ? <button aria-pressed={selected.sku === caseVariant.sku} className={selected.sku === caseVariant.sku ? "catalog-price-cell is-active" : "catalog-price-cell"} onClick={() => setSelectedSkuByGroup((current) => ({ ...current, [groupKey]: caseVariant.sku }))} type="button"><span>Thùng</span></button> : <div className="catalog-price-cell is-missing"><span>Thùng</span></div>}
+                  </div>
+                </div>
+                <button aria-label={`Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={() => void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
               </div>
-              <button aria-label={`Thêm ${selected.name} vào giỏ`} className="catalog-add-icon" disabled={!canOrder} onClick={() => void addProduct(selected)} type="button">{addedSku === selected.sku ? <Check aria-hidden="true" size={19} /> : <><Plus aria-hidden="true" size={14} /><ShoppingCart aria-hidden="true" size={18} /></>}</button>
-            </div>
-          </article>;
-        })}</div>}
+            </article>;
+          })}</div>
+          {visibleGroupCount < productGroups.length ? <button className="primary-button" onClick={() => setVisibleGroupCount((current) => Math.min(productGroups.length, current + LOAD_MORE_GROUPS))} style={{ marginTop: 12, width: "100%" }} type="button">
+            Xem thêm {Math.min(LOAD_MORE_GROUPS, productGroups.length - visibleGroupCount)} sản phẩm
+          </button> : null}
+        </>}
 
       {portalReady && quickViewProduct ? createPortal(<div className="product-quick-view-backdrop" onClick={() => setQuickViewSku(null)} role="presentation">
         <section aria-label={`Chi tiết ${quickViewProduct.name}`} aria-modal="true" className="product-quick-view product-quick-view-tall" onClick={(event) => event.stopPropagation()} ref={quickViewDialogRef} role="dialog" tabIndex={-1}>

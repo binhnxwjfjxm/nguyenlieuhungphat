@@ -45,6 +45,18 @@ test("catalog cards and quick view consume the same product series index", async
   assert.doesNotMatch(catalog, /stripTrailingVariantValue/);
 });
 
+test("catalog renders twenty product groups first and expands without rebuilding every group on card toggle", async () => {
+  const catalog = await read("components/product-catalog.tsx");
+  assert.match(catalog, /INITIAL_VISIBLE_GROUPS = 20/);
+  assert.match(catalog, /LOAD_MORE_GROUPS = 20/);
+  assert.match(catalog, /productGroups\.slice\(0, visibleGroupCount\)/);
+  assert.match(catalog, /visibleProductGroups\.map/);
+  assert.match(catalog, /Xem thêm/);
+  assert.match(catalog, /const entries = new Map/);
+  assert.doesNotMatch(catalog, /const visibleVariants = filteredVariants\.filter/);
+  assert.match(catalog, /selected = chooseGroupPreferred\(visibleVariants\.length > 0 \? visibleVariants : variants/);
+});
+
 test("quick order renders every exact SKU with its own visible price", async () => {
   const source = await read("components/quick-order.tsx");
   assert.doesNotMatch(source, /groupProductChoicesByBrand/);

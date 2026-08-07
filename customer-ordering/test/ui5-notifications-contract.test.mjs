@@ -23,10 +23,11 @@ test("UI-5 replaces the news placeholder with an inbox and detail route", async 
   assert.match(service, /markAnnouncementRead/);
 });
 
-test("OneSignal uses the v16 browser SDK, Clerk identity and a dedicated worker scope", async () => {
-  const [browser, provider, layout, worker] = await Promise.all([
+test("OneSignal uses the v16 browser SDK, Clerk identity and subscription change synchronization", async () => {
+  const [browser, provider, preferences, layout, worker] = await Promise.all([
     read("lib/push/onesignal-browser.ts"),
     read("components/onesignal-provider.tsx"),
+    read("components/notification-preferences.tsx"),
     read("app/layout.tsx"),
     read("public/push/onesignal/OneSignalSDKWorker.js"),
   ]);
@@ -40,18 +41,24 @@ test("OneSignal uses the v16 browser SDK, Clerk identity and a dedicated worker 
   assert.match(provider, /loaded\.login\(user\.id\)/);
   assert.match(provider, /loaded\.logout\(\)/);
   assert.match(provider, /requestPermission/);
+  assert.match(provider, /waitForPushSubscriptionMutation/);
+  assert.match(provider, /PushSubscription\.addEventListener\("change"/);
   assert.match(provider, /PushSubscription\.optIn/);
   assert.match(provider, /PushSubscription\.optOut/);
+  assert.match(provider, /visibilitychange/);
+  assert.match(preferences, /push\.permission/);
+  assert.match(preferences, /Đồng bộ lại/);
   assert.match(layout, /OneSignalProvider/);
   assert.match(worker, /OneSignalSDK\.sw\.js/);
   assert.doesNotMatch(browser, /os_v2_app_/);
   assert.doesNotMatch(provider, /os_v2_app_/);
 });
 
-test("notification preferences and read state stay behind the adapter boundary", async () => {
-  const [adapter, account, preferences, badge] = await Promise.all([
+test("notification preferences live in the notification tab rather than the account tab", async () => {
+  const [adapter, accountPage, newsPage, preferences, badge] = await Promise.all([
     read("lib/adapters/mock/mock-customer-ordering-adapter.ts"),
     read("app/account/page.tsx"),
+    read("app/news/page.tsx"),
     read("components/notification-preferences.tsx"),
     read("components/notification-badge.tsx"),
   ]);
@@ -59,7 +66,8 @@ test("notification preferences and read state stay behind the adapter boundary",
   assert.match(adapter, /ANNOUNCEMENT_READ_KEY/);
   assert.match(adapter, /NOTIFICATION_PREFERENCE_KEY/);
   assert.match(adapter, /saveNotificationPreference/);
-  assert.match(account, /NotificationPreferences/);
+  assert.doesNotMatch(accountPage, /NotificationPreferences/);
+  assert.match(newsPage, /NotificationPreferences/);
   assert.match(preferences, /Cập nhật đơn hàng/);
   assert.match(preferences, /Chương trình & khuyến mại/);
   assert.match(badge, /listAnnouncements/);
