@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "catalog:generate": "node scripts/generate-catalog-from-pricing.mjs",
+    "catalog:generate": "node scripts/generate-catalog-sku.mjs",
     "predev": "npm run catalog:generate",
     "dev": "next dev -p 3200",
     "prebuild": "npm run catalog:generate",

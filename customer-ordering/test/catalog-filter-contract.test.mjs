@@ -6,20 +6,20 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("catalog models retail and case SKUs as separate purchasable variants", async () => {
   const [contracts, mockData, generator] = await Promise.all([
-    read("lib/contracts.ts"), read("lib/adapters/mock/mock-catalog.ts"), read("scripts/generate-catalog-from-pricing.mjs"),
+    read("lib/contracts.ts"), read("lib/adapters/mock/mock-catalog.ts"), read("scripts/generate-catalog-sku.mjs"),
   ]);
   assert.match(contracts, /export type PurchaseMode = "retail" \| "case"/);
   assert.match(contracts, /sku: string/);
   assert.match(contracts, /familySku: string/);
   assert.match(contracts, /purchaseMode: PurchaseMode/);
   assert.match(mockData, /generated-catalog\.json/);
-  assert.match(generator, /sku\.endsWith\('T'\)/);
+  assert.match(generator, /endsWith\('T'\)/);
   assert.match(generator, /casePrice/);
 });
 
 test("catalog keeps real foodservice industries and compact filters", async () => {
   const [generator, home, catalog, css] = await Promise.all([
-    read("scripts/generate-catalog-from-pricing.mjs"), read("components/home-screen.tsx"), read("components/product-catalog.tsx"), read("app/catalog-polish.css"),
+    read("scripts/generate-catalog-sku.mjs"), read("components/home-screen.tsx"), read("components/product-catalog.tsx"), read("app/catalog-polish.css"),
   ]);
   for (const label of ["Trà sữa", "Mỳ cay", "Đông lạnh", "Ăn vặt", "Bao bì"]) {
     assert.match(generator, new RegExp(label));
