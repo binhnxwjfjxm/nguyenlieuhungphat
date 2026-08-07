@@ -4,10 +4,13 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("pricing workbooks generate the full unique retail and case SKU catalog", async () => {
+test("pricing workbooks generate exactly the canonical 606 retail + 606 case SKU catalog", async () => {
   const generated = JSON.parse(await read("lib/adapters/mock/generated-catalog.json"));
-  assert.ok(generated.products.length > 1000, `expected >1000 mapped SKU from the 606-row master, got ${generated.products.length}`);
-  assert.equal(new Set(generated.products.map((product) => product.sku)).size, generated.products.length);
+  assert.equal(generated.meta.masterRows, 606);
+  assert.equal(generated.products.length, 1212);
+  assert.equal(new Set(generated.products.map((product) => product.sku)).size, 1212);
+  assert.equal(generated.products.filter((product) => product.purchaseMode === "retail").length, 606);
+  assert.equal(generated.products.filter((product) => product.purchaseMode === "case").length, 606);
   for (const product of generated.products) {
     assert.ok(product.sku);
     assert.ok(product.name);
@@ -40,8 +43,10 @@ test("search accepts human-friendly SKU forms and product metadata", async () =>
   for (const field of ["product.name", "product.brand", "product.productType", "product.flavor", "product.size"]) assert.match(search, new RegExp(field.replace(".", "\\.")));
 });
 
-test("case price never falls back to retail price", async () => {
+test("case price never falls back to retail price and identity only comes from MASTER", async () => {
   const generator = await read("scripts/generate-catalog-sku.mjs");
-  assert.match(generator, /amount=mode==='case'\?r\.casePrice/);
-  assert.doesNotMatch(generator, /case'\?\(r\.casePrice\?\?r\.genericPrice\?\?r\.retailPrice\)/);
+  assert.match(generator, /amount = purchaseMode === 'case' \? record\.casePrice/);
+  assert.match(generator, /const masterRecords = primary\.bySheet\.get\(MASTER_SHEET\)/);
+  assert.match(generator, /if \(!catalog\.has\(incoming\.sku\)\) continue/);
+  assert.doesNotMatch(generator, /casePrice\s*\?\?\s*record\.retailPrice/);
 });
