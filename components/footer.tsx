@@ -1,10 +1,17 @@
-import { Globe2, Mail, MapPin, Phone, Play, Share2 } from "lucide-react";
+import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { categories } from "@/data/site";
+import { CUSTOMER_ORDERING_URL, PRIVACY_POLICY_PATH, ZALO_PHONE_DISPLAY, ZALO_URL } from "@/lib/contact";
 import { Logo } from "./logo";
 import { HapticLink } from "./haptic-link";
 import { QuoteButton } from "./quote-trigger";
 
-const footerGroups = [
+type FooterLink = {
+  label: string;
+  href?: string;
+  action?: "quote";
+};
+
+const footerGroups: { title: string; links: FooterLink[] }[] = [
   {
     title: "Khám phá",
     links: [
@@ -24,12 +31,33 @@ const footerGroups = [
   {
     title: "Hỗ trợ",
     links: [
-      { label: "Yêu cầu báo giá", href: "/lien-he" },
+      { label: "Yêu cầu báo giá", action: "quote" },
+      { label: "Đặt hàng khách hàng", href: CUSTOMER_ORDERING_URL },
       { label: "Liên hệ tư vấn", href: "/lien-he" },
-      { label: "Gọi hotline", href: "tel:0900123456" },
+      { label: "Chính sách bảo mật", href: PRIVACY_POLICY_PATH },
+      { label: "Chat Zalo", href: ZALO_URL },
     ],
   },
 ];
+
+function FooterLinkItem({ link, className }: { link: FooterLink; className?: string }) {
+  if (link.action === "quote") {
+    return <QuoteButton className={className}>{link.label}</QuoteButton>;
+  }
+  if (!link.href) return null;
+  if (link.href.startsWith("/")) {
+    return (
+      <HapticLink className={className} href={link.href}>
+        {link.label}
+      </HapticLink>
+    );
+  }
+  return (
+    <a className={className} href={link.href}>
+      {link.label}
+    </a>
+  );
+}
 
 export function Footer() {
   return (
@@ -38,14 +66,8 @@ export function Footer() {
         <div className="footer-brand-column">
           <Logo />
           <div className="social-row">
-            <a href="#" aria-label="Facebook">
-              <Globe2 size={18} />
-            </a>
-            <a href="#" aria-label="LinkedIn">
-              <Share2 size={18} />
-            </a>
-            <a href="#" aria-label="YouTube">
-              <Play size={18} />
+            <a href={ZALO_URL} aria-label={`Zalo Hưng Phát ${ZALO_PHONE_DISPLAY}`}>
+              <MessageCircle size={18} />
             </a>
           </div>
         </div>
@@ -53,28 +75,16 @@ export function Footer() {
         {footerGroups.map((group) => (
           <div className="footer-group desktop-footer-group" key={group.title}>
             <h3>{group.title}</h3>
-            {group.links.map((link) =>
-              link.label === "Yêu cầu báo giá" ? (
-                <QuoteButton className="footer-link-button" key={link.label}>
-                  {link.label}
-                </QuoteButton>
-              ) : link.href.startsWith("/") ? (
-                <HapticLink className="footer-link-button" href={link.href} key={link.label}>
-                  {link.label}
-                </HapticLink>
-              ) : (
-                <a href={link.href} key={link.label}>
-                  {link.label}
-                </a>
-              ),
-            )}
+            {group.links.map((link) => (
+              <FooterLinkItem className="footer-link-button" key={link.label} link={link} />
+            ))}
           </div>
         ))}
 
         <div className="footer-contact">
           <h3>Liên hệ với chúng tôi</h3>
-          <a href="tel:0900123456">
-            <Phone size={17} /> 0900 123 456
+          <a href={ZALO_URL}>
+            <MessageCircle size={17} /> Zalo {ZALO_PHONE_DISPLAY}
           </a>
           <a href="mailto:baogia@nguyenlieuhungphat.com">
             <Mail size={17} /> baogia@nguyenlieuhungphat.com
@@ -90,15 +100,7 @@ export function Footer() {
               <summary>{group.title}</summary>
               <div>
                 {group.links.map((link) => (
-                  link.href.startsWith("/") ? (
-                    <HapticLink href={link.href} key={link.label}>
-                      {link.label}
-                    </HapticLink>
-                  ) : (
-                    <a href={link.href} key={link.label}>
-                      {link.label}
-                    </a>
-                  )
+                  <FooterLinkItem key={link.label} link={link} />
                 ))}
               </div>
             </details>

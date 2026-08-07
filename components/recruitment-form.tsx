@@ -1,9 +1,10 @@
 "use client";
 
 import { Check, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
-import { useToast } from "./toast-provider";
+import { PRIVACY_POLICY_PATH } from "@/lib/contact";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import {
   type FieldErrors,
@@ -12,6 +13,7 @@ import {
   sanitizeText,
   validateRecruitmentInput,
 } from "@/lib/validation";
+import { useToast } from "./toast-provider";
 
 type RecruitmentFormProps = {
   inline?: boolean;
@@ -251,6 +253,11 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
       <input type="hidden" value={form.source} readOnly />
       <input type="hidden" value={form.pathname} readOnly />
       <input type="hidden" value={form.website} readOnly />
+
+      <p className="form-privacy-note">
+        Bằng việc gửi hồ sơ, bạn đồng ý để Hưng Phát sử dụng thông tin và CV đã cung cấp cho mục đích tuyển dụng theo{" "}
+        <Link href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</Link>.
+      </p>
 
       <div className="form-actions">
         {onClose ? (

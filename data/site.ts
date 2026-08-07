@@ -20,7 +20,7 @@ export const navigation = [
 
 export const stats = [
   { value: "2016", label: "Thành lập từ năm" },
-  { value: "3", label: "Nhóm ngành hàng chính" },
+  { value: "6", label: "Ngành hàng ưu tiên" },
   { value: "B2B", label: "Phục vụ đối tác kinh doanh" },
   { value: "Linh hoạt", label: "Báo giá nhanh" },
 ];
@@ -28,7 +28,7 @@ export const stats = [
 export const trustItems = [
   {
     title: "Danh mục đúng nhu cầu",
-    description: "Tập trung vào nguyên liệu pha chế, mì cay và hàng đông lạnh.",
+    description: "Tập trung vào nhóm hàng F&B, hàng đông lạnh, ăn vặt, bao bì và gia vị - sốt.",
     icon: ShieldCheck,
   },
   {
@@ -51,26 +51,56 @@ export const trustItems = [
 export const categories = [
   {
     slug: "nguyen-lieu-pha-che",
-    title: "Nguyên liệu pha chế",
+    title: "Trà sữa & pha chế",
     count: "Đang cập nhật",
-    description: "Nhóm nguyên liệu phục vụ trà sữa, cà phê, đá xay và các món đồ uống.",
+    description: "Siro, trà, bột, topping và nguyên liệu phục vụ trà sữa, cà phê, đá xay và đồ uống.",
     image: siteAssets.categories.phaChe,
+    fallback: "/images/category-food.svg",
     icon: Boxes,
   },
   {
     slug: "nguyen-lieu-mi-cay",
-    title: "Nguyên liệu mì cay",
+    title: "Mì cay",
     count: "Đang cập nhật",
-    description: "Nhóm nguyên liệu và thành phần phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
+    description: "Mì, sốt, topping và nguyên liệu phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
     image: siteAssets.categories.miCay,
+    fallback: "/images/category-food.svg",
     icon: Flame,
   },
   {
     slug: "hang-dong-lanh",
-    title: "Hàng đông lạnh",
+    title: "Đông lạnh",
     count: "Đang cập nhật",
-    description: "Nhóm thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
+    description: "Thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
     image: siteAssets.categories.dongLanh,
+    fallback: "/images/category-food.svg",
     icon: Snowflake,
+  },
+  {
+    slug: "an-vat",
+    title: "Ăn vặt",
+    count: "Đang cập nhật",
+    description: "Nhóm bánh tráng, đồ ăn vặt và nguyên liệu đi kèm cho quán, cửa hàng và đại lý.",
+    image: siteAssets.categories.food,
+    fallback: "/images/category-food.svg",
+    icon: PackageCheck,
+  },
+  {
+    slug: "bao-bi",
+    title: "Bao bì",
+    count: "Đang cập nhật",
+    description: "Ly, nắp, hộp, túi và vật tư bao bì phục vụ vận hành F&B.",
+    image: siteAssets.categories.packaging,
+    fallback: "/images/category-packaging.svg",
+    icon: Boxes,
+  },
+  {
+    slug: "gia-vi-sot",
+    title: "Gia vị & sốt",
+    count: "Đang cập nhật",
+    description: "Gia vị, sốt và nguyên liệu nêm nếm phục vụ bếp, quán ăn và bán lại.",
+    image: siteAssets.categories.food,
+    fallback: "/images/category-food.svg",
+    icon: Flame,
   },
 ];

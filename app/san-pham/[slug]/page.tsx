@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, MapPin, Package, PhoneCall } from "lucide-react";
+import { ArrowLeft, Check, MapPin, MessageCircle, Package } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { QuoteCta } from "@/components/quote-cta";
 import { QuoteForm } from "@/components/quote-form";
 import { QuoteButton } from "@/components/quote-trigger";
-import { getAbsoluteUrl } from "@/lib/site";
 import { getProductBySlug, getRelatedProducts, products } from "@/data/products";
+import { ZALO_URL } from "@/lib/contact";
+import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
@@ -103,8 +104,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 >
                   Nhận báo giá
                 </QuoteButton>
-                <a className="button button-ghost button-large" href="tel:0900123456">
-                  <PhoneCall size={18} /> Gọi tư vấn
+                <a className="button button-ghost button-large" href={ZALO_URL}>
+                  <MessageCircle size={18} /> Zalo tư vấn
                 </a>
               </div>
             </div>
@@ -183,11 +184,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {relatedProducts.length ? (
         <section className="section related-products-section">
           <div className="container">
-          <div className="section-heading split-heading">
-            <div>
-              <p className="eyebrow">GỢI Ý THÊM</p>
-              <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
-            </div>
+            <div className="section-heading split-heading">
+              <div>
+                <p className="eyebrow">GỢI Ý THÊM</p>
+                <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
+              </div>
               <Link className="text-link" href="/san-pham">
                 <ArrowLeft size={17} /> Xem toàn bộ
               </Link>

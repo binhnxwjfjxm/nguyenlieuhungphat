@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { QuoteForm } from "@/components/quote-form";
 import { QuoteCta } from "@/components/quote-cta";
+import { ZALO_PHONE_DISPLAY, ZALO_URL } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
@@ -46,8 +47,8 @@ export default function LienHePage() {
           <div className="contact-card">
             <p className="eyebrow">THÔNG TIN LIÊN HỆ</p>
             <h2 className="gradient-heading">Công ty TNHH TM Nguyên Liệu Hưng Phát</h2>
-            <a href="tel:0900123456">
-              <Phone size={18} /> 0900 123 456
+            <a href={ZALO_URL}>
+              <MessageCircle size={18} /> Zalo {ZALO_PHONE_DISPLAY}
             </a>
             <a href="mailto:baogia@nguyenlieuhungphat.com">
               <Mail size={18} /> baogia@nguyenlieuhungphat.com

@@ -7,15 +7,16 @@ import { TrustSection } from "@/components/trust-section";
 import { getAbsoluteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
+const description =
+  "Giới thiệu Hưng Phát - công ty thương mại và phân phối trà sữa & pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị & sốt.";
+
 export const metadata: Metadata = {
   title: "Giới thiệu",
-  description:
-    "Giới thiệu Hưng Phát - công ty thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.",
+  description,
   alternates: { canonical: "/gioi-thieu" },
   openGraph: {
     title: "Giới thiệu | Hưng Phát",
-    description:
-      "Giới thiệu Hưng Phát - công ty thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.",
+    description,
     url: getAbsoluteUrl("/gioi-thieu"),
   },
 };
@@ -28,7 +29,9 @@ export default function GioiThieuPage() {
           <div>
             <p className="eyebrow">GIỚI THIỆU</p>
             <h1 className="gradient-heading">Thương mại &amp; phân phối cho doanh nghiệp</h1>
-            <p>Hưng Phát tập trung vào ba ngành hàng chính: nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh.</p>
+            <p>
+              Hưng Phát tập trung vào sáu ngành hàng ưu tiên: trà sữa &amp; pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị &amp; sốt.
+            </p>
             <div className="page-hero-points">
               <span>
                 <Building2 size={18} /> Thương mại và phân phối

@@ -26,7 +26,7 @@ export function Hero() {
             <span>Kinh doanh vững vàng</span>
           </h1>
           <p className="hero-description">
-            Pha chế, mì cay và hàng đông lạnh. Tư vấn đúng nhu cầu, báo giá nhanh.
+            Trà sữa &amp; pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị &amp; sốt. Tư vấn đúng nhu cầu, báo giá nhanh.
           </p>
           <div className="hero-actions">
             <HapticLink className="button button-primary button-large" href="/san-pham">
