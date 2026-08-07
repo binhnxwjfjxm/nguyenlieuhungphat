@@ -99,7 +99,9 @@ function findFallbackSeries(rep, scopeReps, minPrefixTokens = 1) {
     const matches = scopeReps.filter((candidate) => {
       if (clean(candidate.product.series)) return false;
       if (!startsWithWords(normalizedWords(baseProductName(candidate.product)), prefix)) return false;
-      return candidate.familySku === rep.familySku || sharedPrefixLength(candidate.familySku, rep.familySku) >= 3;
+      const skuRelated = candidate.familySku === rep.familySku || sharedPrefixLength(candidate.familySku, rep.familySku) >= 3;
+      const specificNamePrefix = prefix.length >= 2;
+      return skuRelated || specificNamePrefix;
     });
     const distinctFamilies = new Set(matches.map((candidate) => candidate.familySku));
     if (distinctFamilies.size < 2) continue;
