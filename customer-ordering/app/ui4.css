@@ -394,6 +394,26 @@ background:#c0392b0d;
 font-size:0.68rem;
 line-height:1.45;
 }
+.order-action-notice{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:11px 12px;
+color:var(--hp-green-dark);
+border:1px solid #19875429;
+border-radius:13px;
+background:#1987540d;
+font-size:0.68rem;
+line-height:1.45;
+}
+.order-action-notice a{
+flex:none;
+color:var(--hp-green-dark);
+font-weight:800;
+text-decoration:underline;
+text-underline-offset:3px;
+}
 .order-actions-card{
 display:grid;
 gap:10px;

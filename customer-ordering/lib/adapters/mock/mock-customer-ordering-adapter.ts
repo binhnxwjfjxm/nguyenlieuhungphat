@@ -64,11 +64,14 @@ function cloneAddress(address: DeliveryAddress): DeliveryAddress {
 
 function normalizeOrder(order: CustomerOrder): CustomerOrder {
   const status = KNOWN_ORDER_STATUSES.has(order.status) ? order.status : "SUBMITTED";
+  const normalizedTimeline = Array.isArray(order.statusTimeline)
+    ? order.statusTimeline
+        .filter((event) => KNOWN_ORDER_STATUSES.has(event.status) && Boolean(event.at))
+        .map((event) => ({ ...event }))
+    : [];
   const statusTimeline =
-    Array.isArray(order.statusTimeline) && order.statusTimeline.length > 0
-      ? order.statusTimeline
-          .filter((event) => KNOWN_ORDER_STATUSES.has(event.status) && Boolean(event.at))
-          .map((event) => ({ ...event }))
+    normalizedTimeline.length > 0
+      ? normalizedTimeline
       : [
           {
             status: "SUBMITTED" as const,

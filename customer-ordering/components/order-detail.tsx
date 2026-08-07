@@ -40,6 +40,7 @@ export function OrderDetail({ orderId }: Readonly<{ orderId: string }>) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<"reorder" | "cancel" | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -67,9 +68,17 @@ export function OrderDetail({ orderId }: Readonly<{ orderId: string }>) {
     if (!order || busyAction) return;
     setBusyAction("reorder");
     setActionError(null);
+    setActionNotice(null);
     try {
-      await service.reorderOrder(order.id);
+      const result = await service.reorderOrder(order.id);
       announceCartUpdated();
+      if (result.skippedLineCount > 0) {
+        setActionNotice(
+          `Đã thêm ${result.addedLineCount} mặt hàng vào giỏ. ${result.skippedLineCount} mặt hàng hiện không khả dụng và được bỏ qua.`,
+        );
+        setBusyAction(null);
+        return;
+      }
       router.push("/cart");
     } catch (reorderError) {
       setActionError(
@@ -83,6 +92,7 @@ export function OrderDetail({ orderId }: Readonly<{ orderId: string }>) {
     if (!order || busyAction) return;
     setBusyAction("cancel");
     setActionError(null);
+    setActionNotice(null);
     try {
       const updated = await service.cancelOrder(order.id);
       setOrder(updated);
@@ -218,6 +228,12 @@ export function OrderDetail({ orderId }: Readonly<{ orderId: string }>) {
       </section>
 
       {actionError ? <p className="order-action-error">{actionError}</p> : null}
+      {actionNotice ? (
+        <div className="order-action-notice" role="status">
+          <span>{actionNotice}</span>
+          <Link href="/cart">Mở giỏ hàng</Link>
+        </div>
+      ) : null}
 
       <section className="order-actions-card">
         <button disabled={busyAction !== null} onClick={() => void reorder()} type="button">

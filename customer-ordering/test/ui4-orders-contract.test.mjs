@@ -38,6 +38,7 @@ test("UI-4 extends order contracts without bypassing the adapter boundary", asyn
   }
 
   assert.match(adapter, /normalizeOrder/);
+  assert.match(adapter, /normalizedTimeline\.length > 0/);
   assert.match(adapter, /status: "SUBMITTED"/);
   assert.match(adapter, /current\.status !== "SUBMITTED" && current\.status !== "RECEIVED"/);
   assert.match(adapter, /await this\.saveCart\(cart\)/);
@@ -70,6 +71,8 @@ test("order detail renders timeline, reorder and guarded cancellation", async ()
   assert.match(page, /<OrderDetail orderId=\{orderId\}/);
   assert.match(detail, /order\.statusTimeline\.map/);
   assert.match(detail, /service\.reorderOrder/);
+  assert.match(detail, /skippedLineCount/);
+  assert.match(detail, /order-action-notice/);
   assert.match(detail, /announceCartUpdated/);
   assert.match(detail, /service\.cancelOrder/);
   assert.match(detail, /isOrderCancellableStatus/);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight, ClipboardList, Search, TriangleAlert } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CustomerOrder, OrderStatus } from "@/lib/contracts";
 import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
 import { ORDER_STATUS_FILTERS, ORDER_STATUS_META } from "@/lib/order-status";
@@ -38,7 +38,28 @@ export function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadOrders = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false;
+    void service
+      .listOrders()
+      .then((items) => {
+        if (!cancelled) {
+          setOrders(items);
+          setLoading(false);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Không thể tải đơn hàng.");
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [service]);
+
+  async function retryLoadOrders() {
     setLoading(true);
     setError(null);
     try {
@@ -48,11 +69,7 @@ export function OrdersScreen() {
     } finally {
       setLoading(false);
     }
-  }, [service]);
-
-  useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
+  }
 
   const filteredOrders = useMemo(() => {
     const normalizedQuery = normalizeSearch(query);
@@ -87,7 +104,7 @@ export function OrdersScreen() {
         <TriangleAlert aria-hidden="true" size={34} />
         <strong>Chưa tải được đơn hàng</strong>
         <span>{error}</span>
-        <button className="primary-button orders-retry-button" onClick={() => void loadOrders()} type="button">
+        <button className="primary-button orders-retry-button" onClick={() => void retryLoadOrders()} type="button">
           Thử lại
         </button>
       </section>
