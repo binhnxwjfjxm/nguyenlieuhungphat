@@ -36,6 +36,10 @@ export interface Product {
   sku: string;
   familySku: string;
   categoryId: string;
+  canonicalIndustryKey?: string;
+  canonicalProductCardKey?: string;
+  canonicalVariant?: string;
+  series?: string;
   name: string;
   aliases: string[];
   brand: string;
