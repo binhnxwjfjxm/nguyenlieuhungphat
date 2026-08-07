@@ -1,0 +1,306 @@
+:root {
+  --glass-header: rgba(255, 255, 255, .76);
+  --glass-navigation: rgba(255, 255, 255, .74);
+  --glass-border: rgba(255, 255, 255, .68);
+  --glass-shadow: rgba(22, 58, 35, .09);
+}
+
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid rgba(255, 193, 7, .95);
+  outline-offset: 2px;
+}
+
+.app-frame {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(25, 135, 84, .07), transparent 28%),
+    radial-gradient(circle at 85% 100%, rgba(255, 193, 7, .06), transparent 26%),
+    var(--hp-canvas);
+}
+
+.app-header,
+.bottom-navigation {
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: saturate(1.45) blur(18px);
+  backdrop-filter: saturate(1.45) blur(18px);
+}
+
+.app-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .82), var(--glass-header));
+  box-shadow: 0 8px 24px var(--glass-shadow);
+}
+
+.bottom-navigation {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .68), var(--glass-navigation));
+  box-shadow: 0 -10px 26px var(--glass-shadow);
+}
+
+.app-content {
+  min-width: 0;
+  overflow-x: hidden;
+  background: transparent;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scroll-padding-block: 18px 24px;
+}
+
+.app-content > * {
+  min-width: 0;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.icon-button,
+.bottom-navigation-item,
+.primary-button,
+.text-button,
+.notification-detail-action,
+.order-detail-back,
+.order-card-link,
+.cart-line-action,
+.quantity-button {
+  touch-action: manipulation;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+}
+
+.bottom-navigation-item {
+  min-height: 52px;
+}
+
+.primary-button,
+.notification-detail-action {
+  min-height: 48px;
+}
+
+.bottom-navigation-item:active,
+.icon-button:active,
+.primary-button:active,
+.notification-feed-card:active,
+.order-card:active {
+  transform: scale(.985);
+}
+
+.notification-feed-card,
+.order-card,
+.product-card,
+.quick-actions a,
+.category-chip,
+.pwa-install-card {
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.notification-feed-card:focus-visible,
+.order-card:focus-within,
+.product-card:focus-within,
+.quick-actions a:focus-visible,
+.category-chip:focus-visible {
+  border-color: rgba(25, 135, 84, .45);
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, .10), 0 10px 24px rgba(22, 58, 35, .07);
+}
+
+.pwa-install-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  margin: 0 18px 30px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .78);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 10px 25px rgba(22, 58, 35, .07);
+}
+
+.pwa-install-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--hp-green-soft);
+  color: var(--hp-green);
+}
+
+.pwa-install-copy {
+  min-width: 0;
+}
+
+.pwa-install-copy h2 {
+  margin: 0;
+  font-size: .94rem;
+}
+
+.pwa-install-copy > p:not(.eyebrow) {
+  margin: 6px 0 0;
+  color: var(--hp-muted);
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+.pwa-ios-instruction {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.pwa-ios-instruction svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.pwa-install-note {
+  display: block;
+  margin-top: 7px;
+  color: var(--hp-muted);
+  font-size: .68rem;
+}
+
+.pwa-install-button {
+  min-width: 126px;
+  gap: 7px;
+  padding-inline: 14px;
+}
+
+.auth-state-page,
+.offline-page,
+.login-page {
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  opacity: .62;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-header {
+    background: rgba(255, 255, 255, .94);
+  }
+
+  .bottom-navigation {
+    background: rgba(255, 255, 255, .94);
+  }
+}
+
+@media (max-width: 430px) {
+  .app-header {
+    grid-template-columns: minmax(94px, 1fr) auto minmax(92px, 1fr);
+    padding-inline: 14px;
+  }
+
+  .bottom-navigation {
+    padding-inline: 6px;
+  }
+
+  .notification-center,
+  .screen-stack {
+    padding-inline: 16px;
+  }
+
+  .pwa-install-card {
+    margin-inline: 16px;
+  }
+}
+
+@media (max-width: 390px) {
+  .brand-logo {
+    height: 38px;
+  }
+
+  .app-header {
+    min-height: 62px;
+    gap: 4px;
+    padding-inline: 12px;
+  }
+
+  .app-header-title {
+    max-width: 122px;
+    overflow: hidden;
+    font-size: .88rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    gap: 0;
+  }
+
+  .bottom-navigation-item {
+    font-size: .64rem;
+  }
+
+  .pwa-install-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    margin-inline: 14px;
+  }
+
+  .pwa-install-button {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-height: 700px) {
+  .bottom-navigation {
+    min-height: calc(64px + var(--safe-bottom));
+    padding-top: 5px;
+  }
+
+  .bottom-navigation-item {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-content {
+    scroll-behavior: auto;
+  }
+
+  .notification-feed-card,
+  .order-card,
+  .product-card,
+  .quick-actions a,
+  .category-chip,
+  .pwa-install-card,
+  .bottom-navigation-item,
+  .icon-button,
+  .primary-button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
