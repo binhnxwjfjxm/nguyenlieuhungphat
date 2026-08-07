@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Bell, ClipboardList, Home, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
 import { CartBadge } from "@/components/cart-badge";
 import { CustomerAuthGate } from "@/components/customer-auth-gate";
+import { CustomerLogo } from "@/components/customer-logo";
 import { NotificationBadge } from "@/components/notification-badge";
 
 const navigation = [
@@ -29,14 +29,7 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
       <div className="app-frame">
         <header className="app-header">
           <Link className="brand-link" href="/" aria-label="Về trang chủ Hưng Phát">
-            <Image
-              alt="Logo Công ty Hưng Phát"
-              className="brand-logo"
-              height={52}
-              priority
-              src="/logo-transparent.png"
-              width={132}
-            />
+            <CustomerLogo className="brand-logo" height={52} priority width={132} />
           </Link>
           {title ? <strong className="app-header-title">{title}</strong> : <span />}
           <div className="header-actions">
