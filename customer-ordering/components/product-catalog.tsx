@@ -2,8 +2,6 @@
 
 import {
   Check,
-  ChevronDown,
-  ChevronUp,
   Minus,
   PackageSearch,
   Plus,
@@ -95,11 +93,11 @@ function seriesVariantFor(index: ProductSeriesIndex, product: Product): string {
   return productSeriesVariantLabel(product, seriesGroupFor(index, product));
 }
 
-export function ProductCatalog() {
+export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialCategoryId?: string | null }>) {
   const service = useMemo(() => createCustomerOrderingService(), []);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(initialCategoryId);
   const [activeProductType, setActiveProductType] = useState<string | null>(null);
   const [purchaseMode, setPurchaseMode] = useState<PurchaseModeFilter>("all");
   const [filters, setFilters] = useState<CatalogFilters>(EMPTY_FILTERS);
@@ -142,6 +140,13 @@ export function ProductCatalog() {
   }, [service]);
 
   useEffect(() => {
+    setActiveCategory(initialCategoryId);
+    setActiveProductType(null);
+    setFilters(EMPTY_FILTERS);
+    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
+  }, [initialCategoryId]);
+
+  useEffect(() => {
     if (!quickViewSku) return;
     const previousOverflow = document.body.style.overflow;
     const opener = quickViewOpenerRef.current;
@@ -180,22 +185,18 @@ export function ProductCatalog() {
   }, [quickViewSku]);
 
   const seriesIndex = useMemo(() => buildProductSeriesIndex(products), [products]);
-
   const categoryScope = useMemo(
     () => products.filter((product) => !activeCategory || product.categoryId === activeCategory),
     [activeCategory, products],
   );
-
   const productTypeOptions = useMemo(
     () => distinctProductValues(categoryScope, (product) => clean(product.productType)).filter(Boolean),
     [categoryScope],
   );
-
   const detailScope = useMemo(
     () => categoryScope.filter((product) => !activeProductType || product.productType === activeProductType),
     [activeProductType, categoryScope],
   );
-
   const filterOptions = useMemo(() => ({
     brands: distinctProductValues(detailScope, (product) => clean(product.brand)).filter(Boolean),
     flavors: distinctProductValues(detailScope, (product) => seriesVariantFor(seriesIndex, product)).filter(Boolean),
@@ -259,9 +260,7 @@ export function ProductCatalog() {
     () => distinctProductValues(quickRelatedProducts, (product) => productSeriesVariantLabel(product, quickViewGroup)).filter(Boolean),
     [quickRelatedProducts, quickViewGroup],
   );
-  const visibleVariantOptions = variantExpanded
-    ? quickViewVariantOptions
-    : quickViewVariantOptions.slice(0, INITIAL_VISIBLE_VARIANTS);
+  const visibleVariantOptions = variantExpanded ? quickViewVariantOptions : quickViewVariantOptions.slice(0, INITIAL_VISIBLE_VARIANTS);
   const hiddenVariantCount = Math.max(0, quickViewVariantOptions.length - visibleVariantOptions.length);
   const quickViewVariantProducts = useMemo(
     () => quickViewVariantOptions.length === 0
@@ -309,8 +308,7 @@ export function ProductCatalog() {
     }
     return choices;
   }, [bulkPurchaseMode, bulkSize, quickRelatedProducts, quickViewGroup, quickViewProduct, quickViewVariantOptions]);
-  const bulkSelectedEntries = Object.entries(bulkSelected)
-    .filter(([variant, quantity]) => quantity > 0 && bulkChoices.has(variant));
+  const bulkSelectedEntries = Object.entries(bulkSelected).filter(([variant, quantity]) => quantity > 0 && bulkChoices.has(variant));
   const bulkSelectedCount = bulkSelectedEntries.length;
   const bulkSelectedQuantity = bulkSelectedEntries.reduce((total, [, quantity]) => total + quantity, 0);
 
@@ -319,9 +317,7 @@ export function ProductCatalog() {
     const cart = await service.getCart();
     const existing = cart.lines.find((line) => line.sku === product.sku);
     const lines = existing
-      ? cart.lines.map((line) => line.sku === product.sku
-        ? { ...line, quantity: Math.min(999, line.quantity + quantity) }
-        : line)
+      ? cart.lines.map((line) => line.sku === product.sku ? { ...line, quantity: Math.min(999, line.quantity + quantity) } : line)
       : [...cart.lines, { sku: product.sku, quantity }];
     await service.saveCart({ lines, updatedAt: new Date().toISOString() });
     announceCartUpdated();
@@ -338,10 +334,7 @@ export function ProductCatalog() {
       if (!product || product.availability !== "available") continue;
       const existingIndex = nextLines.findIndex((line) => line.sku === product.sku);
       if (existingIndex >= 0) {
-        nextLines[existingIndex] = {
-          ...nextLines[existingIndex],
-          quantity: Math.min(999, nextLines[existingIndex].quantity + quantity),
-        };
+        nextLines[existingIndex] = { ...nextLines[existingIndex], quantity: Math.min(999, nextLines[existingIndex].quantity + quantity) };
       } else {
         nextLines.push({ sku: product.sku, quantity });
       }
@@ -544,7 +537,7 @@ export function ProductCatalog() {
                 const available = product?.availability === "available";
                 return <div className={`bulk-variant-row ${selected ? "is-selected" : ""} ${available ? "" : "is-disabled"}`} key={variant}>
                   <button aria-pressed={selected} className="bulk-variant-toggle" disabled={!product || !available} onClick={() => toggleBulkVariant(variant)} type="button"><span className="bulk-check">{selected ? <Check aria-hidden="true" size={14} /> : null}</span><span className="bulk-variant-copy"><strong>{variant}</strong><small>{product ? `${productSizeLabel(product) || product.packaging} · ${formatPrice(product)}` : "Không có quy cách phù hợp"}</small></span></button>
-                  {selected ? <div className="bulk-mini-stepper"><button aria-label={`Giảm ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) - 1)} type="button"><ChevronDown aria-hidden="true" size={14} /></button><output>{bulkSelected[variant]}</output><button aria-label={`Tăng ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) + 1)} type="button"><ChevronUp aria-hidden="true" size={14} /></button></div> : null}
+                  {selected ? <div className="bulk-mini-stepper"><button aria-label={`Giảm ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) - 1)} type="button"><Minus aria-hidden="true" size={14} /></button><output>{bulkSelected[variant]}</output><button aria-label={`Tăng ${variant}`} onClick={() => changeBulkQuantity(variant, (bulkSelected[variant] ?? 1) + 1)} type="button"><Plus aria-hidden="true" size={14} /></button></div> : null}
                 </div>;
               })}</div>
               {hiddenVariantCount > 0 ? <button className="bulk-expand-button" onClick={() => setVariantExpanded(true)} type="button">Xem thêm {hiddenVariantCount} vị</button> : variantExpanded && quickViewVariantOptions.length > INITIAL_VISIBLE_VARIANTS ? <button className="bulk-expand-button" onClick={() => setVariantExpanded(false)} type="button">Thu gọn danh sách vị</button> : null}

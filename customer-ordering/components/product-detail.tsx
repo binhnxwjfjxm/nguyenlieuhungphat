@@ -9,7 +9,7 @@ import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
 import type { Product } from "@/lib/contracts";
 
 function formatPrice(product: Product): string {
-  if (product.price.status !== "available" || product.price.amount === null) return "Giá dành cho điểm bán sẽ được xác nhận sau";
+  if (product.price.status !== "available" || product.price.amount === null) return "Giá sẽ được Hưng Phát xác nhận khi tiếp nhận đơn";
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: product.price.currency, maximumFractionDigits: 0 }).format(product.price.amount);
 }
 function availabilityText(product: Product): string {
@@ -65,7 +65,7 @@ export function ProductDetail({ sku }: Readonly<{ sku: string }>) {
       <dl className="product-spec-grid product-spec-grid-expanded">
         <div><dt>SKU</dt><dd>{product.sku}</dd></div><div><dt>Quy cách mua</dt><dd>{purchaseModeLabel(product)}</dd></div><div><dt>Quy cách</dt><dd>{product.packaging}</dd></div><div><dt>Thương hiệu</dt><dd>{product.brand}</dd></div><div><dt>Loại</dt><dd>{product.productType}</dd></div><div><dt>Vị</dt><dd>{product.flavor ?? "Không áp dụng"}</dd></div><div><dt>Size</dt><dd>{product.size || "—"}</dd></div>
       </dl>
-      <div className="product-price-panel"><span>{product.purchaseMode === "case" ? "Giá thùng" : "Giá lẻ"}</span><strong className={product.price.status === "available" ? "" : "is-pending"}>{formatPrice(product)}</strong>{product.price.status !== "available" ? <small>Ứng dụng không tự suy đoán giá khi chưa có bảng giá khách hàng.</small> : null}{product.purchaseMode === "case" ? <small>Giá thùng là giá riêng theo SKU thùng, không lấy giá lẻ nhân số lượng.</small> : null}</div>
+      <div className="product-price-panel"><span>{product.purchaseMode === "case" ? "Giá thùng" : "Giá lẻ"}</span><strong className={product.price.status === "available" ? "" : "is-pending"}>{formatPrice(product)}</strong>{product.price.status !== "available" ? <small>Hưng Phát sẽ xác nhận giá chính thức trước khi xử lý đơn.</small> : null}{product.purchaseMode === "case" ? <small>Giá thùng áp dụng theo đúng SKU thùng đã chọn.</small> : null}</div>
       <div className="product-order-panel"><div className="quantity-stepper" aria-label="Chọn số lượng"><button aria-label="Giảm số lượng" disabled={quantity <= 1} onClick={() => setQuantity((current) => Math.max(1, current - 1))} type="button"><Minus aria-hidden="true" size={18} /></button><output aria-live="polite">{quantity}</output><button aria-label="Tăng số lượng" disabled={quantity >= 99} onClick={() => setQuantity((current) => Math.min(99, current + 1))} type="button"><Plus aria-hidden="true" size={18} /></button></div><button className="product-add-primary" disabled={!canOrder} onClick={() => void addToCart()} type="button">{added ? <Check aria-hidden="true" size={19} /> : <ShoppingBag aria-hidden="true" size={19} />}{added ? "Đã thêm vào giỏ" : canOrder ? `Thêm ${product.unit} vào giỏ` : availabilityText(product)}</button></div>
     </div>
   </article>;

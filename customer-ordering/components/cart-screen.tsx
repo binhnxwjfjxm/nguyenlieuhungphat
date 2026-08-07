@@ -15,6 +15,7 @@ export function CartScreen() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,20 +54,18 @@ export function CartScreen() {
     if (!source) return;
     const existingTarget = cart.lines.find((line) => line.sku === targetSku);
     const remaining = cart.lines.filter((line) => line.sku !== sourceSku && line.sku !== targetSku);
-    const merged: CartLine = {
-      sku: targetSku,
-      quantity: Math.min(999, source.quantity + (existingTarget?.quantity ?? 0)),
-      note: existingTarget?.note || source.note,
-    };
+    const merged: CartLine = { sku: targetSku, quantity: Math.min(999, source.quantity + (existingTarget?.quantity ?? 0)), note: existingTarget?.note || source.note };
     await persist([...remaining, merged]);
   }
+  async function clearCart() { await persist([]); setConfirmClear(false); }
 
   if (error) return <section className="catalog-state-card cart-state-card is-error" role="alert"><PackageOpen aria-hidden="true" size={30} /><strong>Chưa tải được giỏ hàng</strong><span>{error}</span></section>;
   if (!cart) return <section aria-label="Đang tải giỏ hàng" className="cart-screen"><div className="cart-line-card is-skeleton" /><div className="cart-line-card is-skeleton" /></section>;
   if (displayLines.length === 0) return <section className="cart-empty-screen"><span className="cart-empty-icon"><ShoppingBasket aria-hidden="true" size={34} /></span><h1>Giỏ hàng trống</h1><div className="cart-empty-actions"><Link className="primary-link-button" href="/quick-order">Đặt nhanh</Link><Link className="secondary-link-button" href="/products">Sản phẩm</Link></div></section>;
 
   return <section className="cart-screen">
-    <div className="cart-heading cart-heading-compact"><div><strong>{displayLines.length} dòng · {totalQuantity} sản phẩm</strong></div><button className="cart-clear-button" onClick={() => void persist([])} type="button"><Trash2 aria-hidden="true" size={16} />Xóa tất cả</button></div>
+    <div className="cart-heading cart-heading-compact"><div><strong>{displayLines.length} dòng · {totalQuantity} sản phẩm</strong></div><button className="cart-clear-button" onClick={() => setConfirmClear(true)} type="button"><Trash2 aria-hidden="true" size={16} />Xóa tất cả</button></div>
+    {confirmClear ? <div className="cart-clear-confirm" role="alert"><p>Xóa toàn bộ sản phẩm khỏi giỏ hàng?</p><div><button className="danger-button" onClick={() => void clearCart()} type="button">Xác nhận xóa</button><button className="secondary-action-button" onClick={() => setConfirmClear(false)} type="button">Giữ lại</button></div></div> : null}
     <div className="cart-line-list">{displayLines.map(({ line, product }) => {
       const unitPrice = product?.price.status === "available" ? product.price.amount : null;
       const familyVariants = product ? (familyMap.get(product.familySku) ?? []) : [];
