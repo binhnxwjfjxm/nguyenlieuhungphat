@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { navigation } from "@/data/site";
+import { CUSTOMER_ORDERING_URL } from "@/lib/contact";
 import { HapticLink } from "./haptic-link";
 import { Logo } from "./logo";
 import { QuoteButton } from "./quote-trigger";
@@ -29,6 +30,9 @@ export function Header() {
             <Search size={19} />
           </HapticLink>
           <QuoteButton className="button button-surface">Nhận báo giá</QuoteButton>
+          <a className="button button-primary" href={CUSTOMER_ORDERING_URL}>
+            Đặt hàng
+          </a>
         </div>
 
         <div className="mobile-actions">
@@ -65,6 +69,9 @@ export function Header() {
               <QuoteButton className="button button-surface mobile-quote" onClick={() => setOpen(false)}>
                 Nhận báo giá
               </QuoteButton>
+              <a className="button button-primary mobile-quote" href={CUSTOMER_ORDERING_URL} onClick={() => setOpen(false)}>
+                Đặt hàng khách hàng
+              </a>
             </nav>
           </motion.div>
         ) : null}

@@ -20,21 +20,25 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 const siteUrl = getSiteUrl();
+const siteTitle = "Hưng Phát | Nguyên liệu F&B, đông lạnh, ăn vặt và bao bì";
+const siteDescription =
+  "Hưng Phát thương mại và phân phối trà sữa & pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị & sốt cho cửa hàng, đại lý và đối tác kinh doanh.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Hưng Phát | Nguyên liệu pha chế, mì cay và hàng đông lạnh",
+    default: siteTitle,
     template: "%s | Hưng Phát",
   },
-  description:
-    "Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác kinh doanh.",
+  description: siteDescription,
   keywords: [
+    "nguyên liệu trà sữa",
     "nguyên liệu pha chế",
     "nguyên liệu mì cay",
     "hàng đông lạnh",
-    "nguyên liệu quán ăn",
-    "nguyên liệu quán trà sữa",
+    "đồ ăn vặt",
+    "bao bì F&B",
+    "gia vị và sốt",
     "phân phối nguyên liệu Hưng Phát",
   ],
   alternates: { canonical: "/" },
@@ -43,23 +47,21 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     url: siteUrl,
     siteName: "Hưng Phát",
-    title: "Hưng Phát | Nguyên liệu pha chế, mì cay và hàng đông lạnh",
-    description:
-      "Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác kinh doanh.",
+    title: siteTitle,
+    description: siteDescription,
     images: [
       {
         url: siteAssets.seo.og,
         width: 1200,
         height: 630,
-        alt: "Hưng Phát - Nguyên liệu pha chế, mì cay và hàng đông lạnh",
+        alt: "Hưng Phát - nguồn hàng F&B cho cửa hàng và đại lý",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hưng Phát | Nguyên liệu pha chế, mì cay và hàng đông lạnh",
-    description:
-      "Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác kinh doanh.",
+    title: siteTitle,
+    description: siteDescription,
     images: [siteAssets.seo.og],
   },
 };

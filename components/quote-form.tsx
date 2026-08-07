@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Check, LoaderCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useToast } from "./toast-provider";
+import { PRIVACY_POLICY_PATH } from "@/lib/contact";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import {
   type FieldErrors,
@@ -13,6 +13,7 @@ import {
   sanitizeText,
   validateQuoteInput,
 } from "@/lib/validation";
+import { useToast } from "./toast-provider";
 
 type QuoteFormProps = {
   inline?: boolean;
@@ -47,11 +48,11 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
   const pathname = usePathname();
   const toast = useToast();
   const [form, setForm] = useState<FormState>(() => ({
-        ...EMPTY_FORM,
-        pathname,
-        ...initialValues,
-        source: initialValues?.source ?? "quote-form",
-        website: initialValues?.website ?? EMPTY_FORM.website,
+    ...EMPTY_FORM,
+    pathname,
+    ...initialValues,
+    source: initialValues?.source ?? "quote-form",
+    website: initialValues?.website ?? EMPTY_FORM.website,
   }));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -250,6 +251,11 @@ export function QuoteForm({ inline = false, initialValues, onClose, onSuccess }:
       <input type="hidden" value={form.source} readOnly />
       <input type="hidden" value={form.pathname} readOnly />
       <input type="hidden" value={form.website} readOnly />
+
+      <p className="form-privacy-note">
+        Bằng việc gửi yêu cầu, bạn đồng ý để Hưng Phát sử dụng thông tin đã cung cấp nhằm tư vấn và xử lý yêu cầu theo{" "}
+        <a href={PRIVACY_POLICY_PATH}>Chính sách bảo mật</a>.
+      </p>
 
       <div className="form-actions">
         {onClose ? (

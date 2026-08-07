@@ -1,6 +1,6 @@
-import { ArrowRight, PhoneCall } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
+import { ZALO_URL } from "@/lib/contact";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
-import { HapticLink } from "./haptic-link";
 import { QuoteButton } from "./quote-trigger";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
@@ -35,9 +35,9 @@ export function QuoteCta({ productName }: { productName?: string }) {
         <QuoteButton className="button button-surface button-large" seed={{ product: productName ?? "", source: "quote-banner" }}>
           Nhận báo giá <ArrowRight size={18} />
         </QuoteButton>
-        <HapticLink className="button button-outline-light button-large" href="tel:0900123456">
-          <PhoneCall size={18} /> Gọi tư vấn
-        </HapticLink>
+        <a className="button button-outline-light button-large" href={ZALO_URL}>
+          <MessageCircle size={18} /> Zalo tư vấn
+        </a>
       </div>
     </section>
   );

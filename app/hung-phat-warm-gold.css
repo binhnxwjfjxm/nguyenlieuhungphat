@@ -128,6 +128,20 @@ a:focus-visible,
   color: var(--hp-bronze-strong) !important;
 }
 
+.form-privacy-note {
+  margin: 0;
+  color: var(--hp-muted);
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.form-privacy-note a {
+  color: var(--hp-bronze-strong);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 ::selection {
   background: var(--hp-bronze-soft);
   color: var(--hp-ink);

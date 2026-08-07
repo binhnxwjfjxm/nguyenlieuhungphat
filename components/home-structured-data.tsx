@@ -1,3 +1,4 @@
+import { ZALO_URL } from "@/lib/contact";
 import { getSiteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
@@ -9,6 +10,7 @@ export function HomeStructuredData() {
     name: "Công ty TNHH TM Nguyên Liệu Hưng Phát",
     url: siteUrl,
     logo: `${siteUrl}/logo-transparent.png`,
+    sameAs: [ZALO_URL],
   };
 
   const website = {
@@ -17,7 +19,7 @@ export function HomeStructuredData() {
     name: "Nguyên Liệu Hưng Phát",
     url: siteUrl,
     description:
-      "Hưng Phát chuyên thương mại và phân phối nguyên liệu pha chế, nguyên liệu mì cay và hàng đông lạnh cho cửa hàng, đại lý và đối tác kinh doanh.",
+      "Hưng Phát thương mại và phân phối trà sữa & pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị & sốt cho cửa hàng, đại lý và đối tác kinh doanh.",
     image: siteAssets.seo.og,
     potentialAction: {
       "@type": "SearchAction",

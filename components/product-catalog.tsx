@@ -184,9 +184,9 @@ export function ProductCatalog({
           </div>
 
           <label className="filter-field">
-            <span>Xuất xứ</span>
+            <span>Ngành hàng</span>
             <select value={origin} onChange={(event) => updateOrigin(event.target.value)}>
-              <option value="">Tất cả xuất xứ</option>
+              <option value="">Tất cả ngành hàng</option>
               {origins.map((item) => (
                 <option value={item} key={item}>
                   {item}

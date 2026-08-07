@@ -28,18 +28,33 @@ export type ProductCategory = {
 export const productCategories: ProductCategory[] = [
   {
     slug: "nguyen-lieu-pha-che",
-    title: "Nguyên liệu pha chế",
-    description: "Nhóm nguyên liệu cho trà sữa, cà phê, đá xay và các món đồ uống.",
+    title: "Trà sữa & pha chế",
+    description: "Siro, trà, bột, topping và nguyên liệu cho trà sữa, cà phê, đá xay và đồ uống.",
   },
   {
     slug: "nguyen-lieu-mi-cay",
-    title: "Nguyên liệu mì cay",
-    description: "Nhóm nguyên liệu và thành phần phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
+    title: "Mì cay",
+    description: "Mì, sốt, topping và nguyên liệu phục vụ quán mì cay, nhà hàng và mô hình đồ ăn.",
   },
   {
     slug: "hang-dong-lanh",
-    title: "Hàng đông lạnh",
-    description: "Nhóm thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
+    title: "Đông lạnh",
+    description: "Thực phẩm đông lạnh phục vụ cửa hàng, quán ăn, nhà hàng và đại lý.",
+  },
+  {
+    slug: "an-vat",
+    title: "Ăn vặt",
+    description: "Bánh tráng, đồ ăn vặt và nguyên liệu đi kèm cho quán, cửa hàng và đại lý.",
+  },
+  {
+    slug: "bao-bi",
+    title: "Bao bì",
+    description: "Ly, nắp, hộp, túi và vật tư bao bì phục vụ vận hành F&B.",
+  },
+  {
+    slug: "gia-vi-sot",
+    title: "Gia vị & sốt",
+    description: "Gia vị, sốt và nguyên liệu nêm nếm phục vụ bếp, quán ăn và bán lại.",
   },
 ];
 
@@ -47,23 +62,43 @@ function normalizeText(value: string) {
   return value.normalize("NFC").replace(/\s+/g, " ").trim();
 }
 
-function getCategorySlug(industryCode: string) {
-  if (industryCode === "TS") return "nguyen-lieu-pha-che";
-  if (industryCode === "MC") return "nguyen-lieu-mi-cay";
-  if (industryCode === "DL") return "hang-dong-lanh";
+function normalizeLookup(value: string) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .toLowerCase();
+}
+
+function getCategorySlug(industryCode: string, industryName: string) {
+  const code = normalizeText(industryCode).toUpperCase();
+  const name = normalizeLookup(industryName);
+
+  if (code === "TS" || name.includes("tra sua") || name.includes("pha che")) return "nguyen-lieu-pha-che";
+  if (code === "MC" || name.includes("mi cay")) return "nguyen-lieu-mi-cay";
+  if (code === "DL" || name.includes("dong lanh")) return "hang-dong-lanh";
+  if (code === "AV" || code === "BT" || name.includes("an vat") || name.includes("banh trang")) return "an-vat";
+  if (code === "BB" || name.includes("bao bi")) return "bao-bi";
+  if (code === "GS" || name.includes("gia vi") || name.includes("sot")) return "gia-vi-sot";
   return "";
 }
 
 function getIndustryName(industryCode: string, industryName: string) {
   const normalized = normalizeText(industryName);
-  if (industryCode === "TS") return normalized || "Trà sữa và pha chế";
-  if (industryCode === "MC") return normalized || "Nguyên liệu mì cay";
-  if (industryCode === "DL") return normalized || "Đông lạnh";
+  if (normalized) return normalized;
+
+  const code = normalizeText(industryCode).toUpperCase();
+  if (code === "TS") return "Trà sữa & pha chế";
+  if (code === "MC") return "Mì cay";
+  if (code === "DL") return "Đông lạnh";
+  if (code === "AV" || code === "BT") return "Ăn vặt";
+  if (code === "BB") return "Bao bì";
+  if (code === "GS") return "Gia vị & sốt";
   return "";
 }
 
 function buildProduct(productPlan: (typeof productPlans)[number]): Product | null {
-  const categorySlug = getCategorySlug(productPlan.industry_code);
+  const categorySlug = getCategorySlug(productPlan.industry_code, productPlan.industry_name);
   if (!categorySlug) return null;
 
   const productId = normalizeText(productPlan.new_product_id);
