@@ -1,0 +1,33 @@
+name: customer-ordering-canonical-price-export
+
+on:
+  push:
+    branches:
+      - agent/customer-ordering-canonical-price-sheet
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Export canonical price CSV
+        run: node customer-ordering/scripts/export-canonical-price-csv.mjs
+
+      - name: Upload canonical price artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-ordering-canonical-price
+          path: customer-ordering/.artifacts/*
+          if-no-files-found: error
+          retention-days: 7
