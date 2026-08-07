@@ -126,27 +126,70 @@ button.catalog-price-cell {
   opacity: .58;
 }
 
+/* Product quick view owns one viewport-bound modal model. */
 .product-quick-view-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   overflow: hidden;
+  background: rgba(4, 23, 16, .56);
+  backdrop-filter: blur(10px);
   overscroll-behavior: contain;
+  touch-action: none;
 }
 
+.product-quick-view,
 .product-quick-view-tall {
-  width: min(520px, 100%);
+  position: relative;
+  width: min(720px, 100%);
   height: auto;
-  max-height: min(88dvh, 760px);
+  max-height: 100%;
   margin: 0;
+  display: grid;
+  grid-template-columns: minmax(190px, .8fr) minmax(0, 1.2fr);
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(220, 229, 221, .96);
+  border-radius: 28px;
+  background: #f8fcf9;
+  box-shadow: 0 28px 70px rgba(7, 39, 27, .28);
+  pointer-events: auto;
+  touch-action: auto;
+}
+
+.product-quick-view > .catalog-product-visual {
+  height: 100%;
+  min-height: 280px;
+  border-radius: 0;
+}
+
+.product-quick-view-copy,
+.product-quick-view-tall .product-quick-view-copy {
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  padding: 20px 18px max(20px, env(safe-area-inset-bottom));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  align-content: start;
+  touch-action: pan-y;
 }
 
-.product-quick-view-tall .product-quick-view-copy {
-  align-self: start;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
+.product-quick-view-close,
+.product-quick-view-copy button {
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.product-quick-view-close {
+  z-index: 4;
 }
 
 .product-quick-view-brand {
@@ -296,6 +339,39 @@ button.catalog-price-cell {
   font-variant-numeric: tabular-nums;
 }
 
+@media (max-width: 760px) {
+  .product-quick-view-backdrop {
+    align-items: flex-end;
+    padding: max(8px, env(safe-area-inset-top)) 0 0;
+  }
+
+  .product-quick-view,
+  .product-quick-view-tall {
+    width: 100%;
+    height: auto;
+    max-height: calc(100dvh - 8px - env(safe-area-inset-top));
+    display: flex;
+    flex-direction: column;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .product-quick-view > .catalog-product-visual {
+    flex: 0 0 min(22dvh, 150px);
+    width: 100%;
+    height: min(22dvh, 150px);
+    min-height: 118px;
+  }
+
+  .product-quick-view-copy,
+  .product-quick-view-tall .product-quick-view-copy {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 14px 14px max(20px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 430px) {
   .catalog-type-row {
     display: grid;
@@ -315,23 +391,6 @@ button.catalog-price-cell {
   .catalog-price-cell {
     min-height: 32px;
     padding-inline: 5px;
-  }
-
-  .product-quick-view-backdrop {
-    padding: max(8px, env(safe-area-inset-top)) 7px max(8px, env(safe-area-inset-bottom));
-  }
-
-  .product-quick-view-tall {
-    width: 100%;
-    height: auto;
-    max-height: calc(100dvh - 16px);
-    margin: 0;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    border-radius: 22px;
-  }
-
-  .product-quick-view-tall > .catalog-product-visual {
-    min-height: 138px;
   }
 
   .quick-order-direct-row {
