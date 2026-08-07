@@ -134,13 +134,20 @@ export function QuickOrder() {
     setActiveProductType(null);
   }
 
+  const searchField = (className: string) => <label className={`catalog-search quick-order-search ${className}`}>
+    <Search aria-hidden="true" size={18} />
+    <span className="sr-only">Tìm sản phẩm đặt nhanh</span>
+    <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Lọc nhanh tên, nhãn, SKU" type="search" value={query} />
+    {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={16} /></button> : null}
+  </label>;
+
   return <section className="quick-order-screen quick-order-screen-compact">
     <div className="quick-order-toolbar">
       <div aria-label="Lọc quy cách mua" className="catalog-purchase-mode quick-purchase-mode" role="group">{([["all", "Tất cả"], ["retail", "Mua lẻ"], ["case", "Mua thùng"]] as const).map(([mode, label]) => <button aria-pressed={purchaseMode === mode} className={purchaseMode === mode ? "is-active" : ""} key={mode} onClick={() => setPurchaseMode(mode)} type="button">{label}</button>)}</div>
       <Link aria-label="Xem giỏ hàng" className="quick-cart-link quick-cart-icon" href="/cart"><ShoppingCart aria-hidden="true" size={19} /></Link>
     </div>
 
-    <label className="catalog-search quick-order-search"><Search aria-hidden="true" size={19} /><span className="sr-only">Tìm sản phẩm đặt nhanh</span><input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tên, nhãn hoặc SKU" type="search" value={query} />{query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={17} /></button> : null}</label>
+    {searchField("quick-order-search-top")}
 
     <div className="quick-filter-row"><div aria-label="Lọc danh mục đặt nhanh" className="catalog-category-row" role="tablist"><button aria-selected={activeCategory === null} className={activeCategory === null ? "is-active" : ""} onClick={() => selectCategory(null)} role="tab" type="button">Tất cả</button>{categories.map((category) => <button aria-selected={activeCategory === category.id} className={activeCategory === category.id ? "is-active" : ""} key={category.id} onClick={() => selectCategory(category.id)} role="tab" type="button">{category.shortName}</button>)}</div><button aria-pressed={selectedOnly} className={`selected-only-button ${selectedOnly ? "is-active" : ""}`} onClick={() => setSelectedOnly((current) => !current)} type="button"><Check aria-hidden="true" size={16} />Đã chọn ({selectedLines})</button></div>
 
@@ -152,7 +159,7 @@ export function QuickOrder() {
       : <div className="quick-order-list quick-order-direct-list">{visibleProducts.map((product) => {
         const quantity = quantities[product.sku] ?? 0;
         const canOrder = product.availability === "available";
-        return <article className={`quick-order-row quick-order-direct-row ${canOrder ? "" : "is-disabled"}`} key={product.sku}>
+        return <article className={`quick-order-row quick-order-direct-row ${quantity > 0 ? "is-selected" : ""} ${canOrder ? "" : "is-disabled"}`} key={product.sku}>
           <div className="quick-product-copy">
             <div className="quick-product-heading"><span>{product.sku}</span><span className={`availability-${product.availability}`}>{availabilityLabel(product)}</span></div>
             <h2>{product.name}</h2>
@@ -168,6 +175,9 @@ export function QuickOrder() {
         </article>;
       })}</div>}
 
-    <div className="quick-order-summary" aria-live="polite"><div><span>{selectedLines} dòng</span><strong>{selectedQuantity} sản phẩm</strong></div><button disabled={selectedLines === 0} onClick={() => void addSelectedToCart()} type="button">{added ? <Check aria-hidden="true" size={19} /> : <ShoppingCart aria-hidden="true" size={19} />}{added ? "Đã thêm" : "Thêm vào giỏ"}</button></div>
+    <div className="quick-order-summary quick-order-summary-search" aria-live="polite">
+      {searchField("quick-order-sticky-search")}
+      <div className="quick-order-summary-row"><div className="quick-summary-count"><span>{selectedLines} dòng</span><strong>{selectedQuantity} sản phẩm</strong></div><button className="quick-summary-add" disabled={selectedLines === 0} onClick={() => void addSelectedToCart()} type="button">{added ? <Check aria-hidden="true" size={19} /> : <ShoppingCart aria-hidden="true" size={19} />}{added ? "Đã thêm" : "Thêm vào giỏ"}</button></div>
+    </div>
   </section>;
 }

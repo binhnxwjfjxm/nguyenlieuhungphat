@@ -44,7 +44,8 @@ const INITIAL_SNAPSHOT: PushContextValue = {
   refreshPushState: async () => undefined,
 };
 
-const PUSH_SYNC_TIMEOUT_MS = 4000;
+const PUSH_SYNC_TIMEOUT_MS = 8000;
+const PUSH_SYNC_POLL_MS = 250;
 const PushContext = createContext<PushContextValue | null>(null);
 
 async function waitForPushSubscriptionMutation(
@@ -55,10 +56,12 @@ async function waitForPushSubscriptionMutation(
   return new Promise((resolve, reject) => {
     let settled = false;
     let timeoutId: number | null = null;
+    let pollId: number | null = null;
 
     const cleanup = () => {
       sdk.User.PushSubscription.removeEventListener("change", handleChange);
       if (timeoutId !== null) window.clearTimeout(timeoutId);
+      if (pollId !== null) window.clearInterval(pollId);
     };
     const finish = () => {
       if (settled) return;
@@ -72,17 +75,18 @@ async function waitForPushSubscriptionMutation(
       cleanup();
       reject(error);
     };
+    const matchesExpectedState = () => readOneSignalPushSnapshot(sdk).subscribed === expectedOptedIn;
     const handleChange = (event: PushSubscriptionChangeEvent) => {
       if (event.current.optedIn === expectedOptedIn) finish();
     };
 
     sdk.User.PushSubscription.addEventListener("change", handleChange);
+    pollId = window.setInterval(() => { if (matchesExpectedState()) finish(); }, PUSH_SYNC_POLL_MS);
     timeoutId = window.setTimeout(finish, PUSH_SYNC_TIMEOUT_MS);
 
     try {
       Promise.resolve(mutate()).then(() => {
-        const next = readOneSignalPushSnapshot(sdk);
-        if (next.subscribed === expectedOptedIn) finish();
+        if (matchesExpectedState()) finish();
       }, fail);
     } catch (error) {
       fail(error);
@@ -113,35 +117,24 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
     let focusListener: (() => void) | null = null;
     let visibilityListener: (() => void) | null = null;
 
-    if (authStatus !== "signed-in" || !user?.id) {
-      const linkedUserId = linkedUserIdRef.current;
-      if (linkedUserId) {
-        linkedUserIdRef.current = null;
-        void loadOneSignalBrowser()
-          .then((loaded) => loaded.logout())
-          .catch(() => undefined);
-      }
-      return;
-    }
-
     void loadOneSignalBrowser()
       .then(async (loaded) => {
         if (!active) return;
         sdk = loaded;
         if (!loaded.Notifications.isPushSupported()) {
-          setSnapshot((current) => ({
-            ...current,
-            status: "unsupported",
-            supported: false,
-            error: null,
-          }));
+          setSnapshot((current) => ({ ...current, status: "unsupported", supported: false, error: null }));
           return;
         }
 
-        await loaded.login(user.id);
-        await loaded.User.setLanguage?.("vi");
+        if (authStatus === "signed-in" && user?.id) {
+          if (loaded.User.externalId !== user.id) await loaded.login(user.id);
+          await loaded.User.setLanguage?.("vi");
+          linkedUserIdRef.current = user.id;
+        } else if (authStatus === "signed-out" && (linkedUserIdRef.current || loaded.User.externalId)) {
+          await loaded.logout();
+          linkedUserIdRef.current = null;
+        }
         if (!active) return;
-        linkedUserIdRef.current = user.id;
 
         permissionListener = () => updateFromSdk(loaded);
         subscriptionListener = () => updateFromSdk(loaded);
@@ -157,21 +150,13 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
       })
       .catch((error: unknown) => {
         if (!active) return;
-        setSnapshot((current) => ({
-          ...current,
-          status: "error",
-          error: oneSignalErrorMessage(error),
-        }));
+        setSnapshot((current) => ({ ...current, status: "error", error: oneSignalErrorMessage(error) }));
       });
 
     return () => {
       active = false;
-      if (sdk && permissionListener) {
-        sdk.Notifications.removeEventListener("permissionChange", permissionListener);
-      }
-      if (sdk && subscriptionListener) {
-        sdk.User.PushSubscription.removeEventListener("change", subscriptionListener);
-      }
+      if (sdk && permissionListener) sdk.Notifications.removeEventListener("permissionChange", permissionListener);
+      if (sdk && subscriptionListener) sdk.User.PushSubscription.removeEventListener("change", subscriptionListener);
       if (focusListener) window.removeEventListener("focus", focusListener);
       if (visibilityListener) document.removeEventListener("visibilitychange", visibilityListener);
     };
@@ -187,27 +172,20 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
     try {
       const sdk = await loadOneSignalBrowser();
       if (!sdk.Notifications.isPushSupported()) {
-        setSnapshot((current) => ({
-          ...current,
-          busy: false,
-          supported: false,
-          status: "unsupported",
-        }));
+        setSnapshot((current) => ({ ...current, busy: false, supported: false, status: "unsupported" }));
         return;
       }
       if (user?.id && sdk.User.externalId !== user.id) {
         await sdk.login(user.id);
         linkedUserIdRef.current = user.id;
       }
-      if (!sdk.Notifications.permission) {
-        await sdk.Notifications.requestPermission();
-      }
+      if (!sdk.Notifications.permission) await sdk.Notifications.requestPermission();
 
       const next = sdk.Notifications.permission
         ? await waitForPushSubscriptionMutation(sdk, true, () => sdk.User.PushSubscription.optIn())
         : readOneSignalPushSnapshot(sdk);
       const syncError = next.permission && !next.subscribed
-        ? "Trình duyệt đã cấp quyền nhưng OneSignal chưa đồng bộ xong thiết bị. Nhấn Đồng bộ lại."
+        ? "Trình duyệt đã cấp quyền nhưng thiết bị chưa đăng ký xong. Nhấn Đồng bộ lại."
         : null;
       setSnapshot((current) => ({
         ...current,
@@ -217,12 +195,7 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
         error: syncError,
       }));
     } catch (error) {
-      setSnapshot((current) => ({
-        ...current,
-        busy: false,
-        status: "error",
-        error: oneSignalErrorMessage(error),
-      }));
+      setSnapshot((current) => ({ ...current, busy: false, status: "error", error: oneSignalErrorMessage(error) }));
     }
   }, [user?.id]);
 
@@ -239,12 +212,7 @@ export function OneSignalProvider({ children }: Readonly<{ children: ReactNode }
         error: null,
       }));
     } catch (error) {
-      setSnapshot((current) => ({
-        ...current,
-        busy: false,
-        status: "error",
-        error: oneSignalErrorMessage(error),
-      }));
+      setSnapshot((current) => ({ ...current, busy: false, status: "error", error: oneSignalErrorMessage(error) }));
     }
   }, []);
 

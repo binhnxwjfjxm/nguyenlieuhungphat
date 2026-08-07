@@ -2,36 +2,42 @@
 
 import { useEffect } from "react";
 
+const COMBINED_WORKER_PATH = "/OneSignalSDKWorker.js";
+const FALLBACK_DELAY_MS = 1800;
+
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") {
-      return;
-    }
+    if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
 
     let active = true;
-    const register = () => {
-      void navigator.serviceWorker
-        .register("/sw.js", { scope: "/", updateViaCache: "none" })
-        .then((registration) => {
-          if (!active) return;
-          return registration.update();
-        })
-        .catch(() => {
-          // PWA remains usable online even when service-worker registration or update fails.
-        });
+    let timerId: number | null = null;
+
+    const ensureFallbackRegistration = async () => {
+      try {
+        const existing = await navigator.serviceWorker.getRegistration("/");
+        if (!active) return;
+        if (existing) {
+          await existing.update();
+          return;
+        }
+        await navigator.serviceWorker.register(COMBINED_WORKER_PATH, { scope: "/", updateViaCache: "none" });
+      } catch {
+        // Online ordering remains usable if service-worker registration is unavailable.
+      }
     };
 
-    if (document.readyState === "complete") {
-      register();
-      return () => {
-        active = false;
-      };
-    }
+    const scheduleRegistration = () => {
+      if (!active || timerId !== null) return;
+      timerId = window.setTimeout(() => { void ensureFallbackRegistration(); }, FALLBACK_DELAY_MS);
+    };
 
-    window.addEventListener("load", register, { once: true });
+    if (document.readyState === "complete") scheduleRegistration();
+    else window.addEventListener("load", scheduleRegistration, { once: true });
+
     return () => {
       active = false;
-      window.removeEventListener("load", register);
+      window.removeEventListener("load", scheduleRegistration);
+      if (timerId !== null) window.clearTimeout(timerId);
     };
   }, []);
 

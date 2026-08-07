@@ -52,12 +52,12 @@ test("home hero uses the public R2 image through Next Image", async () => {
   assert.match(css, /object-fit:\s*cover/);
 });
 
-test("PWA install is user-triggered and service worker registers even after window load", async () => {
+test("PWA install is user-triggered and the combined root worker registers before or after window load", async () => {
   const [installCard, accountPage, registration, worker, manifest] = await Promise.all([
     read("components/pwa-install-card.tsx"),
     read("app/account/page.tsx"),
     read("components/service-worker-registration.tsx"),
-    read("public/sw.js"),
+    read("public/OneSignalSDKWorker.js"),
     read("app/manifest.ts"),
   ]);
 
@@ -67,7 +67,10 @@ test("PWA install is user-triggered and service worker registers even after wind
   assert.match(installCard, /async function handleInstall\(\)/);
   assert.match(installCard, /await installPrompt\.prompt\(\)/);
   assert.match(registration, /document\.readyState === "complete"/);
-  assert.match(registration, /register\("\/sw\.js", \{ scope: "\/", updateViaCache: "none" \}\)/);
+  assert.match(registration, /window\.addEventListener\("load", scheduleRegistration/);
+  assert.match(registration, /COMBINED_WORKER_PATH = "\/OneSignalSDKWorker\.js"/);
+  assert.match(registration, /register\(COMBINED_WORKER_PATH, \{ scope: "\/", updateViaCache: "none" \}\)/);
+  assert.match(worker, /OneSignalSDK\.sw\.js/);
   assert.match(worker, /SAFE_ASSETS/);
   assert.match(worker, /caches\.match\("\/offline"\)/);
   assert.match(manifest, /display:\s*"standalone"/);
