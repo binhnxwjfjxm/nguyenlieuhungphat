@@ -26,3 +26,4 @@ coverage/
 .ignore
 
 customer-ordering/tsconfig.tsbuildinfo
+customer-ordering/lib/adapters/mock/generated-catalog.json

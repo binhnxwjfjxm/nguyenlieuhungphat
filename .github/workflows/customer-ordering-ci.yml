@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "customer-ordering/**"
+      - "BANG_GIA_CHUAN_HOA_CAP_NHAT_DS_SP_23.07.26.xlsx"
+      - "BANG_GIA_KENH_QUAN_THEM_NHOM_CHI_TIET.xlsx"
       - "scripts/vercel/**"
       - ".github/workflows/customer-ordering-ci.yml"
       - ".github/workflows/vercel-customer-ordering-project-bootstrap-manual.yml"
@@ -14,6 +16,8 @@ on:
   pull_request:
     paths:
       - "customer-ordering/**"
+      - "BANG_GIA_CHUAN_HOA_CAP_NHAT_DS_SP_23.07.26.xlsx"
+      - "BANG_GIA_KENH_QUAN_THEM_NHOM_CHI_TIET.xlsx"
       - "scripts/vercel/**"
       - ".github/workflows/customer-ordering-ci.yml"
       - ".github/workflows/vercel-customer-ordering-project-bootstrap-manual.yml"
