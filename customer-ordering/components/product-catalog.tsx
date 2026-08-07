@@ -140,13 +140,6 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
   }, [service]);
 
   useEffect(() => {
-    setActiveCategory(initialCategoryId);
-    setActiveProductType(null);
-    setFilters(EMPTY_FILTERS);
-    setVisibleGroupCount(INITIAL_VISIBLE_GROUPS);
-  }, [initialCategoryId]);
-
-  useEffect(() => {
     if (!quickViewSku) return;
     const previousOverflow = document.body.style.overflow;
     const opener = quickViewOpenerRef.current;
