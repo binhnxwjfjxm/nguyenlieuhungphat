@@ -40,6 +40,10 @@ function scopeKey(product) {
   return `${clean(product?.categoryId)}:${normalizeSeriesText(product?.productType)}`;
 }
 
+function categoryScopeKey(product) {
+  return clean(product?.categoryId) || "uncategorized";
+}
+
 function startsWithWords(words, prefix) {
   return prefix.length <= words.length && prefix.every((word, index) => words[index] === word);
 }
@@ -80,14 +84,14 @@ function seriesMetaFromSource(rep) {
   };
 }
 
-function findFallbackSeries(rep, scopeReps) {
+function findFallbackSeries(rep, scopeReps, minPrefixTokens = 1) {
   const name = baseProductName(rep.product);
   const words = normalizedWords(name);
   const genericWords = normalizedWords(rep.product.productType);
   if (words.length < 2) return null;
 
   let best = null;
-  for (let length = 1; length <= words.length; length += 1) {
+  for (let length = minPrefixTokens; length <= words.length; length += 1) {
     const prefix = words.slice(0, length);
     if (genericWords.length === length && startsWithWords(prefix, genericWords) && startsWithWords(genericWords, prefix)) continue;
     if (genericWords.length > 0 && length <= genericWords.length && startsWithWords(genericWords, prefix)) continue;
@@ -95,9 +99,7 @@ function findFallbackSeries(rep, scopeReps) {
     const matches = scopeReps.filter((candidate) => {
       if (clean(candidate.product.series)) return false;
       if (!startsWithWords(normalizedWords(baseProductName(candidate.product)), prefix)) return false;
-      const skuRelated = candidate.familySku === rep.familySku || sharedPrefixLength(candidate.familySku, rep.familySku) >= 3;
-      const specificNamePrefix = prefix.length >= 2;
-      return skuRelated || specificNamePrefix;
+      return candidate.familySku === rep.familySku || sharedPrefixLength(candidate.familySku, rep.familySku) >= 3;
     });
     const distinctFamilies = new Set(matches.map((candidate) => candidate.familySku));
     if (distinctFamilies.size < 2) continue;
@@ -118,13 +120,24 @@ function findFallbackSeries(rep, scopeReps) {
   return best;
 }
 
-function familyMetaFor(rep, scopeReps) {
+function betterFallback(left, right) {
+  if (!left) return right;
+  if (!right) return left;
+  if (right.familyCount !== left.familyCount) return right.familyCount > left.familyCount ? right : left;
+  return right.tokenCount > left.tokenCount ? right : left;
+}
+
+function familyMetaFor(rep, strictScopeReps, categoryScopeReps) {
   const source = seriesMetaFromSource(rep);
   if (source) return source;
-  const fallback = findFallbackSeries(rep, scopeReps);
+  const strictFallback = findFallbackSeries(rep, strictScopeReps, 1);
+  const categoryFallback = findFallbackSeries(rep, categoryScopeReps, 2);
+  const fallback = betterFallback(strictFallback, categoryFallback);
   if (fallback) {
+    const broad = categoryFallback === fallback && categoryScopeReps !== strictScopeReps;
+    const fallbackScope = broad ? categoryScopeKey(rep.product) : scopeKey(rep.product);
     return {
-      key: `series:${scopeKey(rep.product)}:${fallback.normalizedPrefix}`,
+      key: `series:${fallbackScope}:${fallback.normalizedPrefix}`,
       name: fallback.displayName,
       prefixTokenCount: fallback.tokenCount,
       sourceSeries: "",
@@ -141,14 +154,19 @@ function familyMetaFor(rep, scopeReps) {
 export function buildProductSeriesIndex(products) {
   const reps = buildFamilyRepresentatives(products);
   const scopes = new Map();
+  const categoryScopes = new Map();
   for (const rep of reps) {
     const key = scopeKey(rep.product);
     scopes.set(key, [...(scopes.get(key) ?? []), rep]);
+    const categoryKey = categoryScopeKey(rep.product);
+    categoryScopes.set(categoryKey, [...(categoryScopes.get(categoryKey) ?? []), rep]);
   }
 
   const familyMeta = new Map();
-  for (const scopeReps of scopes.values()) {
-    for (const rep of scopeReps) familyMeta.set(rep.familySku, familyMetaFor(rep, scopeReps));
+  for (const rep of reps) {
+    const strictScopeReps = scopes.get(scopeKey(rep.product)) ?? [rep];
+    const categoryScopeReps = categoryScopes.get(categoryScopeKey(rep.product)) ?? strictScopeReps;
+    familyMeta.set(rep.familySku, familyMetaFor(rep, strictScopeReps, categoryScopeReps));
   }
 
   const groupsByKey = new Map();
