@@ -67,6 +67,31 @@ textarea:focus-visible,
   min-width: 0;
 }
 
+.hero-card-r2 {
+  isolation: isolate;
+  grid-template-columns: 1fr;
+  background: var(--hp-green-dark);
+}
+
+.hero-card-r2 .hero-copy {
+  z-index: 2;
+  max-width: 72%;
+}
+
+.hero-r2-image {
+  z-index: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-r2-shade {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 55, 31, .88) 0%, rgba(7, 55, 31, .62) 46%, rgba(7, 55, 31, .18) 76%, rgba(7, 55, 31, .04) 100%);
+  pointer-events: none;
+}
+
 img,
 svg {
   max-width: 100%;
@@ -258,6 +283,10 @@ button:disabled {
 
   .header-actions {
     gap: 0;
+  }
+
+  .hero-card-r2 .hero-copy {
+    max-width: 78%;
   }
 
   .bottom-navigation-item {

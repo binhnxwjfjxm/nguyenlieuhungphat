@@ -34,6 +34,24 @@ test("UI-6 hardens safe mobile interaction, focus and reduced-motion behavior", 
   assert.match(css, /overflow-x:\s*hidden/);
 });
 
+test("home hero uses the public R2 image through Next Image", async () => {
+  const [home, config, css] = await Promise.all([
+    read("components/home-screen.tsx"),
+    read("next.config.ts"),
+    read("app/ui6.css"),
+  ]);
+
+  assert.match(home, /import Image from "next\/image"/);
+  assert.match(home, /hero-app-customer\.jpg/);
+  assert.match(home, /pub-7d2987fab97d4e3ebb2021a823973862\.r2\.dev/);
+  assert.match(home, /className="hero-r2-image"/);
+  assert.match(home, /\bfill\b/);
+  assert.match(config, /hostname:\s*"pub-7d2987fab97d4e3ebb2021a823973862\.r2\.dev"/);
+  assert.match(config, /pathname:\s*"\/app-customer\/image-system\/\*\*"/);
+  assert.match(css, /\.hero-card-r2/);
+  assert.match(css, /object-fit:\s*cover/);
+});
+
 test("PWA install is user-triggered and service worker registers even after window load", async () => {
   const [installCard, accountPage, registration, worker, manifest] = await Promise.all([
     read("components/pwa-install-card.tsx"),
