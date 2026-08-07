@@ -1,4 +1,5 @@
 import type {
+  Announcement,
   Cart,
   Category,
   CheckoutDraft,
@@ -6,6 +7,7 @@ import type {
   CustomerOrderingAdapter,
   CustomerSession,
   DeliveryAddress,
+  NotificationPreference,
   Product,
   ProductSearchInput,
   ReorderOrderResult,
@@ -80,6 +82,28 @@ export class CustomerOrderingService {
 
   reorderOrder(orderId: string): Promise<ReorderOrderResult> {
     return this.adapter.reorderOrder(orderId);
+  }
+
+  listAnnouncements(): Promise<Announcement[]> {
+    return this.adapter.listAnnouncements();
+  }
+
+  getAnnouncementById(announcementId: string): Promise<Announcement | null> {
+    return this.adapter.getAnnouncementById(announcementId);
+  }
+
+  markAnnouncementRead(announcementId: string): Promise<Announcement> {
+    return this.adapter.markAnnouncementRead(announcementId);
+  }
+
+  getNotificationPreference(): Promise<NotificationPreference> {
+    return this.adapter.getNotificationPreference();
+  }
+
+  saveNotificationPreference(
+    preference: NotificationPreference,
+  ): Promise<NotificationPreference> {
+    return this.adapter.saveNotificationPreference(preference);
   }
 }
 

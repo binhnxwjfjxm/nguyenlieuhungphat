@@ -1,4 +1,5 @@
 import type {
+  Announcement,
   Cart,
   CartLine,
   Category,
@@ -7,6 +8,7 @@ import type {
   CustomerOrderingAdapter,
   CustomerSession,
   DeliveryAddress,
+  NotificationPreference,
   OrderStatus,
   Product,
   ProductSearchInput,
@@ -21,11 +23,14 @@ import {
   MOCK_PRODUCTS,
   normalizeCatalogText,
 } from "@/lib/adapters/mock/mock-catalog";
+import { MOCK_ANNOUNCEMENTS } from "@/lib/adapters/mock/mock-announcements";
 
 const SESSION_KEY = "hp-customer-ordering:session:v1";
 const CART_KEY = "hp-customer-ordering:cart:v1";
 const CHECKOUT_DRAFT_KEY = "hp-customer-ordering:checkout-draft:v1";
 const ORDERS_KEY = "hp-customer-ordering:orders:v1";
+const ANNOUNCEMENT_READ_KEY = "hp-customer-ordering:announcement-read:v1";
+const NOTIFICATION_PREFERENCE_KEY = "hp-customer-ordering:notification-preference:v1";
 
 const KNOWN_ORDER_STATUSES = new Set<OrderStatus>([
   "DRAFT",
@@ -57,6 +62,13 @@ const MOCK_DELIVERY_ADDRESSES: DeliveryAddress[] = [
     isDefault: false,
   },
 ];
+
+const DEFAULT_NOTIFICATION_PREFERENCE: NotificationPreference = {
+  orderUpdates: true,
+  companyNews: true,
+  promotions: true,
+  updatedAt: new Date(0).toISOString(),
+};
 
 function cloneAddress(address: DeliveryAddress): DeliveryAddress {
   return { ...address };
@@ -100,6 +112,20 @@ function sanitizeCart(cart: Cart): Cart {
   return { lines, updatedAt: cart.updatedAt || new Date().toISOString() };
 }
 
+function normalizeNotificationPreference(
+  preference: Partial<NotificationPreference> | null,
+): NotificationPreference {
+  return {
+    orderUpdates: preference?.orderUpdates !== false,
+    companyNews: preference?.companyNews !== false,
+    promotions: preference?.promotions !== false,
+    updatedAt:
+      typeof preference?.updatedAt === "string" && Number.isFinite(Date.parse(preference.updatedAt))
+        ? preference.updatedAt
+        : DEFAULT_NOTIFICATION_PREFERENCE.updatedAt,
+  };
+}
+
 export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
   constructor(private readonly storage: KeyValueStorage) {}
 
@@ -111,6 +137,27 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
 
   private writeOrders(orders: CustomerOrder[]): void {
     this.storage.set(ORDERS_KEY, orders.map(normalizeOrder).slice(0, 50));
+  }
+
+  private readAnnouncementState(): Record<string, string> {
+    const stored = this.storage.get<Record<string, string>>(ANNOUNCEMENT_READ_KEY) ?? {};
+    return Object.fromEntries(
+      Object.entries(stored).filter(
+        ([id, readAt]) =>
+          MOCK_ANNOUNCEMENTS.some((announcement) => announcement.id === id) &&
+          typeof readAt === "string" &&
+          Number.isFinite(Date.parse(readAt)),
+      ),
+    );
+  }
+
+  private materializeAnnouncement(
+    announcementId: string,
+    readState: Record<string, string> = this.readAnnouncementState(),
+  ): Announcement | null {
+    const announcement = MOCK_ANNOUNCEMENTS.find((item) => item.id === announcementId);
+    if (!announcement) return null;
+    return { ...announcement, readAt: readState[announcement.id] ?? null };
   }
 
   async signIn(input: SignInInput): Promise<CustomerSession> {
@@ -336,5 +383,44 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
     });
     await this.saveCart(cart);
     return { cart, addedLineCount, skippedLineCount };
+  }
+
+  async listAnnouncements(): Promise<Announcement[]> {
+    const readState = this.readAnnouncementState();
+    return MOCK_ANNOUNCEMENTS.map((item) => ({ ...item, readAt: readState[item.id] ?? null })).sort(
+      (left, right) => right.publishedAt.localeCompare(left.publishedAt),
+    );
+  }
+
+  async getAnnouncementById(announcementId: string): Promise<Announcement | null> {
+    return this.materializeAnnouncement(announcementId);
+  }
+
+  async markAnnouncementRead(announcementId: string): Promise<Announcement> {
+    const existing = this.materializeAnnouncement(announcementId);
+    if (!existing) throw new Error("Không tìm thấy thông báo.");
+    if (existing.readAt) return existing;
+
+    const readState = this.readAnnouncementState();
+    readState[announcementId] = new Date().toISOString();
+    this.storage.set(ANNOUNCEMENT_READ_KEY, readState);
+    return this.materializeAnnouncement(announcementId, readState) ?? existing;
+  }
+
+  async getNotificationPreference(): Promise<NotificationPreference> {
+    return normalizeNotificationPreference(
+      this.storage.get<Partial<NotificationPreference>>(NOTIFICATION_PREFERENCE_KEY),
+    );
+  }
+
+  async saveNotificationPreference(
+    preference: NotificationPreference,
+  ): Promise<NotificationPreference> {
+    const normalized = normalizeNotificationPreference({
+      ...preference,
+      updatedAt: new Date().toISOString(),
+    });
+    this.storage.set(NOTIFICATION_PREFERENCE_KEY, normalized);
+    return normalized;
   }
 }
