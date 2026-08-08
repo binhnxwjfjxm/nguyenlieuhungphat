@@ -244,7 +244,7 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
   }
 
   async cancelOrder(orderId: string): Promise<CustomerOrder> {
-    const key = `portal-cancel:${orderId}`;
+    const key = `portal-cancel-${orderId}`;
     const data = await requestPortal<{ order: CustomerOrder }>(
       `/orders/${encodeURIComponent(orderId)}/cancel`,
       { method: "POST", body: JSON.stringify({}) },
