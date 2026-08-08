@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         hostname: "pub-7d2987fab97d4e3ebb2021a823973862.r2.dev",
         pathname: "/app-customer/image-system/**",
       },
+      {
+        protocol: "https",
+        hostname: "pub-7d2987fab97d4e3ebb2021a823973862.r2.dev",
+        pathname: "/app-customer/products/**",
+      },
     ],
   },
   turbopack: {
