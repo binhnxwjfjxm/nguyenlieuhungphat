@@ -28,6 +28,24 @@ test("Phase 9.2 Customer Ordering uses same-origin portal BFF and keeps Core sec
   assert.doesNotMatch(env, /CORE_API_SERVER_TOKEN|BACKEND_API_TOKEN/);
 });
 
+test("Phase 9.2 local UX state is Clerk-user scoped and does not drop Core-only SKUs", async () => {
+  const adapter = await source("lib/adapters/core/core-customer-ordering-adapter.ts");
+  assert.match(adapter, /PrefixedStorage/);
+  assert.match(adapter, /core-user:/);
+  assert.match(adapter, /CORE_CART_KEY/);
+  assert.match(adapter, /sanitizeCoreCart/);
+  assert.doesNotMatch(adapter, /getCart\(\): Promise<Cart> \{ return this\.local/);
+  assert.doesNotMatch(adapter, /MOCK_PRODUCTS\.some\(\(product\) => product\.sku === line\.sku\)/);
+});
+
+test("Phase 9.2 catalog cache is user-scoped and fetches pages in bounded parallel batches", async () => {
+  const adapter = await source("lib/adapters/core/core-customer-ordering-adapter.ts");
+  assert.match(adapter, /sharedCatalogByUser/);
+  assert.match(adapter, /PAGE_BATCH_SIZE = 4/);
+  assert.match(adapter, /Promise\.all\(offsets\.map/);
+  assert.match(adapter, /sharedCatalogByUser\.get\(userId\)/);
+});
+
 test("Phase 9.2 adapter does not create a second customer/order store", async () => {
   const adapter = await source("lib/adapters/core/core-customer-ordering-adapter.ts");
   assert.match(adapter, /requestPortal<\{ order: CustomerOrder \}>/);

@@ -1,6 +1,7 @@
 import type {
   Announcement,
   Cart,
+  CartLine,
   Category,
   CheckoutDraft,
   CustomerOrder,
@@ -18,7 +19,7 @@ import { loadClerkBrowser } from "@/lib/auth/clerk-browser";
 import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
 import { MockCustomerOrderingAdapter } from "@/lib/adapters/mock/mock-customer-ordering-adapter";
-import { BrowserStorage } from "@/lib/storage/browser-storage";
+import { BrowserStorage, type KeyValueStorage } from "@/lib/storage/browser-storage";
 
 interface PortalEnvelope<T> {
   data?: T;
@@ -40,6 +41,11 @@ interface PortalCatalogPage {
   offset: number;
 }
 
+type ClerkRuntime = Awaited<ReturnType<typeof loadClerkBrowser>> & {
+  session?: { getToken(): Promise<string | null> };
+  user?: { id?: string };
+};
+
 export class CustomerPortalRequestError extends Error {
   constructor(
     public readonly code: string,
@@ -53,10 +59,38 @@ export class CustomerPortalRequestError extends Error {
 }
 
 const PAGE_SIZE = 50;
-const localAdapter = () => new MockCustomerOrderingAdapter(new BrowserStorage());
+const PAGE_BATCH_SIZE = 4;
+const MAX_CATALOG_ITEMS = 10_000;
+const CORE_CART_KEY = "core-cart:v1";
+const CORE_CHECKOUT_DRAFT_KEY = "core-checkout-draft:v1";
+const sharedCatalogByUser = new Map<string, Promise<Product[]>>();
+
+class PrefixedStorage implements KeyValueStorage {
+  constructor(private readonly storage: KeyValueStorage, private readonly prefix: string) {}
+  get<T>(key: string): T | null { return this.storage.get<T>(`${this.prefix}:${key}`); }
+  set<T>(key: string, value: T): void { this.storage.set(`${this.prefix}:${key}`, value); }
+  remove(key: string): void { this.storage.remove(`${this.prefix}:${key}`); }
+}
 
 function cloneProduct(product: Product): Product {
   return { ...product, aliases: [...product.aliases], price: { ...product.price } };
+}
+
+function canonicalSku(value: string | undefined): string {
+  return value?.trim().toUpperCase() ?? "";
+}
+
+function sanitizeCoreCart(cart: Partial<Cart> | null): Cart {
+  const lines: CartLine[] = (Array.isArray(cart?.lines) ? cart.lines : [])
+    .map((line) => ({
+      sku: canonicalSku(line?.sku),
+      quantity: typeof line?.quantity === "number" && Number.isFinite(line.quantity)
+        ? Math.min(999, Math.max(1, Math.trunc(line.quantity)))
+        : 0,
+      ...(line?.note?.trim() ? { note: line.note.trim().slice(0, 2000) } : {}),
+    }))
+    .filter((line) => Boolean(line.sku) && line.quantity > 0);
+  return { lines, updatedAt: typeof cart?.updatedAt === "string" ? cart.updatedAt : new Date().toISOString() };
 }
 
 function genericProduct(item: PortalCatalogItem): Product {
@@ -104,21 +138,22 @@ function filterCatalog(products: Product[], input: ProductSearchInput = {}): Pro
     });
 }
 
-async function clerkBrowser() {
+async function clerkBrowser(): Promise<ClerkRuntime> {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
   if (!publishableKey) throw new CustomerPortalRequestError("CLERK_NOT_CONFIGURED", "Đăng nhập khách hàng chưa được cấu hình.", false, 503);
-  return await loadClerkBrowser(publishableKey) as Awaited<ReturnType<typeof loadClerkBrowser>> & { session?: { getToken(): Promise<string | null> } };
+  return await loadClerkBrowser(publishableKey) as ClerkRuntime;
 }
 
-async function clerkToken(): Promise<string> {
+async function clerkIdentity(): Promise<{ clerk: ClerkRuntime; userId: string; token: string }> {
   const clerk = await clerkBrowser();
+  const userId = clerk.user?.id?.trim() ?? "";
   const token = await clerk.session?.getToken();
-  if (!token) throw new CustomerPortalRequestError("CUSTOMER_PORTAL_AUTH_REQUIRED", "Vui lòng đăng nhập lại để tiếp tục.", false, 401);
-  return token;
+  if (!userId || !token) throw new CustomerPortalRequestError("CUSTOMER_PORTAL_AUTH_REQUIRED", "Vui lòng đăng nhập lại để tiếp tục.", false, 401);
+  return { clerk, userId, token };
 }
 
 async function requestPortal<T>(path: string, init: RequestInit = {}, idempotencyKey?: string): Promise<T> {
-  const token = await clerkToken();
+  const { token } = await clerkIdentity();
   let response: Response;
   try {
     response = await fetch(`/api/customer-portal${path}`, {
@@ -148,9 +183,39 @@ async function requestPortal<T>(path: string, init: RequestInit = {}, idempotenc
   return envelope.data;
 }
 
+async function fetchCatalogPages(): Promise<Product[]> {
+  const products: Product[] = [];
+  for (let startOffset = 0; startOffset < MAX_CATALOG_ITEMS; startOffset += PAGE_SIZE * PAGE_BATCH_SIZE) {
+    const offsets = Array.from({ length: PAGE_BATCH_SIZE }, (_, index) => startOffset + index * PAGE_SIZE)
+      .filter((offset) => offset < MAX_CATALOG_ITEMS);
+    const pages = await Promise.all(offsets.map(async (offset) => {
+      const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
+      return requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
+    }));
+    let reachedEnd = false;
+    for (const page of pages) {
+      products.push(...page.items.map(mapCatalogItem));
+      if (!page.hasMore || page.items.length < PAGE_SIZE) {
+        reachedEnd = true;
+        break;
+      }
+    }
+    if (reachedEnd) break;
+  }
+  return products;
+}
+
 export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
-  private readonly local = localAdapter();
-  private catalogPromise: Promise<Product[]> | null = null;
+  private readonly storage = new BrowserStorage();
+
+  private async userStorage(): Promise<PrefixedStorage> {
+    const { userId } = await clerkIdentity();
+    return new PrefixedStorage(this.storage, `hp-customer-ordering:core-user:${encodeURIComponent(userId)}`);
+  }
+
+  private async local(): Promise<MockCustomerOrderingAdapter> {
+    return new MockCustomerOrderingAdapter(await this.userStorage());
+  }
 
   async signIn(_input: SignInInput): Promise<CustomerSession> {
     throw new CustomerPortalRequestError("CLERK_SIGN_IN_REQUIRED", "Đăng nhập được quản lý bởi Clerk.", false, 400);
@@ -168,6 +233,8 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
 
   async signOut(): Promise<void> {
     const clerk = await clerkBrowser();
+    const userId = clerk.user?.id?.trim();
+    if (userId) sharedCatalogByUser.delete(userId);
     await clerk.signOut();
   }
 
@@ -176,21 +243,16 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
   }
 
   private async loadCatalog(): Promise<Product[]> {
-    if (this.catalogPromise) return this.catalogPromise;
-    this.catalogPromise = (async () => {
-      const products: Product[] = [];
-      for (let offset = 0; offset < 10_000; offset += PAGE_SIZE) {
-        const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-        const page = await requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
-        products.push(...page.items.map(mapCatalogItem));
-        if (!page.hasMore || page.items.length === 0) break;
-      }
-      return products;
-    })();
+    const { userId } = await clerkIdentity();
+    let promise = sharedCatalogByUser.get(userId);
+    if (!promise) {
+      promise = fetchCatalogPages();
+      sharedCatalogByUser.set(userId, promise);
+    }
     try {
-      return await this.catalogPromise;
+      return await promise;
     } catch (error) {
-      this.catalogPromise = null;
+      if (sharedCatalogByUser.get(userId) === promise) sharedCatalogByUser.delete(userId);
       throw error;
     }
   }
@@ -205,26 +267,45 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     return found ? cloneProduct(found) : null;
   }
 
-  getCart(): Promise<Cart> { return this.local.getCart(); }
-  saveCart(cart: Cart): Promise<void> { return this.local.saveCart(cart); }
+  async getCart(): Promise<Cart> {
+    const storage = await this.userStorage();
+    return sanitizeCoreCart(storage.get<Partial<Cart>>(CORE_CART_KEY));
+  }
+
+  async saveCart(cart: Cart): Promise<void> {
+    const storage = await this.userStorage();
+    storage.set(CORE_CART_KEY, sanitizeCoreCart(cart));
+  }
 
   async listDeliveryAddresses(): Promise<DeliveryAddress[]> {
     const data = await requestPortal<{ addresses: DeliveryAddress[] }>("/addresses");
     return data.addresses.map((address) => ({ ...address }));
   }
 
-  getCheckoutDraft(): Promise<CheckoutDraft> { return this.local.getCheckoutDraft(); }
-  saveCheckoutDraft(draft: CheckoutDraft): Promise<void> { return this.local.saveCheckoutDraft(draft); }
+  async getCheckoutDraft(): Promise<CheckoutDraft> {
+    const storage = await this.userStorage();
+    const stored = storage.get<CheckoutDraft>(CORE_CHECKOUT_DRAFT_KEY);
+    return stored ?? { addressId: null, orderNote: "", updatedAt: new Date(0).toISOString() };
+  }
+
+  async saveCheckoutDraft(draft: CheckoutDraft): Promise<void> {
+    const storage = await this.userStorage();
+    storage.set(CORE_CHECKOUT_DRAFT_KEY, {
+      addressId: draft.addressId,
+      orderNote: draft.orderNote.slice(0, 500),
+      updatedAt: draft.updatedAt || new Date().toISOString(),
+    });
+  }
 
   async submitOrder(input: SubmitOrderInput): Promise<CustomerOrder> {
-    const cart = await this.local.getCart();
+    const cart = await this.getCart();
     const data = await requestPortal<{ order: CustomerOrder }>(
       "/orders",
       { method: "POST", body: JSON.stringify({ addressId: input.addressId, orderNote: input.orderNote, lines: cart.lines }) },
       input.submissionKey,
     );
-    await this.local.saveCart({ lines: [], updatedAt: new Date().toISOString() });
-    await this.local.saveCheckoutDraft({ addressId: null, orderNote: "", updatedAt: new Date().toISOString() });
+    await this.saveCart({ lines: [], updatedAt: new Date().toISOString() });
+    await this.saveCheckoutDraft({ addressId: null, orderNote: "", updatedAt: new Date().toISOString() });
     return data.order;
   }
 
@@ -257,7 +338,7 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     const order = await this.getOrderById(orderId);
     if (!order) throw new CustomerPortalRequestError("CUSTOMER_PORTAL_ORDER_NOT_FOUND", "Không tìm thấy đơn hàng.", false, 404);
     const available = new Map((await this.loadCatalog()).map((product) => [product.sku.toUpperCase(), product]));
-    const cart = await this.local.getCart();
+    const cart = await this.getCart();
     const quantities = new Map(cart.lines.map((line) => [line.sku.toUpperCase(), { ...line }]));
     let addedLineCount = 0;
     let skippedLineCount = 0;
@@ -267,19 +348,20 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
       const current = quantities.get(line.sku.toUpperCase());
       quantities.set(line.sku.toUpperCase(), {
         sku: line.sku,
-        quantity: (current?.quantity ?? 0) + line.quantity,
+        quantity: Math.min(999, (current?.quantity ?? 0) + line.quantity),
         ...(line.note ? { note: line.note } : current?.note ? { note: current.note } : {}),
       });
       addedLineCount += 1;
     }
-    const next: Cart = { lines: [...quantities.values()], updatedAt: new Date().toISOString() };
-    await this.local.saveCart(next);
+    if (addedLineCount === 0) throw new CustomerPortalRequestError("CUSTOMER_PORTAL_REORDER_UNAVAILABLE", "Các mặt hàng trong đơn cũ hiện chưa thể thêm lại vào giỏ.", false, 409);
+    const next = sanitizeCoreCart({ lines: [...quantities.values()], updatedAt: new Date().toISOString() });
+    await this.saveCart(next);
     return { cart: next, addedLineCount, skippedLineCount };
   }
 
-  listAnnouncements(): Promise<Announcement[]> { return this.local.listAnnouncements(); }
-  getAnnouncementById(id: string): Promise<Announcement | null> { return this.local.getAnnouncementById(id); }
-  markAnnouncementRead(id: string): Promise<Announcement> { return this.local.markAnnouncementRead(id); }
-  getNotificationPreference(): Promise<NotificationPreference> { return this.local.getNotificationPreference(); }
-  saveNotificationPreference(value: NotificationPreference): Promise<NotificationPreference> { return this.local.saveNotificationPreference(value); }
+  async listAnnouncements(): Promise<Announcement[]> { return (await this.local()).listAnnouncements(); }
+  async getAnnouncementById(id: string): Promise<Announcement | null> { return (await this.local()).getAnnouncementById(id); }
+  async markAnnouncementRead(id: string): Promise<Announcement> { return (await this.local()).markAnnouncementRead(id); }
+  async getNotificationPreference(): Promise<NotificationPreference> { return (await this.local()).getNotificationPreference(); }
+  async saveNotificationPreference(value: NotificationPreference): Promise<NotificationPreference> { return (await this.local()).saveNotificationPreference(value); }
 }
