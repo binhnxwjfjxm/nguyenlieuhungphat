@@ -181,3 +181,197 @@ a:focus-visible,
     box-shadow: 0 6px 18px rgba(72, 54, 34, 0.07);
   }
 }
+
+/* Mobile homepage density + navigation tone refinement. */
+@media (max-width: 760px) {
+  .mobile-menu {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 70%),
+      rgba(90, 59, 32, 0.99);
+    box-shadow: 0 18px 36px rgba(63, 42, 24, 0.22);
+  }
+
+  .mobile-menu-nav {
+    gap: 0;
+    padding-top: 8px;
+    padding-bottom: 12px;
+  }
+
+  .mobile-menu-nav > a:not(.button) {
+    padding: 12px 2px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .mobile-menu .mobile-quote {
+    min-height: 42px;
+    margin-top: 8px;
+    border-radius: 12px;
+    padding-inline: 14px;
+    font-size: 0.78rem;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .mobile-menu .button-surface {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
+    color: #fffdf8;
+  }
+
+  .mobile-menu .button-surface:hover,
+  .mobile-menu .button-surface:active {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .mobile-menu .button-primary {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: linear-gradient(180deg, #b57b22, var(--hp-bronze));
+    color: #fffdf8;
+    box-shadow: none;
+  }
+
+  .home-page .hero {
+    padding-top: 10px;
+  }
+
+  .home-page .hero-grid {
+    gap: 12px;
+  }
+
+  .home-page .hero-copy {
+    padding-top: 22px;
+  }
+
+  .home-page .hero-description {
+    margin-top: 14px;
+    line-height: 1.62;
+  }
+
+  .home-page .hero-actions {
+    margin-top: 18px;
+  }
+
+  .home-page .hero-collage {
+    display: block;
+  }
+
+  .home-page .hero-stack {
+    display: none;
+  }
+
+  .home-page .hero-picture-main {
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+    border-radius: 18px;
+  }
+
+  .home-page .section {
+    padding: 32px 0;
+  }
+
+  .home-page .section-tight {
+    padding: 26px 0;
+  }
+
+  .home-page .section + .section,
+  .home-page .section + .section-tight,
+  .home-page .section-tight + .section {
+    padding-top: 12px;
+  }
+
+  .home-page .section-heading {
+    margin-bottom: 16px;
+  }
+
+  .home-page .section-heading p:not(.eyebrow) {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    line-height: 1.58;
+  }
+
+  .home-page .trust-strip {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .home-page .category-layout {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    margin-inline: -12px;
+    padding: 0 12px 10px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .home-page .category-layout::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-page .category-stack {
+    display: contents;
+  }
+
+  .home-page .category-layout > *,
+  .home-page .category-stack > * {
+    flex: 0 0 min(82vw, 310px);
+    scroll-snap-align: start;
+  }
+
+  .home-page .category-card-featured .category-image-wrap,
+  .home-page .category-card-compact .category-image-wrap {
+    height: 164px;
+  }
+
+  .home-page .category-content {
+    padding: 16px 16px 18px;
+  }
+
+  .home-page .category-content p {
+    min-height: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 8px 0 12px;
+    font-size: 0.72rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .home-page .category-interest-strip {
+    margin-top: 10px;
+    padding: 14px;
+  }
+
+  .home-page .capability-card-large .capability-image-wrap,
+  .home-page .capability-image-wrap-large {
+    min-height: 210px !important;
+  }
+
+  .home-page .capability-card-small .capability-image-wrap {
+    min-height: 160px;
+  }
+
+  .home-page .capability-highlights {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .home-page .capability-highlights span {
+    gap: 3px;
+    padding: 11px 7px;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .home-page .capability-highlights strong {
+    font-size: 0.94rem;
+  }
+
+  .home-page .capability-highlights small {
+    font-size: 0.56rem;
+    line-height: 1.35;
+  }
+}
