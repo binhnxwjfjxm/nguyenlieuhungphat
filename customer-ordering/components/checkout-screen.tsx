@@ -9,7 +9,8 @@ import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
 import type { Cart, CheckoutDraft, DeliveryAddress, Product } from "@/lib/contracts";
 
 function formatMoney(amount: number): string { return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(amount); }
-function newSubmissionKey(): string { return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `mock-submit-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function newSubmissionKey(): string { return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `customer-submit-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function isRetryable(reason: unknown): boolean { return typeof reason === "object" && reason !== null && "retryable" in reason && (reason as { retryable?: boolean }).retryable === true; }
 
 export function CheckoutScreen() {
   const service = useMemo(() => createCustomerOrderingService(), []);
@@ -49,7 +50,7 @@ export function CheckoutScreen() {
     if (submitting || !cart || cart.lines.length === 0 || !addressId) return;
     setSubmitting(true); setError(""); submissionKeyRef.current ??= newSubmissionKey();
     try { const order = await service.submitOrder({ addressId, orderNote, submissionKey: submissionKeyRef.current }); announceCartUpdated(); router.push(`/order-success/${order.id}`); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Không gửi được đơn hàng."); submissionKeyRef.current = null; setSubmitting(false); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Không gửi được đơn hàng."); if (!isRetryable(reason)) submissionKeyRef.current = null; setSubmitting(false); }
   }
 
   if (!loaded) return <section aria-label="Đang tải xác nhận đơn" className="checkout-screen"><div className="checkout-card is-skeleton" /><div className="checkout-card is-skeleton" /></section>;

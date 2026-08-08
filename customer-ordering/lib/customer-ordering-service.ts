@@ -14,6 +14,7 @@ import type {
   SignInInput,
   SubmitOrderInput,
 } from "@/lib/contracts";
+import { CoreCustomerOrderingAdapter } from "@/lib/adapters/core/core-customer-ordering-adapter";
 import { MockCustomerOrderingAdapter } from "@/lib/adapters/mock/mock-customer-ordering-adapter";
 import { BrowserStorage } from "@/lib/storage/browser-storage";
 
@@ -45,5 +46,10 @@ export class CustomerOrderingService {
 }
 
 export function createCustomerOrderingService(): CustomerOrderingService {
-  return new CustomerOrderingService(new MockCustomerOrderingAdapter(new BrowserStorage()));
+  const mode = process.env.NEXT_PUBLIC_CUSTOMER_ORDERING_DATA_MODE?.trim().toLowerCase();
+  const useMock = mode === "mock" || (!mode && process.env.NODE_ENV !== "production");
+  const adapter: CustomerOrderingAdapter = useMock
+    ? new MockCustomerOrderingAdapter(new BrowserStorage())
+    : new CoreCustomerOrderingAdapter();
+  return new CustomerOrderingService(adapter);
 }
