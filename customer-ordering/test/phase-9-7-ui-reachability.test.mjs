@@ -7,6 +7,7 @@ const page = (href) => href === "/" ? "app/page.tsx" : `app${href}/page.tsx`;
 
 const shell = read("components/app-shell.tsx");
 const cartBadge = read("components/cart-badge.tsx");
+const customerLogo = read("components/customer-logo.tsx");
 const envExample = read(".env.example");
 
 const primaryRoutes = ["/", "/products", "/quick-order", "/orders", "/account"];
@@ -39,9 +40,10 @@ test("Phase 9.7 Customer Ordering keeps Core routing server-owned and declares r
   for (const name of [
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_CUSTOMER_ORDERING_DATA_MODE",
-    "CORE_API_BASE_URL",
-    "NEXT_PUBLIC_CUSTOMER_LOGO_URL"
+    "CORE_API_BASE_URL"
   ]) assert.match(envExample, new RegExp(`^${name}=`, "m"), name);
   assert.match(envExample, /^NEXT_PUBLIC_CUSTOMER_ORDERING_DATA_MODE=core$/m);
   assert.doesNotMatch(envExample, /NEXT_PUBLIC_CORE_API_BASE_URL/);
+  assert.doesNotMatch(envExample, /NEXT_PUBLIC_CUSTOMER_LOGO_URL/);
+  assert.match(customerLogo, /const CUSTOMER_LOGO_SRC = "\/logo-transparent\.png";/);
 });
