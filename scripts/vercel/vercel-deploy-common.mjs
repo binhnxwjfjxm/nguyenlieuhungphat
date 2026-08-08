@@ -160,7 +160,11 @@ export async function deployTarget(target) {
     }
 
     const deployArgs = ["deploy"];
-    if (config.deployMode === "prebuilt") deployArgs.push("--prebuilt");
+    if (config.deployMode === "prebuilt") {
+      deployArgs.push("--prebuilt");
+    } else {
+      deployArgs.push("--archive=tgz");
+    }
     deployArgs.push("--prod", "--yes", "--token", token);
 
     const deploymentUrl = run("vercel", deployArgs, { cwd: repositoryCwd, env, capture: true })
