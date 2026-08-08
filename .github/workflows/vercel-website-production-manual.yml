@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.event.issue.pull_request == null &&
       github.event.comment.body == '/deploy-website-production' &&
-      github.event.issue.number == fromJSON(vars.VERCEL_DEPLOY_CONTROL_ISSUE_NUMBER || '0') &&
+      github.event.issue.number == 4 &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     timeout-minutes: 30
