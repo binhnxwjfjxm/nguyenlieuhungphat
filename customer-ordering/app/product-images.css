@@ -1,0 +1,53 @@
+/* R2 product photos layer over the existing visual shell. Missing families keep the package placeholder. */
+.catalog-product-visual.has-product-image {
+  background: linear-gradient(180deg, #fff 0%, #f8faf8 100%);
+}
+
+.catalog-product-image {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.catalog-product-visual.is-compact .catalog-product-image {
+  padding: 6px;
+}
+
+.catalog-product-visual.has-product-image .catalog-product-shine {
+  z-index: 2;
+  opacity: .16;
+  pointer-events: none;
+}
+
+.product-detail-screen > .catalog-product-visual.has-product-image,
+.product-quick-view > .catalog-product-visual.has-product-image {
+  background: #fff;
+}
+
+.product-detail-screen > .catalog-product-visual .catalog-product-image {
+  padding: 16px;
+}
+
+.product-quick-view > .catalog-product-visual .catalog-product-image {
+  padding: 14px;
+}
+
+@media (max-width: 520px) {
+  .catalog-product-image {
+    padding: 8px;
+  }
+
+  .catalog-product-visual.is-compact .catalog-product-image {
+    padding: 5px;
+  }
+
+  .product-detail-screen > .catalog-product-visual .catalog-product-image,
+  .product-quick-view > .catalog-product-visual .catalog-product-image {
+    padding: 10px;
+  }
+}

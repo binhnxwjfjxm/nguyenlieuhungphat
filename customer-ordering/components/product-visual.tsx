@@ -1,6 +1,31 @@
+import Image from "next/image";
 import { PackageOpen } from "lucide-react";
 import type { Product } from "@/lib/contracts";
+import { productImageUrl } from "@/lib/product-images";
 
 export function ProductVisual({ product, compact = false }: Readonly<{ product: Product; compact?: boolean }>) {
-  return <div aria-label={`Minh họa bao bì ${product.name}`} className={`catalog-product-visual tone-${product.visualTone}${compact ? " is-compact" : ""}`} role="img"><span className="catalog-product-pack"><PackageOpen aria-hidden="true" size={compact ? 30 : 42} strokeWidth={1.45} /><small>{product.sku}</small></span><span className="catalog-product-shine" /></div>;
+  const imageUrl = productImageUrl(product);
+  const className = `catalog-product-visual tone-${product.visualTone}${compact ? " is-compact" : ""}${imageUrl ? " has-product-image" : ""}`;
+
+  return (
+    <div aria-label={`Hình sản phẩm ${product.name}`} className={className} role="img">
+      {imageUrl ? (
+        <Image
+          alt=""
+          aria-hidden
+          className="catalog-product-image"
+          fill
+          sizes={compact ? "(max-width: 520px) 42vw, 180px" : "(max-width: 520px) 50vw, 320px"}
+          src={imageUrl}
+          unoptimized
+        />
+      ) : (
+        <span className="catalog-product-pack">
+          <PackageOpen aria-hidden="true" size={compact ? 30 : 42} strokeWidth={1.45} />
+          <small>{product.familySku}</small>
+        </span>
+      )}
+      <span className="catalog-product-shine" />
+    </div>
+  );
 }
