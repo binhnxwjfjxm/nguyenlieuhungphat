@@ -10,7 +10,7 @@ import { QuoteCta } from "@/components/quote-cta";
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="home-page">
       <HomeStructuredData />
       <Hero />
       <TrustSection />
