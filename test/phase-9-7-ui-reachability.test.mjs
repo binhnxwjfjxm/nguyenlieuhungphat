@@ -8,6 +8,7 @@ const page = (href) => href === "/" ? "app/page.tsx" : `app${href}/page.tsx`;
 const site = read("data/site.ts");
 const header = read("components/header.tsx");
 const footer = read("components/footer.tsx");
+const contact = read("lib/contact.ts");
 const envExample = read(".env.example");
 
 const primaryRoutes = ["/", "/gioi-thieu", "/nganh-hang", "/san-pham", "/lien-he", "/tuyen-dung"];
@@ -18,7 +19,8 @@ test("Phase 9.7 website primary navigation resolves to real App Router pages", (
     assert.ok(site.includes(`href: \"${href}\"`), `website navigation missing ${href}`);
     assert.ok(existsSync(page(href)), `website route ${href} has no page.tsx`);
   }
-  assert.ok(footer.includes("/chinh-sach-bao-mat"), "privacy route must remain reachable from footer");
+  assert.match(footer, /PRIVACY_POLICY_PATH/);
+  assert.match(contact, /PRIVACY_POLICY_PATH\s*=\s*\"\/chinh-sach-bao-mat\"/);
   assert.ok(existsSync("app/chinh-sach-bao-mat/page.tsx"), "privacy page missing");
 });
 
