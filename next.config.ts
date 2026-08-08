@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["pg-cloudflare"],
   images: {
+    // Product/catalog assets are already prepared for the web on R2.
+    // Serve them directly instead of consuming Vercel Image Optimization quota.
+    unoptimized: true,
     remotePatterns: r2Hostname
       ? [
           {
