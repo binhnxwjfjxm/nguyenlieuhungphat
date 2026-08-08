@@ -10,6 +10,7 @@ export const TARGETS = {
     projectEnv: "VERCEL_WEBSITE_PROJECT_ID",
     otherProjectEnv: "VERCEL_CUSTOMER_ORDERING_PROJECT_ID",
     originEnv: "WEBSITE_PRODUCTION_ORIGIN",
+    deployMode: "source",
     smokePaths: ["/", "/san-pham"],
   },
   "customer-ordering": {
@@ -17,6 +18,7 @@ export const TARGETS = {
     projectEnv: "VERCEL_CUSTOMER_ORDERING_PROJECT_ID",
     otherProjectEnv: "VERCEL_WEBSITE_PROJECT_ID",
     originEnv: "CUSTOMER_ORDERING_PRODUCTION_ORIGIN",
+    deployMode: "prebuilt",
     smokePaths: ["/login", "/", "/products", "/quick-order", "/orders", "/manifest.webmanifest"],
   },
 };
@@ -152,8 +154,18 @@ export async function deployTarget(target) {
     run("npm", ["ci"], { cwd: appCwd, env });
     run("npm", ["run", "build"], { cwd: appCwd, env });
     run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd: repositoryCwd, env });
-    run("vercel", ["build", "--prod", "--token", token], { cwd: repositoryCwd, env });
-    const deploymentUrl = run("vercel", ["deploy", "--prebuilt", "--prod", "--yes", "--token", token], { cwd: repositoryCwd, env, capture: true }).split(/\s+/).find((value) => value.startsWith("https://"));
+
+    if (config.deployMode === "prebuilt") {
+      run("vercel", ["build", "--prod", "--token", token], { cwd: repositoryCwd, env });
+    }
+
+    const deployArgs = ["deploy"];
+    if (config.deployMode === "prebuilt") deployArgs.push("--prebuilt");
+    deployArgs.push("--prod", "--yes", "--token", token);
+
+    const deploymentUrl = run("vercel", deployArgs, { cwd: repositoryCwd, env, capture: true })
+      .split(/\s+/)
+      .find((value) => value.startsWith("https://"));
     if (!deploymentUrl) throw new Error("Vercel CLI did not return a deployment URL.");
     const productionOrigin = process.env[config.originEnv] ?? "";
     if (!productionOrigin) throw new Error(`${config.originEnv} is required for production smoke.`);
