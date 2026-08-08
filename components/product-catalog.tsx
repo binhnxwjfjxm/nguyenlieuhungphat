@@ -3,8 +3,15 @@
 import Image from "next/image";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { Product, ProductCategory } from "@/data/products";
+import {
+  groupProductFamilies,
+  productVariantLabel,
+  type Product,
+  type ProductCategory,
+  type ProductFamily,
+} from "@/data/products";
 import { normalizeSearchText } from "@/lib/search";
+import familyStyles from "./product-family.module.css";
 import { HapticLink } from "./haptic-link";
 import { ProductCard } from "./product-card";
 import { QuoteButton } from "./quote-trigger";
@@ -31,7 +38,7 @@ export function ProductCatalog({
   const [sort, setSort] = useState("featured");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(24);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedFamily, setSelectedFamily] = useState<ProductFamily | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -44,42 +51,51 @@ export function ProductCatalog({
     window.history.replaceState(null, "", nextUrl);
   }, [query, category, origin, application, sort]);
 
-  const filteredProducts = useMemo(() => {
+  const families = useMemo(() => groupProductFamilies(products), [products]);
+
+  const filteredFamilies = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query);
-    const result = products.filter((product) => {
+    const result = families.filter((family) => {
       const searchable = normalizeSearchText(
-        [
-          product.name,
-          product.brand ?? "",
-          product.category,
-          product.origin,
-          product.packaging,
-          product.shortDescription,
-          ...product.applications,
-          ...product.features,
-          ...product.specifications.map((specification) => `${specification.label} ${specification.value}`),
-        ].join(" "),
+        family.variants
+          .flatMap((product) => [
+            family.name,
+            product.name,
+            product.brand ?? "",
+            product.category,
+            product.origin,
+            product.packaging,
+            product.shortDescription,
+            ...product.applications,
+            ...product.features,
+            ...product.specifications.map((specification) => `${specification.label} ${specification.value}`),
+          ])
+          .join(" "),
       );
       return (
         (!normalizedQuery || searchable.includes(normalizedQuery)) &&
-        (!category || product.categorySlug === category) &&
-        (!origin || product.origin === origin) &&
-        (!application || product.applications.includes(application))
+        (!category || family.categorySlug === category) &&
+        (!origin || family.variants.some((product) => product.origin === origin)) &&
+        (!application || family.variants.some((product) => product.applications.includes(application)))
       );
     });
 
     return [...result].sort((a, b) => {
       if (sort === "name-asc") return a.name.localeCompare(b.name, "vi");
       if (sort === "name-desc") return b.name.localeCompare(a.name, "vi");
-      return Number(b.featured) - Number(a.featured);
+      return Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name, "vi");
     });
-  }, [application, category, origin, products, query, sort]);
+  }, [application, category, families, origin, query, sort]);
 
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const visibleFamilies = filteredFamilies.slice(0, visibleCount);
+  const filteredVariantCount = useMemo(
+    () => filteredFamilies.reduce((total, family) => total + family.variants.length, 0),
+    [filteredFamilies],
+  );
   const selectedPreview = useMemo(() => {
-    if (!selectedProduct) return null;
-    return filteredProducts.some((product) => product.slug === selectedProduct.slug) ? selectedProduct : null;
-  }, [filteredProducts, selectedProduct]);
+    if (!selectedFamily) return null;
+    return filteredFamilies.some((family) => family.key === selectedFamily.key) ? selectedFamily : null;
+  }, [filteredFamilies, selectedFamily]);
   const hasFilters = Boolean(query || category || origin || application || sort !== "featured");
   const isEmptyCatalog = products.length === 0;
 
@@ -118,7 +134,7 @@ export function ProductCatalog({
   }
 
   function closePreview() {
-    setSelectedProduct(null);
+    setSelectedFamily(null);
   }
 
   useEffect(() => {
@@ -145,7 +161,7 @@ export function ProductCatalog({
           <Search size={19} />
           <input
             type="search"
-            placeholder="Tìm sản phẩm, nhu cầu..."
+            placeholder="Tìm sản phẩm, vị, thương hiệu..."
             value={query}
             onChange={(event) => updateQuery(event.target.value)}
           />
@@ -188,9 +204,7 @@ export function ProductCatalog({
             <select value={origin} onChange={(event) => updateOrigin(event.target.value)}>
               <option value="">Tất cả ngành hàng</option>
               {origins.map((item) => (
-                <option value={item} key={item}>
-                  {item}
-                </option>
+                <option value={item} key={item}>{item}</option>
               ))}
             </select>
           </label>
@@ -200,9 +214,7 @@ export function ProductCatalog({
             <select value={application} onChange={(event) => updateApplication(event.target.value)}>
               <option value="">Tất cả ứng dụng</option>
               {applications.map((item) => (
-                <option value={item} key={item}>
-                  {item}
-                </option>
+                <option value={item} key={item}>{item}</option>
               ))}
             </select>
           </label>
@@ -220,7 +232,8 @@ export function ProductCatalog({
         <section className="catalog-results">
           <div className="catalog-result-header">
             <p>
-              <strong>{filteredProducts.length}</strong> sản phẩm phù hợp
+              <strong>{filteredFamilies.length}</strong> dòng sản phẩm
+              {filteredVariantCount !== filteredFamilies.length ? <span> · {filteredVariantCount} lựa chọn</span> : null}
             </p>
             {hasFilters ? <button type="button" onClick={resetFilters}>Xóa bộ lọc</button> : null}
           </div>
@@ -231,18 +244,25 @@ export function ProductCatalog({
               <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
               <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
             </div>
-          ) : filteredProducts.length ? (
+          ) : filteredFamilies.length ? (
             <>
               <div className="product-grid catalog-grid">
-                {visibleProducts.map((product) => (
-                  <ProductCard key={product.slug} product={product} onOpen={setSelectedProduct} />
+                {visibleFamilies.map((family) => (
+                  <ProductCard
+                    key={family.key}
+                    product={family.primary}
+                    displayName={family.name}
+                    variantCount={family.variants.length}
+                    variantLabels={family.variants.map((product) => productVariantLabel(product, family))}
+                    onOpen={() => setSelectedFamily(family)}
+                  />
                 ))}
               </div>
 
-              {filteredProducts.length > visibleCount ? (
+              {filteredFamilies.length > visibleCount ? (
                 <div className="catalog-more-row">
                   <button className="button button-ghost catalog-more-button" type="button" onClick={() => setVisibleCount((value) => value + 24)}>
-                    Xem thêm {Math.min(24, filteredProducts.length - visibleCount)} sản phẩm
+                    Xem thêm {Math.min(24, filteredFamilies.length - visibleCount)} dòng sản phẩm
                   </button>
                 </div>
               ) : null}
@@ -276,7 +296,7 @@ export function ProductCatalog({
             <div className="product-modal-layout">
               <div className="product-modal-media">
                 <Image
-                  src={selectedPreview.image}
+                  src={selectedPreview.primary.image}
                   alt={selectedPreview.name}
                   fill
                   sizes="(max-width: 900px) 100vw, 44vw"
@@ -288,39 +308,45 @@ export function ProductCatalog({
                 <p className="eyebrow">{selectedPreview.origin}</p>
                 <h2 id="product-preview-title">{selectedPreview.name}</h2>
                 <p className="product-modal-code">{selectedPreview.brand ?? selectedPreview.origin}</p>
-                <p className="product-modal-summary">{selectedPreview.shortDescription}</p>
+                <p className="product-modal-summary">
+                  {selectedPreview.variants.length > 1
+                    ? `Có ${selectedPreview.variants.length} lựa chọn vị hoặc quy cách. Chọn bên dưới để xem đúng sản phẩm.`
+                    : selectedPreview.primary.shortDescription}
+                </p>
 
                 <div className="product-modal-meta">
-                  <div>
-                    <span>Ngành hàng</span>
-                    <strong>{selectedPreview.origin}</strong>
-                  </div>
-                  <div>
-                    <span>Nhóm hàng</span>
-                    <strong>{selectedPreview.category}</strong>
-                  </div>
-                  <div>
-                    <span>Thương hiệu</span>
-                    <strong>{selectedPreview.brand ?? "Hưng Phát"}</strong>
-                  </div>
+                  <div><span>Ngành hàng</span><strong>{selectedPreview.origin}</strong></div>
+                  <div><span>Nhóm hàng</span><strong>{selectedPreview.category}</strong></div>
+                  <div><span>Thương hiệu</span><strong>{selectedPreview.brand ?? "Hưng Phát"}</strong></div>
                 </div>
 
-                <div className="product-modal-specs">
-                  {selectedPreview.specifications.map((specification) => (
-                    <div key={specification.label}>
-                      <span>{specification.label}</span>
-                      <strong>{specification.value}</strong>
-                    </div>
-                  ))}
-                </div>
+                {selectedPreview.variants.length > 1 ? (
+                  <div className={familyStyles.variantList} aria-label="Các lựa chọn sản phẩm">
+                    {selectedPreview.variants.map((product) => (
+                      <HapticLink className={familyStyles.variantOption} href={`/san-pham/${product.slug}`} key={product.slug}>
+                        <span>{productVariantLabel(product, selectedPreview)}</span>
+                        <small>{product.englishName}</small>
+                      </HapticLink>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="product-modal-specs">
+                    {selectedPreview.primary.specifications.map((specification) => (
+                      <div key={specification.label}>
+                        <span>{specification.label}</span>
+                        <strong>{specification.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="product-modal-actions">
-                  <HapticLink className="button button-ghost" href={`/san-pham/${selectedPreview.slug}`}>
+                  <HapticLink className="button button-ghost" href={`/san-pham/${selectedPreview.primary.slug}`}>
                     Mở trang chi tiết
                   </HapticLink>
                   <QuoteButton
                     className="button button-primary"
-                    seed={{ product: selectedPreview.name, source: "product-modal", pathname: `/san-pham/${selectedPreview.slug}` }}
+                    seed={{ product: selectedPreview.name, source: "product-modal", pathname: `/san-pham/${selectedPreview.primary.slug}` }}
                   >
                     Nhận báo giá
                   </QuoteButton>
