@@ -1,0 +1,138 @@
+.variantPreview {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.variantPreview > strong {
+  color: var(--green-dark);
+  font-size: 0.75rem;
+}
+
+.variantChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.variantChips span {
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 230px;
+  margin-top: 16px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.variantOption {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--surface-soft);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.variantOption:hover,
+.variantOption:focus-visible {
+  border-color: rgba(102, 122, 79, 0.55);
+  background: var(--green-soft);
+  transform: translateY(-1px);
+}
+
+.variantOption span {
+  overflow: hidden;
+  color: var(--brown-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantOption small {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.detailFamily {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 15px;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.detailFamily > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detailFamily > div:first-child strong {
+  color: var(--brown-dark);
+}
+
+.detailFamily > div:first-child span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.detailVariants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.detailVariant {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.detailVariant:hover,
+.detailVariant:focus-visible,
+.active {
+  border-color: var(--green-dark);
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+
+@media (max-width: 640px) {
+  .variantList {
+    grid-template-columns: 1fr;
+    max-height: 260px;
+  }
+
+  .detailFamily > div:first-child {
+    display: grid;
+    gap: 4px;
+  }
+
+  .detailVariant {
+    padding: 7px 10px;
+  }
+}

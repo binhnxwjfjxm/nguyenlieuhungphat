@@ -5,6 +5,7 @@ import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { navigation } from "@/data/site";
 import { CUSTOMER_ORDERING_URL } from "@/lib/contact";
+import { AppInstallGuide } from "./app-install-guide";
 import { HapticLink } from "./haptic-link";
 import { Logo } from "./logo";
 import { QuoteButton } from "./quote-trigger";
@@ -29,6 +30,7 @@ export function Header() {
           <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm sản phẩm">
             <Search size={19} />
           </HapticLink>
+          <AppInstallGuide className="button button-surface" label="Cài app" />
           <QuoteButton className="button button-surface">Nhận báo giá</QuoteButton>
           <a className="button button-primary" href={CUSTOMER_ORDERING_URL}>
             Đặt hàng
@@ -66,6 +68,7 @@ export function Header() {
                   {item.label}
                 </HapticLink>
               ))}
+              <AppInstallGuide className="button button-surface mobile-quote" label="Cài app đặt hàng" />
               <QuoteButton className="button button-surface mobile-quote" onClick={() => setOpen(false)}>
                 Nhận báo giá
               </QuoteButton>

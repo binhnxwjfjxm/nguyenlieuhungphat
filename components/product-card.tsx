@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import type { Product } from "@/data/products";
 import { HapticLink } from "./haptic-link";
+import familyStyles from "./product-family.module.css";
 import { QuoteButton } from "./quote-trigger";
 
 function vibrate() {
@@ -19,12 +20,23 @@ type ProductCardProps = {
   product: Product;
   compact?: boolean;
   onOpen?: (product: Product) => void;
+  displayName?: string;
+  variantLabels?: string[];
+  variantCount?: number;
 };
 
-export function ProductCard({ product, compact = false, onOpen }: ProductCardProps) {
+export function ProductCard({
+  product,
+  compact = false,
+  onOpen,
+  displayName = product.name,
+  variantLabels = [],
+  variantCount = 1,
+}: ProductCardProps) {
   const [saved, setSaved] = useState(false);
   const reduceMotion = useReducedMotion();
   const clickable = Boolean(onOpen);
+  const visibleVariantLabels = [...new Set(variantLabels.filter(Boolean))].slice(0, 3);
 
   function toggleSaved(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
@@ -54,7 +66,7 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
       className={`product-card${compact ? " product-card-compact" : ""}${clickable ? " is-clickable" : ""}`}
       role={clickable ? "button" : undefined}
       tabIndex={clickable ? 0 : undefined}
-      aria-label={clickable ? `Xem nhanh ${product.name}` : undefined}
+      aria-label={clickable ? `Xem ${displayName} và các lựa chọn` : undefined}
       whileHover={reduceMotion ? undefined : { y: -6 }}
       whileTap={reduceMotion ? undefined : { scale: 0.985 }}
       transition={{ duration: 0.2 }}
@@ -65,7 +77,7 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
         <div className="product-image-wrap">
           <Image
             src={product.image}
-            alt={product.name}
+            alt={displayName}
             fill
             sizes="(max-width: 720px) 50vw, (max-width: 1080px) 33vw, 25vw"
             style={{ objectFit: compact ? "contain" : "cover", objectPosition: "center center" }}
@@ -76,7 +88,7 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
         <HapticLink className="product-image-wrap" href={`/san-pham/${product.slug}`}>
           <Image
             src={product.image}
-            alt={product.name}
+            alt={displayName}
             fill
             sizes="(max-width: 720px) 50vw, (max-width: 1080px) 33vw, 25vw"
             style={{ objectFit: compact ? "contain" : "cover", objectPosition: "center center" }}
@@ -106,12 +118,24 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
         </div>
         <h3>
           {clickable ? (
-            <span className="product-card-title">{product.name}</span>
+            <span className="product-card-title">{displayName}</span>
           ) : (
-            <HapticLink href={`/san-pham/${product.slug}`}>{product.name}</HapticLink>
+            <HapticLink href={`/san-pham/${product.slug}`}>{displayName}</HapticLink>
           )}
         </h3>
         <p className={`product-summary${compact ? " product-summary-compact" : ""}`}>{product.shortDescription}</p>
+
+        {variantCount > 1 ? (
+          <div className={familyStyles.variantPreview} aria-label={`${variantCount} lựa chọn`}>
+            <strong>{variantCount} lựa chọn</strong>
+            {visibleVariantLabels.length ? (
+              <div className={familyStyles.variantChips}>
+                {visibleVariantLabels.map((label) => <span key={label}>{label}</span>)}
+                {variantCount > visibleVariantLabels.length ? <span>+{variantCount - visibleVariantLabels.length}</span> : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="product-card-metadata">
           <span>{product.origin}</span>
@@ -121,12 +145,12 @@ export function ProductCard({ product, compact = false, onOpen }: ProductCardPro
         <div className="product-card-actions">
           {clickable ? null : (
             <HapticLink href={`/san-pham/${product.slug}`} className="product-link">
-              Xem chi tiết <ArrowUpRight size={16} />
+              {variantCount > 1 ? "Xem các lựa chọn" : "Xem chi tiết"} <ArrowUpRight size={16} />
             </HapticLink>
           )}
           <QuoteButton
             className="product-quote-button"
-            seed={{ product: product.name, source: "product-card", pathname: `/san-pham/${product.slug}` }}
+            seed={{ product: displayName, source: "product-card", pathname: `/san-pham/${product.slug}` }}
             onClick={(event) => event.stopPropagation()}
           >
             Nhận báo giá

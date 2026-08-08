@@ -4,10 +4,17 @@ import Link from "next/link";
 import { ArrowLeft, Check, MapPin, MessageCircle, Package } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
+import familyStyles from "@/components/product-family.module.css";
 import { QuoteCta } from "@/components/quote-cta";
 import { QuoteForm } from "@/components/quote-form";
 import { QuoteButton } from "@/components/quote-trigger";
-import { getProductBySlug, getRelatedProducts, products } from "@/data/products";
+import {
+  getProductBySlug,
+  getProductFamily,
+  getRelatedProducts,
+  productVariantLabel,
+  products,
+} from "@/data/products";
 import { ZALO_URL } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 
@@ -39,6 +46,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const product = getProductBySlug(slug);
   if (!product) notFound();
 
+  const family = getProductFamily(product);
+  const familyVariants = family?.variants ?? [product];
   const relatedProducts = getRelatedProducts(product);
   const productSchema = {
     "@context": "https://schema.org",
@@ -74,25 +83,40 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {product.brand ? <p className="product-detail-brand">{product.brand}</p> : null}
               <p className="product-detail-lead">{product.shortDescription}</p>
 
+              {family && familyVariants.length > 1 ? (
+                <div className={familyStyles.detailFamily}>
+                  <div>
+                    <strong>{family.name}</strong>
+                    <span>{familyVariants.length} lựa chọn vị / quy cách</span>
+                  </div>
+                  <div className={familyStyles.detailVariants} aria-label="Chọn vị hoặc quy cách">
+                    {familyVariants.map((variant) => (
+                      <Link
+                        className={`${familyStyles.detailVariant}${variant.slug === product.slug ? ` ${familyStyles.active}` : ""}`}
+                        href={`/san-pham/${variant.slug}`}
+                        key={variant.slug}
+                        aria-current={variant.slug === product.slug ? "page" : undefined}
+                      >
+                        {productVariantLabel(variant, family)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="product-meta-grid">
                 <div>
                   <MapPin size={20} />
-                  <span>
-                    Ngành hàng<strong>{product.origin}</strong>
-                  </span>
+                  <span>Ngành hàng<strong>{product.origin}</strong></span>
                 </div>
                 <div>
                   <Package size={20} />
-                  <span>
-                    Nhóm hàng<strong>{product.category}</strong>
-                  </span>
+                  <span>Nhóm hàng<strong>{product.category}</strong></span>
                 </div>
                 {product.brand ? (
                   <div>
                     <MapPin size={20} />
-                    <span>
-                      Thương hiệu<strong>{product.brand}</strong>
-                    </span>
+                    <span>Thương hiệu<strong>{product.brand}</strong></span>
                   </div>
                 ) : null}
               </div>
@@ -121,10 +145,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <p>{product.description}</p>
             <div className="feature-grid">
               {product.features.map((feature) => (
-                <div key={feature}>
-                  <Check size={17} />
-                  {feature}
-                </div>
+                <div key={feature}><Check size={17} />{feature}</div>
               ))}
             </div>
           </article>
@@ -151,9 +172,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <h2 className="gradient-heading">Phù hợp nhiều nhu cầu</h2>
           </div>
           <div className="application-list">
-            {product.applications.map((application) => (
-              <span key={application}>{application}</span>
-            ))}
+            {product.applications.map((application) => <span key={application}>{application}</span>)}
           </div>
         </div>
       </section>
@@ -172,11 +191,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           <QuoteForm
             inline
-            initialValues={{
-              product: product.name,
-              source: "product-inline",
-              pathname: `/san-pham/${product.slug}`,
-            }}
+            initialValues={{ product: product.name, source: "product-inline", pathname: `/san-pham/${product.slug}` }}
           />
         </div>
       </section>
@@ -194,18 +209,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </Link>
             </div>
             <div className="product-grid">
-              {relatedProducts.map((item) => (
-                <ProductCard product={item} compact key={item.slug} />
-              ))}
+              {relatedProducts.map((item) => <ProductCard product={item} compact key={item.slug} />)}
             </div>
           </div>
         </section>
       ) : null}
 
       <section className="section product-quote-section">
-        <div className="container">
-          <QuoteCta productName={product.name} />
-        </div>
+        <div className="container"><QuoteCta productName={product.name} /></div>
       </section>
     </main>
   );

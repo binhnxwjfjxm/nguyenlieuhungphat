@@ -19,6 +19,18 @@ export type Product = {
   featured: boolean;
 };
 
+export type ProductFamily = {
+  key: string;
+  name: string;
+  brand?: string;
+  category: string;
+  categorySlug: string;
+  origin: string;
+  primary: Product;
+  variants: Product[];
+  featured: boolean;
+};
+
 export type ProductCategory = {
   slug: string;
   title: string;
@@ -135,17 +147,88 @@ function buildProduct(productPlan: (typeof productPlans)[number]): Product | nul
   };
 }
 
-export const products = productPlans.map(buildProduct).filter((product): product is Product => Boolean(product));
+function hasFamilyBrand(product: Product) {
+  const brand = normalizeLookup(product.brand ?? "");
+  return Boolean(brand && brand !== "hung phat");
+}
 
+export function productFamilyKey(product: Product) {
+  if (!hasFamilyBrand(product)) return `product:${product.slug}`;
+  return ["family", product.categorySlug, normalizeLookup(product.category), normalizeLookup(product.brand ?? "")].join(":");
+}
+
+export function productFamilyName(product: Product) {
+  if (!hasFamilyBrand(product)) return product.name;
+  return `${product.category} ${product.brand}`.replace(/\s+/g, " ").trim();
+}
+
+function choosePrimaryProduct(variants: Product[]) {
+  return [...variants].sort((left, right) => {
+    const leftFamily = normalizeLookup(productFamilyName(left));
+    const rightFamily = normalizeLookup(productFamilyName(right));
+    const leftExact = normalizeLookup(left.name) === leftFamily ? 1 : 0;
+    const rightExact = normalizeLookup(right.name) === rightFamily ? 1 : 0;
+    if (leftExact !== rightExact) return rightExact - leftExact;
+    if (left.featured !== right.featured) return Number(right.featured) - Number(left.featured);
+    return left.name.length - right.name.length || left.name.localeCompare(right.name, "vi");
+  })[0];
+}
+
+export function productVariantLabel(product: Product, family?: ProductFamily) {
+  if (!family || family.variants.length <= 1) return product.name;
+  const parts = [product.category, product.brand ?? ""].filter(Boolean);
+  let label = product.name;
+  for (const part of parts) {
+    const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    label = label.replace(new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "iu"), " ");
+  }
+  label = label.replace(/\s+/g, " ").replace(/^[\s,\-–—/]+|[\s,\-–—/]+$/g, "").trim();
+  return label || product.packaging || product.englishName;
+}
+
+export function groupProductFamilies(source: Product[]) {
+  const groups = new Map<string, Product[]>();
+  for (const product of source) {
+    const key = productFamilyKey(product);
+    groups.set(key, [...(groups.get(key) ?? []), product]);
+  }
+
+  return [...groups.entries()]
+    .map(([key, variants]): ProductFamily => {
+      const sortedVariants = [...variants].sort((left, right) => left.name.localeCompare(right.name, "vi"));
+      const primary = choosePrimaryProduct(sortedVariants);
+      return {
+        key,
+        name: productFamilyName(primary),
+        brand: primary.brand,
+        category: primary.category,
+        categorySlug: primary.categorySlug,
+        origin: primary.origin,
+        primary,
+        variants: sortedVariants,
+        featured: sortedVariants.some((variant) => variant.featured),
+      };
+    })
+    .sort((left, right) => left.name.localeCompare(right.name, "vi"));
+}
+
+export const products = productPlans.map(buildProduct).filter((product): product is Product => Boolean(product));
+export const productFamilies = groupProductFamilies(products);
 export const featuredProducts = products.filter((product) => product.featured);
+export const featuredProductFamilies = productFamilies.filter((family) => family.featured);
 
 export function getProductBySlug(slug: string) {
   return products.find((product) => product.slug === slug);
 }
 
+export function getProductFamily(product: Product) {
+  return productFamilies.find((family) => family.key === productFamilyKey(product));
+}
+
 export function getRelatedProducts(product: Product, limit = 4) {
+  const familyKey = productFamilyKey(product);
   return products
-    .filter((item) => item.slug !== product.slug && item.categorySlug === product.categorySlug)
+    .filter((item) => item.categorySlug === product.categorySlug && productFamilyKey(item) !== familyKey)
     .slice(0, limit);
 }
 
