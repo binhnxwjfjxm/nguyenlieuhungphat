@@ -5,7 +5,7 @@ import { LoaderCircle, MessageSquareMore, Minimize2, RefreshCcw, SendHorizontal,
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react";
 import { PRIVACY_POLICY_PATH } from "@/lib/contact";
 import { DEFAULT_SITE_URL } from "@/lib/site";
 import { createLeadCode } from "@/lib/validation";
@@ -68,6 +68,12 @@ function buildTranscript(messages: Message[], nextText: string) {
     .join("\n");
 }
 
+function submitOnEnter(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
+  if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+  event.preventDefault();
+  event.currentTarget.form?.requestSubmit();
+}
+
 export function Chatbot() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
@@ -75,7 +81,6 @@ export function Chatbot() {
   const [state, setState] = useState<ChatState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const nextMessageId = useRef(1);
 
@@ -163,7 +168,6 @@ export function Chatbot() {
       open: true,
       minimized: false,
     }));
-    setStatus({ tone: "info", text: "Đang gửi..." });
     setBusy(true);
 
     try {
@@ -201,7 +205,6 @@ export function Chatbot() {
         const errorMessage = result.retryAfter
           ? `${result.error ?? "Không gửi được."} Thử lại sau ${result.retryAfter}s.`
           : result.error ?? "Không gửi được.";
-        setStatus({ tone: "error", text: errorMessage });
         toast.error(errorMessage);
         setState((current) => ({
           ...current,
@@ -219,12 +222,6 @@ export function Chatbot() {
 
       const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
       const replyText = result.replyText?.trim() || "Hưng Phát đã nhận nội dung và sẽ phản hồi sớm.";
-      const leadStatus = result.phoneConfirmed
-        ? result.leadNotified
-          ? "Đã nhận số điện thoại và chuyển yêu cầu đến Hưng Phát."
-          : "Đã nhận số điện thoại."
-        : "Đã nhận nội dung. Hưng Phát sẽ phản hồi sớm.";
-      setStatus({ tone: "success", text: leadStatus });
       setState((current) => ({
         ...current,
         sessionId: nextSessionId,
@@ -237,10 +234,8 @@ export function Chatbot() {
           },
         ],
       }));
-      toast.success(leadStatus);
     } catch {
       const message = "Lỗi mạng hoặc máy chủ bận.";
-      setStatus({ tone: "error", text: message });
       toast.error(message);
       setState((current) => ({
         ...current,
@@ -333,11 +328,6 @@ export function Chatbot() {
 
             {!state.minimized ? (
               <div className="chatbot-body">
-                {status ? (
-                  <div className={`chatbot-status chatbot-status-${status.tone}`} aria-live="polite">
-                    {status.text}
-                  </div>
-                ) : null}
                 <div className="chatbot-messages" ref={messagesRef}>
                   {state.messages.length ? (
                     state.messages.map((message) => (
@@ -365,8 +355,10 @@ export function Chatbot() {
                     <textarea
                       value={state.draft}
                       onChange={(event) => updateDraft(event.target.value)}
+                      onKeyDown={submitOnEnter}
+                      enterKeyHint="send"
                       placeholder="Nhập nội dung cần hỗ trợ..."
-                      rows={3}
+                      rows={1}
                     />
                   </label>
 
