@@ -1,128 +1,201 @@
 "use client";
 
-import { Building2, CheckCircle2, LogOut, Mail, Phone, Save, Store, Trash2, UserRound } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { AlertCircle, Building2, CheckCircle2, Clock3, LogOut, Mail, Phone, RefreshCw, Save, Store, UserRound } from "lucide-react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ClerkUserProfilePanel } from "@/components/clerk-user-profile";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
-import { VietnamAddressFields, type VietnamAddressValue } from "@/components/vietnam-address-fields";
+import {
+  getPortalLifecycle,
+  getPortalProfile,
+  PortalLifecycleError,
+  resubmitPortalRegistration,
+  submitPortalRegistration,
+  updatePortalProfile,
+  type PortalLifecycleSnapshot,
+  type PortalProfile,
+  type PortalRegistration,
+  type PortalRegistrationInput,
+} from "@/lib/customer-portal-lifecycle";
 
-type ShopRegistrationDraft = VietnamAddressValue & {
+type ShopForm = {
   shopName: string;
-  contactName: string;
   phone: string;
-  businessType: string;
+  addressLine1: string;
+  ward: string;
+  province: string;
 };
 
-type StoredShopRegistrationDraft = {
-  version: 2;
-  status: "draft";
-  savedAt: string;
-  expiresAt: string;
-  draft: ShopRegistrationDraft;
-};
+const EMPTY_FORM: ShopForm = { shopName: "", phone: "", addressLine1: "", ward: "", province: "" };
 
-type LegacyStoredDraft = {
-  version?: 1;
-  status?: "draft";
-  savedAt?: string;
-  expiresAt?: string;
-  draft?: { shopName?: string; contactName?: string; phone?: string; address?: string; businessType?: string };
-};
-
-const EMPTY_SHOP_DRAFT: ShopRegistrationDraft = {
-  shopName: "", contactName: "", phone: "", businessType: "Cửa hàng bán lẻ",
-  provinceCode: "", provinceName: "", wardCode: "", wardName: "", addressLine: "", latitude: null, longitude: null,
-};
-
-const SHOP_REGISTRATION_STORAGE_PREFIX = "hp-customer-ordering-shop-registration";
-const SHOP_REGISTRATION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-function shopRegistrationStorageKey(userId: string): string { return `${SHOP_REGISTRATION_STORAGE_PREFIX}:${userId}`; }
-function isStoredShopRegistrationDraft(value: unknown): value is StoredShopRegistrationDraft {
-  if (!value || typeof value !== "object") return false;
-  const stored = value as Partial<StoredShopRegistrationDraft>;
-  if (!stored.draft) return false;
-  const draft = stored.draft as Partial<ShopRegistrationDraft>;
-  return stored.version === 2 && stored.status === "draft" && typeof stored.savedAt === "string" && Number.isFinite(Date.parse(stored.savedAt)) && typeof stored.expiresAt === "string" && Number.isFinite(Date.parse(stored.expiresAt))
-    && typeof draft.shopName === "string" && typeof draft.contactName === "string" && typeof draft.phone === "string" && typeof draft.businessType === "string"
-    && typeof draft.provinceCode === "string" && typeof draft.provinceName === "string" && typeof draft.wardCode === "string" && typeof draft.wardName === "string" && typeof draft.addressLine === "string"
-    && (draft.latitude === null || typeof draft.latitude === "number") && (draft.longitude === null || typeof draft.longitude === "number");
+function formFromRegistration(registration: PortalRegistration | null): ShopForm {
+  const customer = registration?.proposedCustomer;
+  return customer ? {
+    shopName: customer.name ?? "",
+    phone: customer.phone ?? "",
+    addressLine1: customer.address.addressLine1 ?? "",
+    ward: customer.address.ward ?? "",
+    province: customer.address.province ?? "",
+  } : EMPTY_FORM;
 }
-function migrateLegacyDraft(value: unknown): ShopRegistrationDraft | null {
-  if (!value || typeof value !== "object") return null;
-  const stored = value as LegacyStoredDraft;
-  if (stored.status !== "draft" || !stored.draft) return null;
-  return { ...EMPTY_SHOP_DRAFT, shopName: stored.draft.shopName ?? "", contactName: stored.draft.contactName ?? "", phone: stored.draft.phone ?? "", businessType: stored.draft.businessType ?? "Cửa hàng bán lẻ", addressLine: stored.draft.address ?? "" };
+
+function formFromProfile(profile: PortalProfile): ShopForm {
+  return {
+    shopName: profile.outletName ?? "",
+    phone: profile.phone ?? "",
+    addressLine1: profile.address?.addressLine1 ?? "",
+    ward: profile.address?.ward ?? "",
+    province: profile.address?.province ?? "",
+  };
 }
+
+function registrationInput(form: ShopForm): PortalRegistrationInput {
+  return {
+    proposedCustomer: {
+      name: form.shopName.trim(),
+      phone: form.phone.trim(),
+      address: {
+        label: "Địa chỉ chính",
+        addressLine1: form.addressLine1.trim(),
+        ward: form.ward.trim(),
+        province: form.province.trim(),
+        countryCode: "VN",
+      },
+    },
+  };
+}
+
+const STATE_COPY: Record<string, { title: string; description: string }> = {
+  unregistered: { title: "Chưa đăng ký điểm bán", description: "Gửi thông tin điểm bán để Hưng Phát xác minh trước khi mở danh mục và đặt hàng." },
+  submitted: { title: "Đã gửi đăng ký", description: "Hưng Phát đã nhận thông tin và đang chờ xử lý." },
+  under_review: { title: "Đang xác minh", description: "Thông tin điểm bán đang được bộ phận phụ trách kiểm tra." },
+  need_more_info: { title: "Cần bổ sung thông tin", description: "Cập nhật lại thông tin theo ghi chú bên dưới rồi gửi lại." },
+  approved: { title: "Đã duyệt, đang kích hoạt", description: "Hệ thống đang hoàn tất liên kết khách hàng và membership." },
+  linked_existing: { title: "Đã liên kết, đang kích hoạt", description: "Hệ thống đang hoàn tất membership cho khách hàng hiện có." },
+  activation_pending: { title: "Đã duyệt, đang kích hoạt", description: "Chưa mở đặt hàng cho tới khi membership hoạt động đầy đủ." },
+  active_customer: { title: "Điểm bán đã liên thông Core", description: "Danh mục và đặt hàng đã được mở. Thông tin bên dưới là dữ liệu chính thức trên Core." },
+  rejected: { title: "Đăng ký chưa được chấp thuận", description: "Xem ghi chú xử lý và liên hệ Hưng Phát nếu cần hỗ trợ." },
+  cancelled: { title: "Đăng ký đã hủy", description: "Yêu cầu này đã kết thúc. Liên hệ Hưng Phát nếu cần mở lại quy trình." },
+  suspended: { title: "Liên kết điểm bán tạm khóa", description: "Tài khoản hoặc membership hiện không sử dụng được. Vui lòng liên hệ Hưng Phát." },
+};
 
 export function AccountAuthCard() {
   const { user, signOut } = useCustomerAuth();
-  const previousUserIdRef = useRef<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
-  const [shopDraft, setShopDraft] = useState<ShopRegistrationDraft>(EMPTY_SHOP_DRAFT);
-  const [shopSavedAt, setShopSavedAt] = useState<string | null>(null);
-  const [confirmDeleteDraft, setConfirmDeleteDraft] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [snapshot, setSnapshot] = useState<PortalLifecycleSnapshot | null>(null);
+  const [profile, setProfile] = useState<PortalProfile | null>(null);
+  const [form, setForm] = useState<ShopForm>(EMPTY_FORM);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const displayName = user?.fullName || user?.firstName || "Khách hàng Hưng Phát";
   const email = user?.primaryEmailAddress?.emailAddress || "Chưa có email";
 
-  useEffect(() => {
-    const userId = user?.id ?? null;
-    const previousUserId = previousUserIdRef.current;
-    previousUserIdRef.current = userId;
-    const timeoutId = window.setTimeout(() => {
-      if (previousUserId && previousUserId !== userId) window.localStorage.removeItem(shopRegistrationStorageKey(previousUserId));
-      if (!userId) { setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null); setConfirmDeleteDraft(false); return; }
-      const storageKey = shopRegistrationStorageKey(userId);
-      const rawDraft = window.localStorage.getItem(storageKey);
-      if (!rawDraft) { setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null); setConfirmDeleteDraft(false); return; }
-      try {
-        const parsed: unknown = JSON.parse(rawDraft);
-        if (isStoredShopRegistrationDraft(parsed) && Date.parse(parsed.expiresAt) > Date.now()) { setShopDraft(parsed.draft); setShopSavedAt(parsed.savedAt); return; }
-        const migrated = migrateLegacyDraft(parsed);
-        if (migrated) { setShopDraft(migrated); setShopSavedAt(null); return; }
-        window.localStorage.removeItem(storageKey); setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null);
-      } catch { window.localStorage.removeItem(storageKey); setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null); }
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
+  const refreshPortal = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    setError("");
+    try {
+      const next = await getPortalLifecycle();
+      setSnapshot(next);
+      if (next.state === "active_customer") {
+        const activeProfile = await getPortalProfile();
+        setProfile(activeProfile);
+        setForm(formFromProfile(activeProfile));
+      } else {
+        setProfile(null);
+        setForm(formFromRegistration(next.registration));
+      }
+    } catch (loadError: unknown) {
+      setSnapshot(null);
+      setProfile(null);
+      setError(loadError instanceof PortalLifecycleError ? loadError.message : "Không tải được trạng thái điểm bán.");
+    } finally {
+      setLoading(false);
+    }
   }, [user?.id]);
 
-  function updateShopField<Key extends keyof ShopRegistrationDraft>(field: Key, value: ShopRegistrationDraft[Key]) {
-    setShopDraft((current) => ({ ...current, [field]: value })); setShopSavedAt(null); setConfirmDeleteDraft(false);
-  }
-  function updateAddress(value: VietnamAddressValue) { setShopDraft((current) => ({ ...current, ...value })); setShopSavedAt(null); setConfirmDeleteDraft(false); }
+  useEffect(() => { void refreshPortal(); }, [refreshPortal]);
 
-  function handleShopSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!user?.id) return;
-    const savedAt = new Date().toISOString();
-    const storedDraft: StoredShopRegistrationDraft = { version: 2, status: "draft", savedAt, expiresAt: new Date(Date.now() + SHOP_REGISTRATION_TTL_MS).toISOString(), draft: shopDraft };
-    window.localStorage.setItem(shopRegistrationStorageKey(user.id), JSON.stringify(storedDraft)); setShopSavedAt(savedAt); setConfirmDeleteDraft(false);
+  function updateField(field: keyof ShopForm, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setNotice("");
+    setError("");
   }
-  function handleDeleteShopDraft() { if (user?.id) window.localStorage.removeItem(shopRegistrationStorageKey(user.id)); setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null); setConfirmDeleteDraft(false); }
+
+  async function handleShopSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!snapshot) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      if (snapshot.state === "unregistered") {
+        await submitPortalRegistration(registrationInput(form));
+        setNotice("Đã gửi đăng ký điểm bán về Hưng Phát.");
+      } else if (snapshot.state === "need_more_info" && snapshot.registration) {
+        await resubmitPortalRegistration(snapshot.registration, registrationInput(form));
+        setNotice("Đã gửi lại thông tin bổ sung.");
+      } else if (snapshot.state === "active_customer" && profile?.address) {
+        const updated = await updatePortalProfile({
+          outletName: form.shopName.trim(),
+          phone: form.phone.trim(),
+          expectedCustomerUpdatedAt: profile.customerUpdatedAt,
+          expectedAddressUpdatedAt: profile.address.updatedAt,
+          address: {
+            id: profile.address.id,
+            addressLine1: form.addressLine1.trim(),
+            ward: form.ward.trim(),
+            province: form.province.trim(),
+            countryCode: profile.address.countryCode || "VN",
+          },
+        });
+        setProfile(updated);
+        setNotice("Đã cập nhật thông tin điểm bán trên Core.");
+      }
+      await refreshPortal();
+    } catch (saveError: unknown) {
+      setError(saveError instanceof PortalLifecycleError ? saveError.message : "Không lưu được thông tin điểm bán.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true);
-    try { if (user?.id) window.localStorage.removeItem(shopRegistrationStorageKey(user.id)); setShopDraft(EMPTY_SHOP_DRAFT); setShopSavedAt(null); setConfirmDeleteDraft(false); await signOut(); }
-    finally { setSigningOut(false); }
+    try { await signOut(); } finally { setSigningOut(false); }
   }
+
+  const state = snapshot?.state ?? "unregistered";
+  const copy = STATE_COPY[state] ?? STATE_COPY.unregistered;
+  const editableState = state === "unregistered" || state === "need_more_info" || state === "active_customer";
+  const editable = Boolean(snapshot) && editableState && (state !== "active_customer" || Boolean(profile?.address));
+  const submitLabel = state === "active_customer" ? "Lưu lên Core" : state === "need_more_info" ? "Gửi lại thông tin" : "Gửi đăng ký điểm bán";
 
   return <div className="account-hub">
     <section className="account-identity-card"><div className="account-avatar"><UserRound aria-hidden="true" size={30} /></div><div className="account-identity-copy"><h1>{displayName}</h1><p className="account-email"><Mail aria-hidden="true" size={17} />{email}</p></div><button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button"><LogOut aria-hidden="true" size={18} />{signingOut ? "Đang đăng xuất..." : "Đăng xuất"}</button></section>
 
-    <section className="account-section account-link-summary"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán</p><h2>{shopSavedAt ? "Đã lưu bản nháp trên thiết bị" : "Chưa có bản nháp điểm bán"}</h2><p>{shopSavedAt ? "Thông tin này chưa được gửi về Hưng Phát. Mở mục bên dưới khi cần tiếp tục chỉnh sửa." : "Bạn có thể lưu tạm thông tin cửa hàng trên thiết bị trước khi có bước gửi đăng ký chính thức."}</p></div></div></section>
+    <section className="account-section account-link-summary" id="shop-registration"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán / Core</p><h2>{loading ? "Đang kiểm tra trạng thái..." : error && !snapshot ? "Không đọc được trạng thái điểm bán" : copy.title}</h2><p>{loading ? "Đang đọc dữ liệu chính thức từ Core." : error && !snapshot ? "Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core." : copy.description}</p>{state === "active_customer" && profile?.customerCode ? <p><strong>Mã khách Core:</strong> {profile.customerCode}</p> : null}</div>{snapshot ? (state === "active_customer" ? <span className="status-pill"><CheckCircle2 aria-hidden="true" size={15} />Đã kích hoạt</span> : <span className="status-pill"><Clock3 aria-hidden="true" size={15} />{state}</span>) : null}</div>
+      {snapshot?.registration?.reviewReason ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>{snapshot.registration.reviewReason}</span></div> : null}
+      {state === "active_customer" && profile && !profile.address ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>Điểm bán chưa có địa chỉ đang hoạt động. Vui lòng liên hệ Hưng Phát để khôi phục địa chỉ trước khi chỉnh sửa.</span></div> : null}
+      {snapshot && !editable && !loading ? <button className="secondary-action-button" onClick={() => void refreshPortal()} type="button"><RefreshCw aria-hidden="true" size={17} />Tải lại trạng thái</button> : null}
+    </section>
 
-    <details className="account-section account-collapsible shop-registration-section">
-      <summary className="account-section-heading" style={{ cursor: "pointer", listStyle: "none" }}><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><p className="eyebrow">Thông tin cửa hàng</p><h2>Bản nháp điểm bán</h2><p>Chỉ lưu trên thiết bị hiện tại, chưa gửi đăng ký chính thức.</p></div><span className="status-pill">Chỉnh sửa</span></summary>
+    {editable && !loading ? <section className="account-section shop-registration-section">
+      <div className="account-section-heading"><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><p className="eyebrow">{state === "active_customer" ? "Chỉnh sửa thông tin điểm bán" : "Đăng ký điểm bán"}</p><h2>{state === "active_customer" ? "Thông tin chính thức trên Core" : "Thông tin gửi Hưng Phát xác minh"}</h2><p>Chỉ các trường thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Core quản lý.</p></div></div>
       <form className="shop-registration-form" onSubmit={handleShopSubmit}>
-        <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" onChange={(event) => updateShopField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={shopDraft.shopName} /></div></label>
-        <label><span>Người liên hệ</span><div className="input-with-icon"><UserRound aria-hidden="true" size={18} /><input autoComplete="name" onChange={(event) => updateShopField("contactName", event.target.value)} placeholder="Họ và tên" required value={shopDraft.contactName} /></div></label>
-        <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" inputMode="tel" onChange={(event) => updateShopField("phone", event.target.value)} placeholder="Số điện thoại" required value={shopDraft.phone} /></div></label>
-        <VietnamAddressFields onChange={updateAddress} value={shopDraft} />
-        <label><span>Loại hình kinh doanh</span><select onChange={(event) => updateShopField("businessType", event.target.value)} value={shopDraft.businessType}><option>Cửa hàng bán lẻ</option><option>Trà sữa / đồ uống</option><option>Mỳ cay / quán ăn</option><option>Tiệm bánh</option><option>Nhà hàng</option><option>Nhà phân phối</option><option>Khác</option></select></label>
-        {shopSavedAt ? <div className="shop-registration-notice"><CheckCircle2 aria-hidden="true" size={18} /><span>Đã lưu bản nháp trên thiết bị. Thông tin chưa được gửi về Hưng Phát.</span></div> : null}
-        <div className="shop-registration-actions"><button className="primary-button shop-registration-submit" type="submit"><Save aria-hidden="true" size={18} />Lưu bản nháp</button>{shopSavedAt ? <button className="shop-registration-delete" onClick={() => setConfirmDeleteDraft(true)} type="button"><Trash2 aria-hidden="true" size={17} />Xóa bản nháp</button> : null}</div>
-        {confirmDeleteDraft ? <div className="shop-registration-delete-confirm" role="alert"><p>Xóa bản nháp điểm bán đã lưu trên thiết bị?</p><div><button className="danger-button" onClick={handleDeleteShopDraft} type="button">Xác nhận xóa</button><button className="secondary-action-button" onClick={() => setConfirmDeleteDraft(false)} type="button">Giữ lại</button></div></div> : null}
+        <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" onChange={(event) => updateField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={form.shopName} /></div></label>
+        <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" inputMode="tel" onChange={(event) => updateField("phone", event.target.value)} placeholder="Số điện thoại" required value={form.phone} /></div></label>
+        <label><span>Tỉnh / thành phố</span><input onChange={(event) => updateField("province", event.target.value)} placeholder="Tỉnh / thành phố" required value={form.province} /></label>
+        <label><span>Xã / phường</span><input onChange={(event) => updateField("ward", event.target.value)} placeholder="Xã / phường" required value={form.ward} /></label>
+        <label className="address-line-field"><span>Số nhà, tên đường</span><input autoComplete="street-address" onChange={(event) => updateField("addressLine1", event.target.value)} placeholder="Số nhà, tên đường" required value={form.addressLine1} /></label>
+        {notice ? <div className="shop-registration-notice"><CheckCircle2 aria-hidden="true" size={18} /><span>{notice}</span></div> : null}
+        {error ? <small className="field-error">{error}</small> : null}
+        <div className="shop-registration-actions"><button className="primary-button shop-registration-submit" disabled={saving} type="submit"><Save aria-hidden="true" size={18} />{saving ? "Đang lưu..." : submitLabel}</button></div>
       </form>
-    </details>
+    </section> : null}
+
+    {error && !editable ? <section className="account-section"><small className="field-error">{error}</small><button className="secondary-action-button" onClick={() => void refreshPortal()} type="button"><RefreshCw aria-hidden="true" size={17} />Thử lại</button></section> : null}
     <ClerkUserProfilePanel />
   </div>;
 }

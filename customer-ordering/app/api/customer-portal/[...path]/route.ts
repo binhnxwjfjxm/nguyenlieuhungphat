@@ -20,8 +20,11 @@ function coreBaseUrl(): string {
 
 function allowed(path: string[], method: string): boolean {
   if (method === "GET" && path.length === 1 && ["me", "addresses", "catalog", "orders"].includes(path[0])) return true;
+  if (method === "PATCH" && path.length === 1 && path[0] === "me") return true;
+  if (method === "GET" && path.length === 2 && path[0] === "registrations" && path[1] === "current") return true;
   if (method === "GET" && path.length === 2 && path[0] === "orders" && UUID_PATTERN.test(path[1])) return true;
-  if (method === "POST" && path.length === 1 && path[0] === "orders") return true;
+  if (method === "POST" && path.length === 1 && ["orders", "registrations"].includes(path[0])) return true;
+  if (method === "POST" && path.length === 3 && path[0] === "registrations" && UUID_PATTERN.test(path[1]) && path[2] === "resubmit") return true;
   return method === "POST" && path.length === 3 && path[0] === "orders" && UUID_PATTERN.test(path[1]) && path[2] === "cancel";
 }
 
@@ -32,7 +35,7 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
   if (!authorization?.toLowerCase().startsWith("bearer ")) return Response.json({ error: { code: "CUSTOMER_PORTAL_AUTH_REQUIRED", message: "Authorization required", retryable: false } }, { status: 401 });
 
   let body: string | undefined;
-  if (request.method === "POST") {
+  if (["POST", "PATCH"].includes(request.method)) {
     body = await request.text();
     if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) return Response.json({ error: { code: "PAYLOAD_TOO_LARGE", message: "Payload too large", retryable: false } }, { status: 413 });
   }
@@ -78,3 +81,4 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
 
 export const GET = proxy;
 export const POST = proxy;
+export const PATCH = proxy;
