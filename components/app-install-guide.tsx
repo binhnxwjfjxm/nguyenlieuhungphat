@@ -22,10 +22,6 @@ export function AppInstallGuide({ className = "", label = "Cài app", onOpen }: 
   const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
-    setIsIos(isAppleMobileDevice());
-  }, []);
-
-  useEffect(() => {
     if (!open) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -40,6 +36,7 @@ export function AppInstallGuide({ className = "", label = "Cài app", onOpen }: 
   }, [open]);
 
   function showGuide() {
+    setIsIos(isAppleMobileDevice());
     setOpen(true);
     onOpen?.();
   }
