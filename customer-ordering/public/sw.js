@@ -1,9 +1,9 @@
-const CACHE_NAME = "hp-customer-ordering-shell-v1";
+const CACHE_NAME = "hp-customer-ordering-shell-v2-20260809";
 const SAFE_ASSETS = [
   "/offline",
   "/logo-transparent.png",
-  "/icon-192.png",
-  "/icon-512.png",
+  "/icon-192-20260809.png",
+  "/icon-512-20260809.png",
 ];
 
 self.addEventListener("install", (event) => {

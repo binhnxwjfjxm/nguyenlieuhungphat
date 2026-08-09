@@ -16,6 +16,7 @@ export type PortalLifecycleState =
 export interface PortalCustomerSnapshot {
   name: string;
   phone: string | null;
+  businessType?: string | null;
   address: {
     label: string;
     addressLine1: string;
@@ -73,6 +74,7 @@ export interface PortalRegistrationInput {
   proposedCustomer: {
     name: string;
     phone: string;
+    businessType: string;
     address: {
       label: string;
       addressLine1: string;
