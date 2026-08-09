@@ -193,6 +193,12 @@ export function AccountAuthCard() {
       }
     } catch (saveError: unknown) {
       const portalError = saveError instanceof PortalLifecycleError ? saveError : null;
+      if (portalError?.statusCode === 409 && portalError.code !== "IDEMPOTENCY_IN_PROGRESS") {
+        mutationKeyRef.current = null;
+        await refreshPortal();
+        setError("Dữ liệu trên Core đã thay đổi. Hãy kiểm tra dữ liệu mới rồi gửi lại.");
+        return;
+      }
       if (!portalError?.retryable && portalError?.code !== "IDEMPOTENCY_IN_PROGRESS") mutationKeyRef.current = null;
       setError(portalError?.message ?? "Không lưu được thông tin điểm bán.");
     } finally {
