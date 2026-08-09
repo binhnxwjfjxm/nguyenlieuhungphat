@@ -24,6 +24,7 @@ function isActive(pathname: string, href: string) {
 
 export function AppShell({ children, title }: Readonly<{ children: ReactNode; title?: string }>) {
   const pathname = usePathname();
+  const isAccountRoute = pathname === "/account" || pathname.startsWith("/account/");
   const frame = (
     <div className="app-frame">
       <header className="app-header">
@@ -68,7 +69,7 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
 
   return (
     <CustomerAuthGate>
-      {pathname.startsWith("/account") ? frame : <CustomerPortalAccessGate>{frame}</CustomerPortalAccessGate>}
+      {isAccountRoute ? frame : <CustomerPortalAccessGate>{frame}</CustomerPortalAccessGate>}
     </CustomerAuthGate>
   );
 }

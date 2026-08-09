@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Building2, CheckCircle2, Clock3, LogOut, Mail, Phone, RefreshCw, Save, Store, UserRound } from "lucide-react";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ClerkUserProfilePanel } from "@/components/clerk-user-profile";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
 import {
@@ -32,9 +32,9 @@ function formFromRegistration(registration: PortalRegistration | null): ShopForm
   return customer ? {
     shopName: customer.name ?? "",
     phone: customer.phone ?? "",
-    addressLine1: customer.address.addressLine1 ?? "",
-    ward: customer.address.ward ?? "",
-    province: customer.address.province ?? "",
+    addressLine1: customer.address?.addressLine1 ?? "",
+    ward: customer.address?.ward ?? "",
+    province: customer.address?.province ?? "",
   } : EMPTY_FORM;
 }
 
@@ -80,6 +80,7 @@ const STATE_COPY: Record<string, { title: string; description: string }> = {
 
 export function AccountAuthCard() {
   const { user, signOut } = useCustomerAuth();
+  const mutationKeyRef = useRef<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,21 +92,25 @@ export function AccountAuthCard() {
   const displayName = user?.fullName || user?.firstName || "Khách hàng Hưng Phát";
   const email = user?.primaryEmailAddress?.emailAddress || "Chưa có email";
 
+  const applyLifecycleSnapshot = useCallback(async (next: PortalLifecycleSnapshot) => {
+    setSnapshot(next);
+    if (next.state === "active_customer") {
+      const activeProfile = await getPortalProfile();
+      setProfile(activeProfile);
+      setForm(formFromProfile(activeProfile));
+    } else {
+      setProfile(null);
+      setForm(formFromRegistration(next.registration));
+    }
+  }, []);
+
   const refreshPortal = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     setError("");
     try {
       const next = await getPortalLifecycle();
-      setSnapshot(next);
-      if (next.state === "active_customer") {
-        const activeProfile = await getPortalProfile();
-        setProfile(activeProfile);
-        setForm(formFromProfile(activeProfile));
-      } else {
-        setProfile(null);
-        setForm(formFromRegistration(next.registration));
-      }
+      await applyLifecycleSnapshot(next);
     } catch (loadError: unknown) {
       setSnapshot(null);
       setProfile(null);
@@ -113,11 +118,38 @@ export function AccountAuthCard() {
     } finally {
       setLoading(false);
     }
+  }, [applyLifecycleSnapshot, user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const next = await getPortalLifecycle();
+        const activeProfile = next.state === "active_customer" ? await getPortalProfile() : null;
+        if (cancelled) return;
+        setSnapshot(next);
+        setProfile(activeProfile);
+        setForm(activeProfile ? formFromProfile(activeProfile) : formFromRegistration(next.registration));
+      } catch (loadError: unknown) {
+        if (cancelled) return;
+        setSnapshot(null);
+        setProfile(null);
+        setError(loadError instanceof PortalLifecycleError ? loadError.message : "Không tải được trạng thái điểm bán.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [user?.id]);
 
-  useEffect(() => { void refreshPortal(); }, [refreshPortal]);
+  function currentMutationKey(): string {
+    if (!mutationKeyRef.current) mutationKeyRef.current = crypto.randomUUID();
+    return mutationKeyRef.current;
+  }
 
   function updateField(field: keyof ShopForm, value: string) {
+    mutationKeyRef.current = null;
     setForm((current) => ({ ...current, [field]: value }));
     setNotice("");
     setError("");
@@ -131,10 +163,14 @@ export function AccountAuthCard() {
     setNotice("");
     try {
       if (snapshot.state === "unregistered") {
-        await submitPortalRegistration(registrationInput(form));
+        const next = await submitPortalRegistration(registrationInput(form), currentMutationKey());
+        mutationKeyRef.current = null;
+        await applyLifecycleSnapshot(next);
         setNotice("Đã gửi đăng ký điểm bán về Hưng Phát.");
       } else if (snapshot.state === "need_more_info" && snapshot.registration) {
-        await resubmitPortalRegistration(snapshot.registration, registrationInput(form));
+        const next = await resubmitPortalRegistration(snapshot.registration, registrationInput(form), currentMutationKey());
+        mutationKeyRef.current = null;
+        await applyLifecycleSnapshot(next);
         setNotice("Đã gửi lại thông tin bổ sung.");
       } else if (snapshot.state === "active_customer" && profile?.address) {
         const updated = await updatePortalProfile({
@@ -149,13 +185,16 @@ export function AccountAuthCard() {
             province: form.province.trim(),
             countryCode: profile.address.countryCode || "VN",
           },
-        });
+        }, currentMutationKey());
+        mutationKeyRef.current = null;
         setProfile(updated);
+        setForm(formFromProfile(updated));
         setNotice("Đã cập nhật thông tin điểm bán trên Core.");
       }
-      await refreshPortal();
     } catch (saveError: unknown) {
-      setError(saveError instanceof PortalLifecycleError ? saveError.message : "Không lưu được thông tin điểm bán.");
+      const portalError = saveError instanceof PortalLifecycleError ? saveError : null;
+      if (!portalError?.retryable && portalError?.code !== "IDEMPOTENCY_IN_PROGRESS") mutationKeyRef.current = null;
+      setError(portalError?.message ?? "Không lưu được thông tin điểm bán.");
     } finally {
       setSaving(false);
     }
@@ -184,11 +223,11 @@ export function AccountAuthCard() {
     {editable && !loading ? <section className="account-section shop-registration-section">
       <div className="account-section-heading"><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><p className="eyebrow">{state === "active_customer" ? "Chỉnh sửa thông tin điểm bán" : "Đăng ký điểm bán"}</p><h2>{state === "active_customer" ? "Thông tin chính thức trên Core" : "Thông tin gửi Hưng Phát xác minh"}</h2><p>Chỉ các trường thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Core quản lý.</p></div></div>
       <form className="shop-registration-form" onSubmit={handleShopSubmit}>
-        <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" onChange={(event) => updateField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={form.shopName} /></div></label>
-        <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" inputMode="tel" onChange={(event) => updateField("phone", event.target.value)} placeholder="Số điện thoại" required value={form.phone} /></div></label>
-        <label><span>Tỉnh / thành phố</span><input onChange={(event) => updateField("province", event.target.value)} placeholder="Tỉnh / thành phố" required value={form.province} /></label>
-        <label><span>Xã / phường</span><input onChange={(event) => updateField("ward", event.target.value)} placeholder="Xã / phường" required value={form.ward} /></label>
-        <label className="address-line-field"><span>Số nhà, tên đường</span><input autoComplete="street-address" onChange={(event) => updateField("addressLine1", event.target.value)} placeholder="Số nhà, tên đường" required value={form.addressLine1} /></label>
+        <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" disabled={saving} onChange={(event) => updateField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={form.shopName} /></div></label>
+        <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" disabled={saving} inputMode="tel" onChange={(event) => updateField("phone", event.target.value)} placeholder="Số điện thoại" required value={form.phone} /></div></label>
+        <label><span>Tỉnh / thành phố</span><input disabled={saving} onChange={(event) => updateField("province", event.target.value)} placeholder="Tỉnh / thành phố" required value={form.province} /></label>
+        <label><span>Xã / phường</span><input disabled={saving} onChange={(event) => updateField("ward", event.target.value)} placeholder="Xã / phường" required value={form.ward} /></label>
+        <label className="address-line-field"><span>Số nhà, tên đường</span><input autoComplete="street-address" disabled={saving} onChange={(event) => updateField("addressLine1", event.target.value)} placeholder="Số nhà, tên đường" required value={form.addressLine1} /></label>
         {notice ? <div className="shop-registration-notice"><CheckCircle2 aria-hidden="true" size={18} /><span>{notice}</span></div> : null}
         {error ? <small className="field-error">{error}</small> : null}
         <div className="shop-registration-actions"><button className="primary-button shop-registration-submit" disabled={saving} type="submit"><Save aria-hidden="true" size={18} />{saving ? "Đang lưu..." : submitLabel}</button></div>

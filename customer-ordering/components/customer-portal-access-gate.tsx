@@ -9,22 +9,22 @@ import { getPortalLifecycle, PortalLifecycleError, type PortalLifecycleState } f
 export function CustomerPortalAccessGate({ children }: Readonly<{ children: ReactNode }>) {
   const router = useRouter();
   const { status } = useCustomerAuth();
-  const [portalState, setPortalState] = useState<PortalLifecycleState | "loading">("loading");
+  const [portalState, setPortalState] = useState<PortalLifecycleState | "loading" | "error">("loading");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (status !== "signed-in") return;
     let cancelled = false;
-    setPortalState("loading");
-    setError("");
     void getPortalLifecycle()
       .then((snapshot) => {
         if (cancelled) return;
+        setError("");
         setPortalState(snapshot.state);
         if (snapshot.state !== "active_customer") router.replace("/account#shop-registration");
       })
       .catch((loadError: unknown) => {
         if (cancelled) return;
+        setPortalState("error");
         setError(loadError instanceof PortalLifecycleError ? loadError.message : "Không kiểm tra được trạng thái điểm bán.");
       });
     return () => { cancelled = true; };

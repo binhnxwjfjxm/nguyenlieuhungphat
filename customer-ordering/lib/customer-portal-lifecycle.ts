@@ -130,10 +130,6 @@ async function clerkToken(): Promise<string> {
   return token;
 }
 
-function mutationKey(prefix: string): string {
-  return `${prefix}:${crypto.randomUUID()}`;
-}
-
 async function requestPortal<T>(path: string, init: RequestInit = {}, idempotencyKey?: string): Promise<T> {
   const token = await clerkToken();
   let response: Response;
@@ -169,19 +165,19 @@ export async function getPortalLifecycle(): Promise<PortalLifecycleSnapshot> {
   return requestPortal<PortalLifecycleSnapshot>("/registrations/current");
 }
 
-export async function submitPortalRegistration(input: PortalRegistrationInput): Promise<PortalLifecycleSnapshot> {
+export async function submitPortalRegistration(input: PortalRegistrationInput, idempotencyKey: string): Promise<PortalLifecycleSnapshot> {
   return requestPortal<PortalLifecycleSnapshot>(
     "/registrations",
     { method: "POST", body: JSON.stringify(input) },
-    mutationKey("portal-registration"),
+    idempotencyKey,
   );
 }
 
-export async function resubmitPortalRegistration(registration: PortalRegistration, input: PortalRegistrationInput): Promise<PortalLifecycleSnapshot> {
+export async function resubmitPortalRegistration(registration: PortalRegistration, input: PortalRegistrationInput, idempotencyKey: string): Promise<PortalLifecycleSnapshot> {
   return requestPortal<PortalLifecycleSnapshot>(
     `/registrations/${encodeURIComponent(registration.id)}/resubmit`,
     { method: "POST", body: JSON.stringify({ ...input, expectedVersion: registration.version }) },
-    mutationKey("portal-resubmit"),
+    idempotencyKey,
   );
 }
 
@@ -190,11 +186,11 @@ export async function getPortalProfile(): Promise<PortalProfile> {
   return result.profile;
 }
 
-export async function updatePortalProfile(input: PortalProfileUpdateInput): Promise<PortalProfile> {
+export async function updatePortalProfile(input: PortalProfileUpdateInput, idempotencyKey: string): Promise<PortalProfile> {
   const result = await requestPortal<{ profile: PortalProfile }>(
     "/me",
     { method: "PATCH", body: JSON.stringify(input) },
-    mutationKey("portal-profile"),
+    idempotencyKey,
   );
   return result.profile;
 }

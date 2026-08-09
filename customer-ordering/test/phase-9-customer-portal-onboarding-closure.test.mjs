@@ -12,7 +12,8 @@ test("Customer Ordering gates commerce on active Core membership instead of weak
     source("lib/adapters/core/core-customer-ordering-adapter.ts"),
   ]);
   assert.match(shell, /CustomerPortalAccessGate/);
-  assert.match(shell, /pathname\.startsWith\("\/account"\)/);
+  assert.match(shell, /pathname === "\/account" \|\| pathname\.startsWith\("\/account\/"\)/);
+  assert.match(shell, /isAccountRoute \? frame/);
   assert.match(gate, /snapshot\.state !== "active_customer"/);
   assert.match(gate, /router\.replace\("\/account#shop-registration"\)/);
   assert.doesNotMatch(gate, /catalog|listProducts|listCategories/);
@@ -32,7 +33,7 @@ test("Customer Ordering BFF exposes only the canonical registration and profile 
   assert.doesNotMatch(proxy, /CORE_API_SERVER_TOKEN|BACKEND_API_TOKEN/);
 });
 
-test("shop registration and edit use Core as source of truth and do not keep a localStorage profile", async () => {
+test("shop registration and edit use Core as source of truth with retry-stable idempotency", async () => {
   const [account, lifecycle] = await Promise.all([
     source("components/account-auth-card.tsx"),
     source("lib/customer-portal-lifecycle.ts"),
@@ -49,8 +50,15 @@ test("shop registration and edit use Core as source of truth and do not keep a l
   assert.match(account, /Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core/);
   assert.match(account, /Mã khách Core:/);
   assert.match(account, /profile\.customerCode/);
+  assert.match(account, /mutationKeyRef/);
+  assert.match(account, /crypto\.randomUUID\(\)/);
+  assert.match(account, /portalError\?\.retryable/);
+  assert.match(account, /IDEMPOTENCY_IN_PROGRESS/);
+  assert.match(account, /customer\.address\?\.addressLine1/);
   assert.match(lifecycle, /\/registrations\/current/);
   assert.match(lifecycle, /method: "PATCH"/);
   assert.match(lifecycle, /Idempotency-Key/);
+  assert.match(lifecycle, /idempotencyKey: string/);
+  assert.doesNotMatch(lifecycle, /portal-registration:|portal-resubmit:|portal-profile:/);
   assert.doesNotMatch(lifecycle, /sourceSystem|sourceOutletId|sourceDemandReference|salesChannelId|defaultWarehouseId/);
 });
