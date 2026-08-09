@@ -44,16 +44,17 @@ test("orders keep a reusable purchased-products tab", async () => {
   assert.match(source, /announceCartUpdated/);
 });
 
-test("shop registration uses current Vietnam province-ward selection and geolocation", async () => {
+test("shop registration sends canonical Vietnam address fields to Core", async () => {
   const account = await read("components/account-auth-card.tsx");
-  const location = await read("components/vietnam-address-fields.tsx");
-  assert.match(account, /VietnamAddressFields/);
-  assert.match(account, /provinceCode/);
-  assert.match(account, /wardCode/);
-  assert.match(location, /provinces\.open-api\.vn\/api\/v2\/w/);
-  assert.match(location, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(location, /Lấy vị trí hiện tại/);
-  assert.equal((location.match(/\{ code: \d+, name:/g) ?? []).length, 34);
+  assert.match(account, /addressLine1/);
+  assert.match(account, /ward/);
+  assert.match(account, /province/);
+  assert.match(account, /countryCode: "VN"/);
+  assert.match(account, /Tên quán hoặc điểm bán/);
+  assert.match(account, /Tỉnh \/ thành phố/);
+  assert.match(account, /Xã \/ phường/);
+  assert.match(account, /Số nhà, tên đường/);
+  assert.doesNotMatch(account, /provinceCode|wardCode|SHOP_REGISTRATION_STORAGE_PREFIX/);
 });
 
 test("home uses generated catalog identities and direct R2 hero image", async () => {

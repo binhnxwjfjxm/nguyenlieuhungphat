@@ -60,8 +60,10 @@ test("customer-facing copy and destructive actions do not expose implementation 
     assert.doesNotMatch(source, /Đơn mock|khi nối Core|dữ liệu nguồn|ứng dụng không tự suy đoán giá|0900000000/i);
   }
 
-  assert.match(account, /Lưu bản nháp/);
-  assert.match(account, /confirmDeleteDraft/);
+  assert.match(account, /Gửi đăng ký điểm bán/);
+  assert.match(account, /Lưu lên Core/);
+  assert.match(account, /Mã khách Core:/);
+  assert.doesNotMatch(account, /Lưu bản nháp|confirmDeleteDraft|SHOP_REGISTRATION_STORAGE_PREFIX/);
   assert.match(cart, /confirmClear/);
   assert.match(checkout, /Chưa có địa chỉ nhận hàng/);
   assert.ok(news.indexOf("notification-feed-section") < news.indexOf("notification-settings-collapsible"));

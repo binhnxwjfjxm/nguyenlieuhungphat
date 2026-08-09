@@ -29,30 +29,29 @@ test("Hưng Phát login exposes explicit Clerk sign-in and sign-up modes", async
   assert.match(appearance, /socialButtonsBlockButton/);
 });
 
-test("account tab keeps the local shop draft and Clerk account management compact until opened", async () => {
-  const [account, location, profile] = await Promise.all([read("components/account-auth-card.tsx"), read("components/vietnam-address-fields.tsx"), read("components/clerk-user-profile.tsx")]);
-  assert.match(account, /Bản nháp điểm bán/);
-  assert.match(account, /Lưu bản nháp/);
-  assert.match(account, /Đã lưu bản nháp trên thiết bị/);
-  assert.match(account, /account-collapsible/);
-  assert.match(account, /<details/);
-  assert.match(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
-  assert.match(account, /window\.localStorage\.getItem/);
-  assert.match(account, /window\.localStorage\.setItem/);
-  assert.match(account, /expiresAt/);
-  assert.match(account, /VietnamAddressFields/);
-  assert.match(account, /provinceCode/);
-  assert.match(account, /wardCode/);
-  assert.match(account, /Xóa bản nháp/);
-  assert.match(account, /confirmDeleteDraft/);
-  assert.match(location, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(location, /provinces\.open-api\.vn\/api\/v2\/w/);
+test("account tab uses Core lifecycle as the shop source of truth and keeps Clerk account management available", async () => {
+  const [account, lifecycle, profile] = await Promise.all([
+    read("components/account-auth-card.tsx"),
+    read("lib/customer-portal-lifecycle.ts"),
+    read("components/clerk-user-profile.tsx"),
+  ]);
+  assert.match(account, /getPortalLifecycle/);
+  assert.match(account, /submitPortalRegistration/);
+  assert.match(account, /resubmitPortalRegistration/);
+  assert.match(account, /updatePortalProfile/);
+  assert.match(account, /Mã khách Core:/);
+  assert.match(account, /Gửi đăng ký điểm bán/);
+  assert.match(account, /Lưu lên Core/);
   assert.match(account, /ClerkUserProfilePanel/);
+  assert.doesNotMatch(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
+  assert.doesNotMatch(account, /window\.localStorage\.(getItem|setItem)/);
+  assert.match(lifecycle, /registrations\/current/);
+  assert.match(lifecycle, /Idempotency-Key/);
   assert.match(profile, /onToggle/);
   assert.match(profile, /open && status === "signed-in"/);
   assert.match(profile, /mountUserProfile/);
   assert.match(profile, /routing: "hash"/);
-  assert.doesNotMatch(account, /NPP Core|Giai đoạn UI|Mock UI/);
+  assert.doesNotMatch(account, /Giai đoạn UI|Mock UI/);
 });
 
 test("legacy Google redirect callback remains available during the auth transition", async () => {
