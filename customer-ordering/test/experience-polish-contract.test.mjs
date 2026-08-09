@@ -45,16 +45,22 @@ test("orders keep a reusable purchased-products tab", async () => {
 });
 
 test("shop registration sends canonical Vietnam address fields to Core", async () => {
-  const account = await read("components/account-auth-card.tsx");
-  assert.match(account, /addressLine1/);
-  assert.match(account, /ward/);
-  assert.match(account, /province/);
+  const [account, addressFields] = await Promise.all([
+    read("components/account-auth-card.tsx"),
+    read("components/vietnam-address-fields.tsx"),
+  ]);
+  assert.match(account, /VietnamAddressFields/);
+  assert.match(account, /addressLine1: form\.addressLine\.trim\(\)/);
+  assert.match(account, /ward: form\.wardName\.trim\(\)/);
+  assert.match(account, /province: form\.provinceName\.trim\(\)/);
   assert.match(account, /countryCode: "VN"/);
   assert.match(account, /Tên quán hoặc điểm bán/);
-  assert.match(account, /Tỉnh \/ thành phố/);
-  assert.match(account, /Xã \/ phường/);
-  assert.match(account, /Số nhà, tên đường/);
-  assert.doesNotMatch(account, /provinceCode|wardCode|SHOP_REGISTRATION_STORAGE_PREFIX/);
+  assert.doesNotMatch(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
+  assert.match(addressFields, /Tỉnh \/ thành phố/);
+  assert.match(addressFields, /Xã \/ phường \/ đặc khu/);
+  assert.match(addressFields, /Số nhà, tên đường/);
+  assert.match(addressFields, /provinceCode/);
+  assert.match(addressFields, /wardCode/);
 });
 
 test("home uses generated catalog identities and direct R2 hero image", async () => {
