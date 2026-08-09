@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Customer Ordering gates commerce on active Core membership instead of weakening catalog 403", async () => {
+test("Customer Ordering gates commerce on active Core membership without hijacking app navigation", async () => {
   const [shell, gate, catalogAdapter] = await Promise.all([
     source("components/app-shell.tsx"),
     source("components/customer-portal-access-gate.tsx"),
@@ -13,9 +13,11 @@ test("Customer Ordering gates commerce on active Core membership instead of weak
   ]);
   assert.match(shell, /CustomerPortalAccessGate/);
   assert.match(shell, /pathname === "\/account" \|\| pathname\.startsWith\("\/account\/"\)/);
-  assert.match(shell, /isAccountRoute \? frame/);
-  assert.match(gate, /snapshot\.state !== "active_customer"/);
-  assert.match(gate, /router\.replace\("\/account#shop-registration"\)/);
+  assert.match(shell, /const content = isAccountRoute \? children : <CustomerPortalAccessGate>\{children\}<\/CustomerPortalAccessGate>/);
+  assert.match(shell, /<main className="app-content">\{content\}<\/main>/);
+  assert.match(gate, /portalState === "active_customer"/);
+  assert.match(gate, /href="\/account#shop-registration"/);
+  assert.doesNotMatch(gate, /router\.replace|router\.push/);
   assert.doesNotMatch(gate, /catalog|listProducts|listCategories/);
   assert.match(catalogAdapter, /PAGE_SIZE = 50/);
   assert.match(catalogAdapter, /PAGE_BATCH_SIZE = 4/);

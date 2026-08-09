@@ -24,11 +24,11 @@ test("bottom navigation contains the five locked labels", async () => {
   for (const label of ["Trang chủ", "Sản phẩm", "Đặt nhanh", "Đơn hàng", "Tài khoản"]) assert.match(shell, new RegExp(label));
 });
 
-test("PWA manifest is standalone", async () => {
+test("PWA manifest is standalone and pins the current versioned icons", async () => {
   const manifest = await read("app/manifest.ts");
   assert.match(manifest, /display: "standalone"/);
-  assert.match(manifest, /src: "\/icon-192\.png"/);
-  assert.match(manifest, /src: "\/icon-512\.png"/);
+  assert.match(manifest, /src: "\/icon-192-20260809\.png"/);
+  assert.match(manifest, /src: "\/icon-512-20260809\.png"/);
 });
 
 test("service worker caches only public shell assets", async () => {

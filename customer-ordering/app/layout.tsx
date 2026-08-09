@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   applicationName: "Hưng Phát Đặt Hàng",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Hưng Phát" },
-  icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
+  icons: { icon: "/icon-192-20260809.png", apple: "/icon-192-20260809.png" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 1, viewportFit: "cover", themeColor: "#198754" };
