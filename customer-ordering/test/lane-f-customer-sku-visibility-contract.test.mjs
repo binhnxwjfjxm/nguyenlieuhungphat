@@ -10,6 +10,7 @@ const customerFacingSurfaces = [
   "components/product-catalog.tsx",
   "components/quick-order.tsx",
   "components/product-detail.tsx",
+  "components/product-visual.tsx",
   "components/cart-screen.tsx",
   "components/checkout-screen.tsx",
   "components/orders-screen.tsx",
@@ -35,6 +36,10 @@ test("Lane F hides raw SKU from customer-facing copy while preserving canonical 
     assert.doesNotMatch(contents, /SKU/, `${path} must not expose SKU wording to customers`);
     assert.doesNotMatch(contents, />\{(?:product|quickViewProduct|line|item)\.sku\}/, `${path} must not render raw SKU values`);
   }
+
+  const productVisual = await source("components/product-visual.tsx");
+  assert.doesNotMatch(productVisual, /\{product\.familySku\}/, "ProductVisual fallback must not render familySku");
+  assert.match(productVisual, /fallbackLabel/);
 
   const [catalog, quickOrder, cart, checkout, orders] = await Promise.all([
     source("components/product-catalog.tsx"),

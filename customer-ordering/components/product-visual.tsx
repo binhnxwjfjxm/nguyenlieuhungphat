@@ -6,6 +6,7 @@ import { productImageUrl } from "@/lib/product-images";
 export function ProductVisual({ product, compact = false }: Readonly<{ product: Product; compact?: boolean }>) {
   const imageUrl = productImageUrl(product);
   const className = `catalog-product-visual tone-${product.visualTone}${compact ? " is-compact" : ""}${imageUrl ? " has-product-image" : ""}`;
+  const fallbackLabel = product.brand?.trim() || product.productType?.trim() || "Sản phẩm";
 
   return (
     <div aria-label={`Hình sản phẩm ${product.name}`} className={className} role="img">
@@ -22,7 +23,7 @@ export function ProductVisual({ product, compact = false }: Readonly<{ product: 
       ) : (
         <span className="catalog-product-pack">
           <PackageOpen aria-hidden="true" size={compact ? 30 : 42} strokeWidth={1.45} />
-          <small>{product.familySku}</small>
+          <small>{fallbackLabel}</small>
         </span>
       )}
       <span className="catalog-product-shine" />

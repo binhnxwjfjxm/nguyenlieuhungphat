@@ -24,7 +24,8 @@ test("quick order reuses one query in the sticky cart bar so deep-scroll search 
   const quickOrder = await read("components/quick-order.tsx");
   assert.match(quickOrder, /quick-order-summary quick-order-summary-search/);
   assert.match(quickOrder, /quick-order-sticky-search/);
-  assert.match(quickOrder, /Lọc nhanh tên, nhãn, SKU/);
+  assert.match(quickOrder, /Lọc nhanh tên, nhãn, vị, quy cách/);
+  assert.doesNotMatch(quickOrder, /Lọc nhanh tên, nhãn, SKU/);
   assert.match(quickOrder, /value=\{query\}/);
   assert.match(quickOrder, /onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
   assert.match(quickOrder, /selectedLines/);
