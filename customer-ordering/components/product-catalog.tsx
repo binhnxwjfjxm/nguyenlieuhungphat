@@ -414,7 +414,7 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
     <section className="catalog-screen catalog-screen-compact">
       <label className="catalog-search">
         <Search aria-hidden="true" size={19} /><span className="sr-only">Tìm sản phẩm</span>
-        <input autoComplete="off" onChange={(event) => updateQuery(event.target.value)} placeholder="Tên, nhãn hoặc SKU" type="search" value={query} />
+        <input autoComplete="off" onChange={(event) => updateQuery(event.target.value)} placeholder="Tên, nhãn, vị hoặc quy cách" type="search" value={query} />
         {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => updateQuery("")} type="button"><RotateCcw aria-hidden="true" size={17} /></button> : null}
       </label>
 
@@ -499,7 +499,7 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
           <button aria-label="Đóng chi tiết sản phẩm" className="product-quick-view-close" onClick={() => setQuickViewSku(null)} ref={quickViewCloseRef} type="button"><X aria-hidden="true" size={20} /></button>
           <ProductVisual product={quickViewProduct} />
           <div className="product-quick-view-copy">
-            <div className="catalog-product-meta"><span>{quickViewProduct.sku}</span><span className={`availability-${quickViewProduct.availability}`}>{availabilityLabel(quickViewProduct)}</span></div>
+            <div className="catalog-product-meta"><span>{purchaseModeLabel(quickViewProduct.purchaseMode)}</span><span className={`availability-${quickViewProduct.availability}`}>{availabilityLabel(quickViewProduct)}</span></div>
             <p className="product-quick-view-brand">{quickViewProduct.brand}</p>
             <div className="product-quick-view-title-row"><div><h2>{quickViewGroup?.name ?? quickViewProduct.productType}</h2><strong className="product-quick-view-name">{quickViewProduct.name}</strong></div>{quickViewVariantOptions.length > 1 ? <button aria-pressed={bulkMode} className={`bulk-mode-toggle ${bulkMode ? "is-active" : ""}`} onClick={toggleBulkMode} type="button">{bulkMode ? "Chọn từng vị" : "Chọn nhiều vị"}</button> : null}</div>
 
@@ -514,9 +514,9 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
 
               {quickViewPurchaseModes.length > 1 ? <div className="product-choice-block"><span>Mua</span><div className="product-choice-chips product-choice-mode" role="group" aria-label="Chọn mua lẻ hoặc thùng">{quickViewPurchaseModes.map((mode) => <button aria-pressed={mode === quickViewProduct.purchaseMode} className={mode === quickViewProduct.purchaseMode ? "is-active" : ""} key={mode} onClick={() => selectQuickProduct(choosePreferred(quickViewDimensionProducts.filter((product) => product.purchaseMode === mode), quickViewProduct))} type="button">{purchaseModeLabel(mode)}</button>)}</div></div> : null}
 
-              {quickViewExactCandidates.length > 1 ? <div className="product-choice-block"><span>SKU</span><div className="product-choice-chips product-choice-sku" role="group" aria-label="Chọn SKU chính xác">{quickViewExactCandidates.map((product) => <button aria-pressed={product.sku === quickViewProduct.sku} className={product.sku === quickViewProduct.sku ? "is-active" : ""} key={product.sku} onClick={() => selectQuickProduct(product)} type="button">{product.sku}</button>)}</div></div> : null}
+              {quickViewExactCandidates.length > 1 ? <div className="product-choice-block"><span>Quy cách cụ thể</span><div className="product-choice-chips product-choice-sku" role="group" aria-label="Chọn quy cách cụ thể">{quickViewExactCandidates.map((product) => <button aria-pressed={product.sku === quickViewProduct.sku} className={product.sku === quickViewProduct.sku ? "is-active" : ""} key={product.sku} onClick={() => selectQuickProduct(product)} type="button">{product.name} · {product.packaging}</button>)}</div></div> : null}
 
-              <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{productSizeLabel(quickViewProduct) || "—"}</dd></div><div><dt>Vị / loại</dt><dd>{quickViewVariant || "—"}</dd></div><div><dt>SKU</dt><dd>{quickViewProduct.sku}</dd></div></dl>
+              <dl className="product-quick-view-specs"><div><dt>Quy cách</dt><dd>{quickViewProduct.packaging}</dd></div><div><dt>Size</dt><dd>{productSizeLabel(quickViewProduct) || "—"}</dd></div><div><dt>Vị / loại</dt><dd>{quickViewVariant || "—"}</dd></div></dl>
               <div className="product-quick-view-price-pair" aria-label="Giá lẻ và giá thùng"><div><span>Giá lẻ</span><strong>{formatPrice(quickViewRetail)}</strong></div><div><span>Giá thùng</span><strong>{formatPrice(quickViewCase)}</strong></div></div>
               <div className="product-quick-view-order"><div className="quantity-stepper"><button aria-label="Giảm số lượng" disabled={quickViewQuantity <= 1} onClick={() => setQuickViewQuantity((current) => Math.max(1, current - 1))} type="button"><Minus aria-hidden="true" size={17} /></button><output>{quickViewQuantity}</output><button aria-label="Tăng số lượng" disabled={quickViewQuantity >= 99} onClick={() => setQuickViewQuantity((current) => Math.min(99, current + 1))} type="button"><Plus aria-hidden="true" size={17} /></button></div><button className="product-quick-view-add" disabled={quickViewProduct.availability !== "available"} onClick={() => void addProduct(quickViewProduct, quickViewQuantity)} type="button"><ShoppingCart aria-hidden="true" size={18} />{addedSku === quickViewProduct.sku ? "Đã thêm" : `Thêm ${purchaseModeLabel(quickViewProduct.purchaseMode).toLowerCase()} vào giỏ`}</button></div>
             </> : <div className="bulk-choice-panel">

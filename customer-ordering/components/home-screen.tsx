@@ -30,7 +30,7 @@ export function HomeScreen() {
     <div className="screen-stack home-depth-stack">
       <Link className="search-field home-search-link" href="/products">
         <PackageSearch aria-hidden="true" size={19} />
-        <span>Tìm sản phẩm hoặc SKU</span>
+        <span>Tìm sản phẩm theo tên hoặc nhãn</span>
       </Link>
 
       <section className="hero-card hero-card-r2">
@@ -54,7 +54,7 @@ export function HomeScreen() {
         </Link>;
       })}</div></section>
 
-      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <Link aria-label={`Xem ${product.name}`} className="product-card home-product-card home-product-link" href={`/products/${encodeURIComponent(product.sku)}`} key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.sku}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></Link>)}</div></section>
+      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <Link aria-label={`Xem ${product.name}`} className="product-card home-product-card home-product-link" href={`/products/${encodeURIComponent(product.sku)}`} key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.brand || product.productType}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></Link>)}</div></section>
 
       <HomeAnnouncementPreview />
     </div>

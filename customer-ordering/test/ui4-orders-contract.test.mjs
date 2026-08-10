@@ -21,7 +21,9 @@ test("orders list supports status filters, detail navigation and purchased-produ
   assert.match(screen, /statusFilter/);
   assert.match(screen, /ORDER_STATUS_FILTERS/);
   assert.match(screen, /service\.listOrders/);
-  assert.match(screen, /Mã đơn, SKU hoặc sản phẩm/);
+  assert.match(screen, /Mã đơn hoặc tên sản phẩm/);
+  assert.match(screen, /Tên sản phẩm đã mua/);
+  assert.doesNotMatch(screen, /Mã đơn, SKU hoặc sản phẩm/);
   assert.match(screen, /href=\{`\/orders\/\$\{order\.id\}`\}/);
   assert.match(screen, /Không có đơn phù hợp/);
   assert.match(screen, /Sản phẩm đã mua/);

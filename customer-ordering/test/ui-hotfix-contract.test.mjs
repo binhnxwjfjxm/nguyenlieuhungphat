@@ -9,7 +9,8 @@ test("home starts with search instead of the redundant customer greeting", async
   assert.doesNotMatch(home, /welcome-row/);
   assert.doesNotMatch(home, /Xin chào,/);
   assert.doesNotMatch(home, /Khách hàng Hưng Phát/);
-  assert.match(home, /Tìm sản phẩm hoặc SKU/);
+  assert.match(home, /Tìm sản phẩm theo tên hoặc nhãn/);
+  assert.doesNotMatch(home, /Tìm sản phẩm hoặc SKU/);
 });
 
 test("OneSignal toggle remains actionable while SDK initializes and permission is requested before login", async () => {
