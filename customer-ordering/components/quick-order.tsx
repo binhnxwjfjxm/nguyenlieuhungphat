@@ -46,7 +46,7 @@ const QuickOrderProductList = memo(function QuickOrderProductList({
     const canOrder = product.availability === "available";
     return <article className={`quick-order-row quick-order-direct-row ${quantity > 0 ? "is-selected" : ""} ${canOrder ? "" : "is-disabled"}`} key={product.sku}>
       <div className="quick-product-copy">
-        <div className="quick-product-heading"><span>{product.sku}</span><span className={`availability-${product.availability}`}>{availabilityLabel(product)}</span></div>
+        <div className="quick-product-heading"><span>{purchaseModeLabel(product.purchaseMode)}</span><span className={`availability-${product.availability}`}>{availabilityLabel(product)}</span></div>
         <h2>{product.name}</h2>
         <p>{product.brand} · {product.productType}{product.flavor ? ` · ${product.flavor}` : ""}</p>
         <div className="quick-product-mode-price"><span>{purchaseModeLabel(product.purchaseMode)} · {productSizeLabel(product) || product.packaging}</span><strong>{formatPrice(product)}</strong></div>
@@ -160,7 +160,7 @@ export function QuickOrder() {
   const searchField = (className: string) => <label className={`catalog-search quick-order-search ${className} ${query !== deferredQuery ? "is-filtering" : ""}`}>
     <Search aria-hidden="true" size={18} />
     <span className="sr-only">Tìm sản phẩm đặt nhanh</span>
-    <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Lọc nhanh tên, nhãn, SKU" type="search" value={query} />
+    <input autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Lọc nhanh tên, nhãn, vị, quy cách" type="search" value={query} />
     {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={16} /></button> : null}
   </label>;
 
