@@ -18,9 +18,13 @@ function reducedMotionEnabled(): boolean {
 }
 
 function cssMilliseconds(token: string, fallback: number): number {
-  const raw = window.getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  const raw = window.getComputedStyle(document.documentElement).getPropertyValue(token).trim().toLowerCase();
+  if (!raw) return fallback;
   const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  if (!Number.isFinite(parsed)) return fallback;
+  if (raw.endsWith("ms")) return parsed;
+  if (raw.endsWith("s")) return parsed * 1000;
+  return parsed;
 }
 
 function cssEasing(token: string, fallback: string): string {
