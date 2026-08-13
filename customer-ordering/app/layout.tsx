@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ClerkAuthProvider } from "@/components/clerk-auth-provider";
+import { MobileMotionProvider } from "@/components/mobile-motion-provider";
 import { OneSignalProvider } from "@/components/onesignal-provider";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import "./globals.css";
@@ -19,6 +20,7 @@ import "./ui-hotfix.css";
 import "./home-depth-polish.css";
 import "./cart-compact.css";
 import "./product-images.css";
+import "./motion.css";
 
 export const metadata: Metadata = {
   title: { default: "Hưng Phát Đặt Hàng", template: "%s | Hưng Phát" },
@@ -32,5 +34,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 1, viewportFit: "cover", themeColor: "#198754" };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return <html lang="vi"><body><ClerkAuthProvider><OneSignalProvider>{children}</OneSignalProvider></ClerkAuthProvider><ServiceWorkerRegistration /></body></html>;
+  return <html lang="vi"><body><ClerkAuthProvider><OneSignalProvider>{children}</OneSignalProvider></ClerkAuthProvider><MobileMotionProvider /><ServiceWorkerRegistration /></body></html>;
 }
