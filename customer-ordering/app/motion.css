@@ -1,0 +1,165 @@
+/* Customer Ordering motion foundation: fast, restrained, mobile-first. */
+
+:root {
+  --hp-motion-press-duration: 100ms;
+  --hp-motion-control-duration: 140ms;
+  --hp-motion-screen-duration: 160ms;
+  --hp-motion-backdrop-duration: 140ms;
+  --hp-motion-sheet-duration: 220ms;
+  --hp-motion-sheet-exit-duration: 170ms;
+  --hp-motion-cart-flight-duration: 280ms;
+  --hp-motion-cart-bump-duration: 180ms;
+  --hp-motion-ease-enter: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --hp-motion-ease-action: ease-out;
+  --hp-motion-ease-cart: cubic-bezier(0.2, 0.78, 0.2, 1);
+}
+
+.bottom-navigation-item,
+.bottom-navigation-icon,
+.icon-button,
+.primary-button,
+.secondary-link-button,
+.primary-link-button,
+.catalog-add-icon,
+.product-quick-view-add,
+.quantity-stepper button,
+.product-choice-chips button,
+.catalog-purchase-mode button,
+.catalog-category-row button,
+.catalog-type-row button,
+.orders-inner-tabs button,
+.bulk-mode-toggle,
+.bulk-variant-toggle,
+.bulk-expand-button,
+.quick-order-direct-row button {
+  transition-duration: var(--hp-motion-control-duration);
+  transition-timing-function: var(--hp-motion-ease-action);
+}
+
+.bottom-navigation-icon {
+  transform: translate3d(0, 0, 0) scale(1);
+  transition-property: transform;
+}
+
+.bottom-navigation-item.is-active .bottom-navigation-icon {
+  transform: translate3d(0, -1px, 0) scale(1.045);
+}
+
+.bottom-navigation-item:active .bottom-navigation-icon,
+.icon-button:active,
+.primary-button:active,
+.secondary-link-button:active,
+.primary-link-button:active,
+.catalog-add-icon:active,
+.product-quick-view-add:active,
+.quantity-stepper button:active,
+.product-choice-chips button:active,
+.catalog-purchase-mode button:active,
+.catalog-category-row button:active,
+.catalog-type-row button:active,
+.orders-inner-tabs button:active,
+.bulk-mode-toggle:active,
+.bulk-variant-toggle:active,
+.bulk-expand-button:active,
+.quick-order-direct-row button:active {
+  transform: scale(0.98);
+  transition-duration: var(--hp-motion-press-duration);
+}
+
+.header-cart-status {
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.product-quick-view-backdrop,
+.product-quick-view {
+  will-change: opacity, transform;
+}
+
+.catalog-filter-menu[open] .catalog-filter-panel,
+.notification-settings-collapsible[open] .notification-preferences-card {
+  animation: hp-control-enter var(--hp-motion-control-duration) var(--hp-motion-ease-enter);
+}
+
+.order-success-screen {
+  animation: hp-screen-enter var(--hp-motion-screen-duration) var(--hp-motion-ease-enter);
+}
+
+.order-success-screen .success-icon-shell:not(:empty) {
+  animation: hp-success-pop 210ms var(--hp-motion-ease-enter);
+  transform-origin: center center;
+}
+
+.is-skeleton {
+  animation: hp-skeleton-pulse 1200ms ease-in-out infinite;
+}
+
+.hp-cart-flight {
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  box-shadow: 0 14px 32px rgba(22, 58, 35, 0.18) !important;
+  contain: paint;
+}
+
+@keyframes hp-control-enter {
+  from { opacity: 0.9; transform: translate3d(0, 3px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes hp-screen-enter {
+  from { opacity: 0.86; transform: translate3d(0, 4px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes hp-success-pop {
+  0% { opacity: 0.65; transform: scale(0.86); }
+  62% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hp-skeleton-pulse {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bottom-navigation-item:hover .bottom-navigation-icon {
+    transform: translate3d(0, -1px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-navigation-item,
+  .bottom-navigation-icon,
+  .icon-button,
+  .primary-button,
+  .secondary-link-button,
+  .primary-link-button,
+  .catalog-add-icon,
+  .product-quick-view-add,
+  .quantity-stepper button,
+  .product-choice-chips button,
+  .catalog-purchase-mode button,
+  .catalog-category-row button,
+  .catalog-type-row button,
+  .orders-inner-tabs button,
+  .bulk-mode-toggle,
+  .bulk-variant-toggle,
+  .bulk-expand-button,
+  .quick-order-direct-row button {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .catalog-filter-menu[open] .catalog-filter-panel,
+  .notification-settings-collapsible[open] .notification-preferences-card,
+  .order-success-screen,
+  .order-success-screen .success-icon-shell:not(:empty),
+  .is-skeleton {
+    animation: none !important;
+  }
+
+  .hp-cart-flight {
+    display: none !important;
+  }
+}
