@@ -28,6 +28,13 @@ test("motion controller is mounted globally without changing ordering business f
   assert.match(provider, /CART_UPDATED_EVENT/);
 });
 
+test("motion duration parser preserves milliseconds after CSS production minification", () => {
+  assert.match(provider, /\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(provider, /raw\.endsWith\("ms"\)/);
+  assert.match(provider, /raw\.endsWith\("s"\)/);
+  assert.match(provider, /return parsed \* 1000/);
+});
+
 test("single-product add motion never blocks the add-to-cart click", () => {
   const addBranch = provider.match(/const addControl = target\.closest<HTMLElement>\(PRODUCT_ADD_SELECTOR\);[\s\S]*?\n\s*}\n\n\s*if \(reducedMotionEnabled\(\)\)/)?.[0] ?? "";
   assert.match(addBranch, /animateProductToCart\(addControl\)/);
