@@ -84,9 +84,39 @@ font-weight:740;
 }
 .orders-status-filters button.is-active{
 color:#fff;
-border-color:#19875430;
-background:var(--hp-green);
-box-shadow:0 8px 18px #1987542e;
+border-color:var(--status-filter-color,#198754);
+background:var(--status-filter-color,#198754);
+box-shadow:0 8px 18px color-mix(in srgb,var(--status-filter-color,#198754) 24%,transparent);
+}
+.orders-status-filters .filter-all{
+--status-filter-color:#198754;
+}
+.orders-status-filters .filter-neutral{
+--status-filter-color:#647067;
+}
+.orders-status-filters .filter-submitted{
+--status-filter-color:#2563eb;
+}
+.orders-status-filters .filter-received{
+--status-filter-color:#0e7490;
+}
+.orders-status-filters .filter-confirmed{
+--status-filter-color:#7c3aed;
+}
+.orders-status-filters .filter-processing{
+--status-filter-color:#a16207;
+}
+.orders-status-filters .filter-delivering{
+--status-filter-color:#c2410c;
+}
+.orders-status-filters .filter-success{
+--status-filter-color:#15803d;
+}
+.orders-status-filters .filter-rejected{
+--status-filter-color:#b42318;
+}
+.orders-status-filters .filter-cancelled{
+--status-filter-color:#8c3444;
 }
 .orders-list{
 display:flex;
@@ -126,25 +156,45 @@ color:#59615b;
 border-color:#cfd5d0;
 background:#f0f2f0;
 }
-.status-info{
-color:#176185;
-border-color:#2d8fbe2b;
-background:#e8f5fb;
+.status-submitted{
+color:#1d4ed8;
+border-color:#2563eb35;
+background:#eff6ff;
 }
-.status-progress{
-color:#8a6500;
-border-color:#d8a60033;
-background:#fff7d9;
+.status-received{
+color:#0e7490;
+border-color:#0891b235;
+background:#ecfeff;
+}
+.status-confirmed{
+color:#6d28d9;
+border-color:#7c3aed35;
+background:#f5f3ff;
+}
+.status-processing{
+color:#8a5d00;
+border-color:#d89b003d;
+background:#fff8d9;
+}
+.status-delivering{
+color:#b23a08;
+border-color:#ea580c35;
+background:#fff1e8;
 }
 .status-success{
 color:var(--hp-green-dark);
 border-color:#1987542e;
 background:var(--hp-green-soft);
 }
-.status-danger{
-color:var(--hp-danger);
-border-color:#c0392b2e;
-background:#c0392b0f;
+.status-rejected{
+color:#b42318;
+border-color:#d92d2038;
+background:#fff0ee;
+}
+.status-cancelled{
+color:#8c3444;
+border-color:#b5475c38;
+background:#fbeff2;
 }
 .order-card-summary{
 display:grid;
@@ -368,6 +418,7 @@ height:16px;
 border:4px solid #fff;
 border-radius:50%;
 box-shadow:0 0 0 1px currentColor;
+background:currentColor;
 }
 .order-timeline li>div{
 min-width:0;

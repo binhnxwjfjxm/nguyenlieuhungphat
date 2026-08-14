@@ -9,6 +9,7 @@ import { CustomerAuthGate } from "@/components/customer-auth-gate";
 import { CustomerLogo } from "@/components/customer-logo";
 import { CustomerPortalAccessGate } from "@/components/customer-portal-access-gate";
 import { NotificationBadge } from "@/components/notification-badge";
+import { ClerkAvatar } from "@/components/clerk-avatar";
 
 const navigation = [
   { href: "/", label: "Trang chủ", icon: Home, emphasized: false },
@@ -61,7 +62,11 @@ export function AppShell({ children, title }: Readonly<{ children: ReactNode; ti
                 href={item.href}
                 key={item.href}
               >
-                <span className="bottom-navigation-icon"><Icon aria-hidden="true" size={22} strokeWidth={1.8} /></span>
+                {item.href === "/account" ? (
+                  <ClerkAvatar className="bottom-navigation-icon bottom-navigation-account-avatar" decorative imageSize={30} />
+                ) : (
+                  <span className="bottom-navigation-icon"><Icon aria-hidden="true" size={22} strokeWidth={1.8} /></span>
+                )}
                 <span>{item.label}</span>
               </Link>
             );

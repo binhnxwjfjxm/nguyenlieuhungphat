@@ -22,6 +22,7 @@ export interface ClerkUser {
   fullName: string | null;
   firstName: string | null;
   lastName: string | null;
+  imageUrl?: string;
   primaryPhoneNumber: ClerkPhoneNumber | null;
   primaryEmailAddress: ClerkEmailAddress | null;
   passwordEnabled?: boolean;
