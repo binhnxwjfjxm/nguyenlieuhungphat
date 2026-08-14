@@ -18,6 +18,11 @@ export function AccountModal({ children, description, icon, onClose, open, title
   const descriptionId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -28,7 +33,7 @@ export function AccountModal({ children, description, icon, onClose, open, title
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !modalRef.current) return;
@@ -53,7 +58,7 @@ export function AccountModal({ children, description, icon, onClose, open, title
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose, open]);
+  }, [open]);
 
   if (!open) return null;
 
