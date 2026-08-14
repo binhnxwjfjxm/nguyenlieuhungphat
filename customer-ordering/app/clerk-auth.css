@@ -196,9 +196,50 @@
 }
 
 .account-avatar {
+  position: relative;
   width: 58px;
   height: 58px;
+  overflow: hidden;
   border-radius: 18px;
+}
+
+.account-avatar img,
+.bottom-navigation-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clerk-avatar-initial {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-size: 1.05rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.bottom-navigation-account-avatar {
+  position: relative;
+  width: 31px;
+  height: 31px;
+  overflow: hidden;
+  border: 2px solid rgba(108, 117, 125, .2);
+  border-radius: 50%;
+  background: #eef3ef;
+  color: var(--hp-muted);
+}
+
+.bottom-navigation-account-avatar .clerk-avatar-initial {
+  font-size: .72rem;
+}
+
+.bottom-navigation-item.is-active .bottom-navigation-account-avatar {
+  border-color: var(--hp-green);
+  background: var(--hp-green-soft);
+  color: var(--hp-green-dark);
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, .1);
 }
 
 .account-identity-copy {
@@ -264,6 +305,7 @@
 }
 
 .account-section-heading > div {
+  flex: 1;
   min-width: 0;
 }
 
@@ -281,6 +323,233 @@
 
 .account-link-summary {
   border-color: rgba(25, 135, 84, .14);
+}
+
+.account-link-summary .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+}
+
+.portal-status-neutral {
+  border-color: rgba(100, 112, 103, .2) !important;
+  background: #eff2f0 !important;
+  color: #59635c !important;
+}
+
+.portal-status-info {
+  border-color: rgba(37, 99, 235, .18) !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.portal-status-progress {
+  border-color: rgba(124, 58, 237, .18) !important;
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+}
+
+.portal-status-warning {
+  border-color: rgba(217, 119, 6, .2) !important;
+  background: #fff8df !important;
+  color: #8a5d00 !important;
+}
+
+.portal-status-success {
+  border-color: rgba(25, 135, 84, .18) !important;
+  background: var(--hp-green-soft) !important;
+  color: var(--hp-green-dark) !important;
+}
+
+.portal-status-danger {
+  border-color: rgba(192, 57, 43, .18) !important;
+  background: #fff0ee !important;
+  color: var(--hp-danger) !important;
+}
+
+.account-card-action,
+.account-section-open {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(25, 135, 84, .16);
+  border-radius: 13px;
+  background: var(--hp-green-soft);
+  color: var(--hp-green-dark);
+  font-size: .74rem;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.account-card-action {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.account-section-open {
+  min-width: 98px;
+  flex: 0 0 auto;
+  padding: 0 10px 0 12px;
+}
+
+.account-modal-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  background: rgba(8, 24, 14, .46);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  animation: account-modal-fade-in var(--hp-motion-backdrop-duration, 140ms) ease-out;
+}
+
+.account-modal {
+  display: flex;
+  width: min(100%, 520px);
+  max-height: calc(100dvh - max(12px, env(safe-area-inset-top, 0px)));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 24px 24px 0 0;
+  background: #f8faf8;
+  box-shadow: 0 -18px 54px rgba(8, 24, 14, .24);
+  animation: account-modal-sheet-in var(--hp-motion-sheet-duration, 220ms) cubic-bezier(.22, .61, .36, 1);
+}
+
+.account-modal-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid rgba(229, 233, 228, .9);
+  background: rgba(255, 255, 255, .94);
+}
+
+.account-modal-icon,
+.account-modal-close {
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+}
+
+.account-modal-icon {
+  width: 42px;
+  height: 42px;
+  background: var(--hp-green-soft);
+  color: var(--hp-green);
+}
+
+.account-modal-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.account-modal-header p {
+  margin: 5px 0 0;
+  color: var(--hp-muted);
+  font-size: .69rem;
+  line-height: 1.4;
+}
+
+.account-modal-close {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--hp-border);
+  background: #fff;
+  color: var(--hp-ink);
+  cursor: pointer;
+}
+
+.account-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shop-registration-modal-intro {
+  padding: 13px 14px;
+  border: 1px solid rgba(25, 135, 84, .12);
+  border-radius: 14px;
+  background: var(--hp-green-soft);
+}
+
+.shop-registration-modal-intro strong {
+  font-size: .78rem;
+}
+
+.shop-registration-modal-intro p {
+  margin: 5px 0 0;
+  color: var(--hp-muted);
+  font-size: .7rem;
+  line-height: 1.48;
+}
+
+.account-modal .shop-registration-form {
+  margin-top: 16px;
+}
+
+.account-modal .clerk-user-profile-host,
+.account-modal .account-inline-state {
+  margin-top: 0;
+}
+
+.portal-gate-skeleton {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 18px 30px;
+}
+
+.portal-skeleton-heading,
+.portal-skeleton-search,
+.portal-skeleton-grid > span {
+  display: block;
+  border-radius: 18px;
+  background: linear-gradient(90deg, #e7ebe7, #fafbfa, #e7ebe7) 0 0 / 220% 100%;
+}
+
+.portal-skeleton-heading {
+  width: 68%;
+  height: 48px;
+}
+
+.portal-skeleton-search {
+  height: 50px;
+}
+
+.portal-skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.portal-skeleton-grid > span {
+  min-height: 164px;
+}
+
+.portal-access-state {
+  min-height: 100%;
+}
+
+@keyframes account-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes account-modal-sheet-in {
+  from { opacity: .84; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 .shop-registration-form {
@@ -400,6 +669,17 @@
   .shop-registration-delete {
     padding-inline: 16px;
   }
+
+  .account-modal-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .account-modal {
+    max-height: min(760px, calc(100dvh - 48px));
+    border-radius: 24px;
+    box-shadow: 0 24px 72px rgba(8, 24, 14, .28);
+  }
 }
 
 @media (max-width: 360px) {
@@ -418,7 +698,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-embed-loading {
+  .auth-embed-loading,
+  .account-modal-backdrop,
+  .account-modal {
     animation: none;
   }
 }

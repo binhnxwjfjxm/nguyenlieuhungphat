@@ -1,9 +1,12 @@
 "use client";
 
-import { AlertCircle, Building2, CheckCircle2, Clock3, LogOut, Mail, Phone, RefreshCw, Save, Store, UserRound } from "lucide-react";
+import { AlertCircle, Building2, CheckCircle2, Clock3, LogOut, Mail, Phone, RefreshCw, Save, Store } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { AccountModal } from "@/components/account-modal";
 import { ClerkUserProfilePanel } from "@/components/clerk-user-profile";
+import { ClerkAvatar } from "@/components/clerk-avatar";
 import { useCustomerAuth } from "@/components/clerk-auth-provider";
+import { rememberCustomerPortalAccess } from "@/components/customer-portal-access-gate";
 import { VietnamAddressFields, type VietnamAddressValue } from "@/components/vietnam-address-fields";
 import {
   getPortalLifecycle,
@@ -111,6 +114,20 @@ const STATE_COPY: Record<string, { title: string; description: string }> = {
   suspended: { title: "Liên kết điểm bán tạm khóa", description: "Tài khoản hoặc membership hiện không sử dụng được. Vui lòng liên hệ Hưng Phát." },
 };
 
+const STATE_BADGE: Record<string, { label: string; tone: "danger" | "info" | "neutral" | "progress" | "success" | "warning" }> = {
+  unregistered: { label: "Chưa đăng ký", tone: "neutral" },
+  submitted: { label: "Đã gửi", tone: "info" },
+  under_review: { label: "Đang xác minh", tone: "progress" },
+  need_more_info: { label: "Cần bổ sung", tone: "warning" },
+  approved: { label: "Đang kích hoạt", tone: "info" },
+  linked_existing: { label: "Đang kích hoạt", tone: "info" },
+  activation_pending: { label: "Đang kích hoạt", tone: "info" },
+  active_customer: { label: "Đã kích hoạt", tone: "success" },
+  rejected: { label: "Chưa chấp thuận", tone: "danger" },
+  cancelled: { label: "Đã kết thúc", tone: "neutral" },
+  suspended: { label: "Tạm khóa", tone: "danger" },
+};
+
 export function AccountAuthCard() {
   const { user, signOut } = useCustomerAuth();
   const mutationKeyRef = useRef<string | null>(null);
@@ -122,11 +139,14 @@ export function AccountAuthCard() {
   const [form, setForm] = useState<ShopForm>(EMPTY_FORM);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [shopModalOpen, setShopModalOpen] = useState(false);
   const displayName = user?.fullName || user?.firstName || "Khách hàng Hưng Phát";
   const email = user?.primaryEmailAddress?.emailAddress || "Chưa có email";
+  const userId = user?.id;
 
   const applyLifecycleSnapshot = useCallback(async (next: PortalLifecycleSnapshot) => {
     setSnapshot(next);
+    if (userId) rememberCustomerPortalAccess(userId, next.state);
     if (next.state === "active_customer") {
       const activeProfile = await getPortalProfile();
       setProfile(activeProfile);
@@ -135,7 +155,7 @@ export function AccountAuthCard() {
       setProfile(null);
       setForm(formFromRegistration(next.registration));
     }
-  }, []);
+  }, [userId]);
 
   const refreshPortal = useCallback(async () => {
     if (!user?.id) return;
@@ -161,6 +181,7 @@ export function AccountAuthCard() {
         const next = await getPortalLifecycle();
         const activeProfile = next.state === "active_customer" ? await getPortalProfile() : null;
         if (cancelled) return;
+        rememberCustomerPortalAccess(user.id, next.state);
         setSnapshot(next);
         setProfile(activeProfile);
         setForm(activeProfile ? formFromProfile(activeProfile) : formFromRegistration(next.registration));
@@ -255,21 +276,30 @@ export function AccountAuthCard() {
 
   const state = snapshot?.state ?? "unregistered";
   const copy = STATE_COPY[state] ?? STATE_COPY.unregistered;
+  const badge = STATE_BADGE[state] ?? STATE_BADGE.unregistered;
   const editableState = state === "unregistered" || state === "need_more_info" || state === "active_customer";
   const editable = Boolean(snapshot) && editableState && (state !== "active_customer" || Boolean(profile?.address));
   const submitLabel = state === "active_customer" ? "Lưu lên Core" : state === "need_more_info" ? "Gửi lại thông tin" : "Gửi đăng ký điểm bán";
+  const openFormLabel = state === "active_customer" ? "Chỉnh sửa thông tin" : state === "need_more_info" ? "Bổ sung thông tin" : "Đăng ký điểm bán";
 
   return <div className="account-hub">
-    <section className="account-identity-card"><div className="account-avatar"><UserRound aria-hidden="true" size={30} /></div><div className="account-identity-copy"><h1>{displayName}</h1><p className="account-email"><Mail aria-hidden="true" size={17} />{email}</p></div><button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button"><LogOut aria-hidden="true" size={18} />{signingOut ? "Đang đăng xuất..." : "Đăng xuất"}</button></section>
+    <section className="account-identity-card"><ClerkAvatar className="account-avatar" imageSize={58} /><div className="account-identity-copy"><h1>{displayName}</h1><p className="account-email"><Mail aria-hidden="true" size={17} />{email}</p></div><button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button"><LogOut aria-hidden="true" size={18} />{signingOut ? "Đang đăng xuất..." : "Đăng xuất"}</button></section>
 
-    <section className="account-section account-link-summary" id="shop-registration"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán / Core</p><h2>{loading ? "Đang kiểm tra trạng thái..." : error && !snapshot ? "Không đọc được trạng thái điểm bán" : copy.title}</h2><p>{loading ? "Đang đọc dữ liệu chính thức từ Core." : error && !snapshot ? "Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core." : copy.description}</p>{state === "active_customer" && profile?.customerCode ? <p><strong>Mã khách Core:</strong> {profile.customerCode}</p> : null}</div>{snapshot ? (state === "active_customer" ? <span className="status-pill"><CheckCircle2 aria-hidden="true" size={15} />Đã kích hoạt</span> : <span className="status-pill"><Clock3 aria-hidden="true" size={15} />{state}</span>) : null}</div>
+    <section className="account-section account-link-summary" id="shop-registration"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán / Core</p><h2>{loading ? "Đang kiểm tra trạng thái..." : error && !snapshot ? "Không đọc được trạng thái điểm bán" : copy.title}</h2><p>{loading ? "Đang đọc dữ liệu chính thức từ Core." : error && !snapshot ? "Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core." : copy.description}</p>{state === "active_customer" && profile?.customerCode ? <p><strong>Mã khách Core:</strong> {profile.customerCode}</p> : null}</div>{snapshot ? <span className={`status-pill portal-status-${badge.tone}`}>{state === "active_customer" ? <CheckCircle2 aria-hidden="true" size={15} /> : <Clock3 aria-hidden="true" size={15} />}{badge.label}</span> : null}</div>
       {snapshot?.registration?.reviewReason ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>{snapshot.registration.reviewReason}</span></div> : null}
       {state === "active_customer" && profile && !profile.address ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>Điểm bán chưa có địa chỉ đang hoạt động. Vui lòng liên hệ Hưng Phát để khôi phục địa chỉ trước khi chỉnh sửa.</span></div> : null}
+      {editable && !loading ? <button className="account-card-action" onClick={() => setShopModalOpen(true)} type="button"><Store aria-hidden="true" size={18} />{openFormLabel}</button> : null}
       {snapshot && !editable && !loading ? <button className="secondary-action-button" onClick={() => void refreshPortal()} type="button"><RefreshCw aria-hidden="true" size={17} />Tải lại trạng thái</button> : null}
     </section>
 
-    {editable && !loading ? <section className="account-section shop-registration-section">
-      <div className="account-section-heading"><span className="account-section-icon"><Store aria-hidden="true" size={21} /></span><div><p className="eyebrow">{state === "active_customer" ? "Chỉnh sửa thông tin điểm bán" : "Đăng ký điểm bán"}</p><h2>{state === "active_customer" ? "Thông tin chính thức trên Core" : "Thông tin gửi Hưng Phát xác minh"}</h2><p>{state === "active_customer" ? "Chỉ thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Core quản lý." : "Tên quán / điểm bán bên dưới sẽ là tên khách mới nếu Hưng Phát duyệt tạo mã; không lấy tự động từ tên tài khoản đăng nhập."}</p></div></div>
+    {editable && !loading ? <AccountModal
+      description={state === "active_customer" ? "Thông tin được đồng bộ trực tiếp với hồ sơ điểm bán trên Core." : "Thông tin sẽ được gửi tới Hưng Phát để xác minh."}
+      icon={<Store aria-hidden="true" size={22} />}
+      onClose={() => setShopModalOpen(false)}
+      open={shopModalOpen}
+      title={state === "active_customer" ? "Chỉnh sửa thông tin điểm bán" : state === "need_more_info" ? "Bổ sung thông tin điểm bán" : "Đăng ký điểm bán"}
+    >
+      <div className="shop-registration-modal-intro"><strong>{state === "active_customer" ? "Thông tin chính thức trên Core" : "Thông tin gửi Hưng Phát xác minh"}</strong><p>{state === "active_customer" ? "Chỉ thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Core quản lý." : "Tên quán / điểm bán sẽ là tên khách mới nếu Hưng Phát duyệt tạo mã."}</p></div>
       <form className="shop-registration-form" onSubmit={handleShopSubmit}>
         <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" disabled={saving} onChange={(event) => updateField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={form.shopName} /></div></label>
         <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" disabled={saving} inputMode="tel" onChange={(event) => updateField("phone", event.target.value)} placeholder="Số điện thoại" required value={form.phone} /></div></label>
@@ -279,7 +309,7 @@ export function AccountAuthCard() {
         {error ? <small className="field-error">{error}</small> : null}
         <div className="shop-registration-actions"><button className="primary-button shop-registration-submit" disabled={saving} type="submit"><Save aria-hidden="true" size={18} />{saving ? "Đang lưu..." : submitLabel}</button></div>
       </form>
-    </section> : null}
+    </AccountModal> : null}
 
     {error && !editable ? <section className="account-section"><small className="field-error">{error}</small><button className="secondary-action-button" onClick={() => void refreshPortal()} type="button"><RefreshCw aria-hidden="true" size={17} />Thử lại</button></section> : null}
     <ClerkUserProfilePanel />

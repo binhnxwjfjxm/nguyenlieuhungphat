@@ -66,3 +66,33 @@ test("protected app shell uses Clerk auth gate", async () => {
   assert.match(shell, /CustomerAuthGate/);
   assert.match(layout, /ClerkAuthProvider/);
 });
+
+test("account actions open focused modals and the navigation previews the signed-in Clerk avatar", async () => {
+  const [account, profile, modal, shell, avatar, browser] = await Promise.all([
+    read("components/account-auth-card.tsx"),
+    read("components/clerk-user-profile.tsx"),
+    read("components/account-modal.tsx"),
+    read("components/app-shell.tsx"),
+    read("components/clerk-avatar.tsx"),
+    read("lib/auth/clerk-browser.ts"),
+  ]);
+
+  assert.match(account, /open=\{shopModalOpen\}/);
+  assert.match(account, /Chỉnh sửa thông tin điểm bán/);
+  assert.match(profile, /<AccountModal/);
+  assert.doesNotMatch(profile, /<details/);
+  assert.match(modal, /aria-modal="true"/);
+  assert.match(modal, /createPortal/);
+  assert.match(shell, /<ClerkAvatar/);
+  assert.match(avatar, /user\?\.imageUrl/);
+  assert.match(browser, /imageUrl\?: string/);
+});
+
+test("portal access check is cached per Clerk user and first load uses an in-shell skeleton", async () => {
+  const gate = await read("components/customer-portal-access-gate.tsx");
+  assert.match(gate, /portalAccessCache = new Map/);
+  assert.match(gate, /rememberCustomerPortalAccess/);
+  assert.match(gate, /PORTAL_ACCESS_FRESH_MS/);
+  assert.match(gate, /className="portal-gate-skeleton"/);
+  assert.match(gate, /userId/);
+});

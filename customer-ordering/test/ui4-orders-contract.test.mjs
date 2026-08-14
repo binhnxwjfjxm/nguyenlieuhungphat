@@ -49,3 +49,16 @@ test("UI-4 keeps its styles isolated and mobile-safe", async () => {
   assert.match(css, /\.order-actions-card/);
   assert.doesNotMatch(css, /position:\s*fixed/);
 });
+
+test("every order transition has its own visual tone", async () => {
+  const [statusMeta, css, screen] = await Promise.all([
+    read("lib/order-status.ts"),
+    read("app/ui4.css"),
+    read("components/orders-screen.tsx"),
+  ]);
+  for (const tone of ["submitted", "received", "confirmed", "processing", "delivering", "success", "rejected", "cancelled"]) {
+    assert.match(statusMeta, new RegExp(`tone: "${tone}"`));
+    assert.match(css, new RegExp(`\\.status-${tone}`));
+  }
+  assert.match(screen, /filter-\$\{filter\.tone\}/);
+});
