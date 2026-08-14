@@ -83,6 +83,11 @@ test("account actions open focused modals and the navigation previews the signed
   assert.doesNotMatch(profile, /<details/);
   assert.match(modal, /aria-modal="true"/);
   assert.match(modal, /createPortal/);
+  assert.match(modal, /const onCloseRef = useRef\(onClose\)/);
+  assert.match(modal, /onCloseRef\.current = onClose/);
+  assert.match(modal, /onCloseRef\.current\(\)/);
+  assert.match(modal, /\}, \[open\]\);/);
+  assert.doesNotMatch(modal, /\[onClose, open\]/);
   assert.match(shell, /<ClerkAvatar/);
   assert.match(avatar, /user\?\.imageUrl/);
   assert.match(browser, /imageUrl\?: string/);
