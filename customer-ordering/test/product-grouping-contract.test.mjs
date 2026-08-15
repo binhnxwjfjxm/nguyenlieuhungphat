@@ -66,8 +66,9 @@ test("quick order renders every exact SKU through the memoized list with its own
   assert.match(source, /products=\{filteredProducts\}/);
   assert.match(source, /formatPrice\(product\)/);
   assert.match(source, /quick-product-mode-price/);
-  assert.match(source, /quantities\[product\.sku\]/);
-  assert.match(source, /nextLines\.push\(\{ sku, quantity \}\)/);
+  assert.match(source, /key=\{product\.sku\}/);
+  assert.match(source, /nextLines\.findIndex\(\(line\) => line\.sku === product\.sku\)/);
+  assert.match(source, /nextLines\.push\(\{ sku: product\.sku, quantity: 1 \}\)/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
 });
