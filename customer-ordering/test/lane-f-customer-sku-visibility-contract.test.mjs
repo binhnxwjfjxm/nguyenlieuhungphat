@@ -50,7 +50,8 @@ test("Lane F hides raw SKU from customer-facing copy while preserving canonical 
   ]);
   assert.match(catalog, /selectedSkuByGroup/);
   assert.match(catalog, /product\.sku/);
-  assert.match(quickOrder, /quantities\[product\.sku\]/);
+  assert.match(quickOrder, /key=\{product\.sku\}/);
+  assert.match(quickOrder, /nextLines\.findIndex\(\(line\) => line\.sku === product\.sku\)/);
   assert.match(cart, /line\.sku/);
   assert.match(checkout, /productMap\.get\(line\.sku\)/);
   assert.match(orders, /bySku\.get\(line\.sku\)/);

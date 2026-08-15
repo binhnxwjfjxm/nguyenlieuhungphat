@@ -16,18 +16,18 @@ test("UI-3 extends the existing service and mock adapter boundary", async () => 
   assert.doesNotMatch(adapter, /fetch\(|axios|DATABASE_URL|SUPABASE/i);
 });
 
-test("quick order keeps selection local, filters purchase mode and bulk merges into cart", async () => {
+test("quick order keeps exact retail/case SKU filters and direct-adds one unit to the existing cart", async () => {
   const quickOrder = await read("components/quick-order.tsx");
-  assert.match(quickOrder, /selectedOnly/);
-  assert.match(quickOrder, /quantities/);
-  assert.match(quickOrder, /selectedEntries/);
   assert.match(quickOrder, /purchaseMode/);
   assert.match(quickOrder, /Mua lẻ/);
   assert.match(quickOrder, /Mua thùng/);
-  assert.match(quickOrder, /addSelectedToCart/);
+  assert.match(quickOrder, /addProductToCart/);
+  assert.match(quickOrder, /nextLines\.findIndex\(\(line\) => line\.sku === product\.sku\)/);
+  assert.match(quickOrder, /nextLines\.push\(\{ sku: product\.sku, quantity: 1 \}\)/);
   assert.match(quickOrder, /service\.saveCart/);
   assert.match(quickOrder, /announceCartUpdated/);
-  assert.match(quickOrder, /Thêm vào giỏ/);
+  assert.match(quickOrder, /<ProductVisual compact product=\{product\}/);
+  assert.doesNotMatch(quickOrder, /selectedOnly|selectedEntries|addSelectedToCart|Thêm vào giỏ/);
 });
 
 test("cart, checkout and success routes are real protected app screens", async () => {
@@ -47,12 +47,15 @@ test("cart, checkout and success routes are real protected app screens", async (
   assert.match(successScreen, /Đã gửi thành công/);
 });
 
-test("UI-3 preserves glass navigation and mobile-safe order flow styles", async () => {
-  const [layout, badge, css] = await Promise.all([read("app/layout.tsx"), read("components/cart-badge.tsx"), read("app/ui3.css")]);
+test("UI-3 preserves glass navigation while Quick Order owns the new rail layer", async () => {
+  const [layout, badge, baseCss, railCss] = await Promise.all([read("app/layout.tsx"), read("components/cart-badge.tsx"), read("app/ui3.css"), read("app/quick-order-rail.css")]);
   assert.match(layout, /import "\.\/ui2\.css"/);
   assert.match(layout, /import "\.\/ui3\.css"/);
+  assert.match(layout, /import "\.\/quick-order-rail\.css"/);
   assert.match(badge, /href="\/cart"/);
-  assert.match(css, /backdrop-filter: blur\(20px\)/);
-  assert.match(css, /\.quick-order-summary/);
-  assert.match(css, /position: sticky/);
+  assert.match(baseCss, /backdrop-filter: blur\(20px\)/);
+  assert.match(railCss, /\.quick-order-catalog-layout/);
+  assert.match(railCss, /\.quick-filter-rail/);
+  assert.match(railCss, /\.bottom-navigation::after/);
+  assert.match(railCss, /transition:\s*transform 240ms/);
 });

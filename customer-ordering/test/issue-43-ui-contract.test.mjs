@@ -28,20 +28,24 @@ test("issue 43 keeps one category priority and opens Home categories/products co
   assert.match(catalog, /useState<string \| null>\(initialCategoryId\)/);
 });
 
-test("Quick Order filters locally without collapsing the list on every keystroke", async () => {
-  const [quickOrder, hotfix] = await Promise.all([
+test("Quick Order filters locally, reuses the R2 product visual and keeps cards dense", async () => {
+  const [quickOrder, railCss] = await Promise.all([
     read("components/quick-order.tsx"),
-    read("app/ui-hotfix.css"),
+    read("app/quick-order-rail.css"),
   ]);
 
   assert.match(quickOrder, /Promise\.all\(\[service\.listCategories\(\), service\.listProducts\(\)\]\)/);
   assert.match(quickOrder, /productMatchesQuery\(product, deferredQuery\)/);
   assert.match(quickOrder, /const QuickOrderProductList = memo/);
-  assert.doesNotMatch(quickOrder, /loadedQueryKey|queryKey|quick-step-buttons|ChevronUp|ChevronDown/);
-  assert.match(quickOrder, /quick-summary-add/);
-  assert.match(hotfix, /grid-template-columns:\s*31px minmax\(0, 1fr\) 33px/);
-  assert.match(hotfix, /\.quick-order-summary-search[\s\S]*padding:\s*7px 8px/);
-  assert.match(hotfix, /\.quick-summary-add[\s\S]*white-space:\s*nowrap/);
+  assert.match(quickOrder, /<ProductVisual compact product=\{product\}/);
+  assert.match(quickOrder, /quick-filter-search-shortcut/);
+  assert.match(quickOrder, /categories\.map\(\(category\)/);
+  assert.match(quickOrder, /quick-direct-add/);
+  assert.doesNotMatch(quickOrder, /quick-order-summary|quick-order-sticky-search|quick-quantity-control|selectedOnly/);
+  assert.match(railCss, /grid-template-columns:\s*108px minmax\(0, 1fr\)/);
+  assert.match(railCss, /\.quick-order-direct-row[\s\S]*height:\s*78px/);
+  assert.match(railCss, /\.quick-product-visual/);
+  assert.match(railCss, /\.quick-filter-slider[\s\S]*transition:\s*transform 220ms/);
 });
 
 test("customer-facing copy and destructive actions do not expose implementation details", async () => {
