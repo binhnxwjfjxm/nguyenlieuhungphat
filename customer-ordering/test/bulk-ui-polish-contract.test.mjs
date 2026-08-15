@@ -20,29 +20,32 @@ test("product popup keeps flavor lists compact and bulk-adds exact canonical SKU
   assert.match(catalog, /formatPrice\(product\)/);
 });
 
-test("quick order reuses one query in the sticky cart bar so deep-scroll search stays available", async () => {
+test("quick order keeps one top query while the left rail owns purchase/category filtering", async () => {
   const quickOrder = await read("components/quick-order.tsx");
-  assert.match(quickOrder, /quick-order-summary quick-order-summary-search/);
-  assert.match(quickOrder, /quick-order-sticky-search/);
+  assert.match(quickOrder, /quick-order-search-top/);
   assert.match(quickOrder, /Lọc nhanh tên, nhãn, vị, quy cách/);
   assert.doesNotMatch(quickOrder, /Lọc nhanh tên, nhãn, SKU/);
-  assert.match(quickOrder, /value=\{query\}/);
-  assert.match(quickOrder, /onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
-  assert.match(quickOrder, /selectedLines/);
-  assert.match(quickOrder, /addSelectedToCart/);
+  assert.match(quickOrder, /ref=\{searchInputRef\}/);
+  assert.match(quickOrder, /quick-filter-rail/);
+  assert.match(quickOrder, /quick-filter-mode/);
+  assert.match(quickOrder, /quick-filter-categories/);
+  assert.match(quickOrder, /productTypeOptions\.map/);
+  assert.doesNotMatch(quickOrder, /quick-order-summary|quick-order-sticky-search|addSelectedToCart/);
 });
 
-test("final interaction stylesheet owns card depth, responsive bulk UI and compact sticky search", async () => {
-  const [layout, css] = await Promise.all([
+test("final interaction stylesheet keeps bulk UI while the final quick-order layer owns rail and navigation glow", async () => {
+  const [layout, interactionCss, railCss] = await Promise.all([
     read("app/layout.tsx"),
     read("app/interaction-polish.css"),
+    read("app/quick-order-rail.css"),
   ]);
   assert.match(layout, /home-category-icons\.css";\nimport "\.\/interaction-polish\.css";/);
-  assert.match(css, /\.catalog-family-card\s*\{[^}]*box-shadow:/s);
-  assert.match(css, /\.bulk-variant-grid/);
-  assert.match(css, /\.bulk-add-summary/);
-  assert.match(css, /\.quick-order-summary-search/);
-  assert.match(css, /\.quick-order-sticky-search/);
-  assert.match(css, /@media \(max-width: 520px\)/);
-  assert.match(css, /@media \(min-width: 700px\)/);
+  assert.match(layout, /motion\.css";\nimport "\.\/quick-order-rail\.css";/);
+  assert.match(interactionCss, /\.catalog-family-card\s*\{[^}]*box-shadow:/s);
+  assert.match(interactionCss, /\.bulk-variant-grid/);
+  assert.match(interactionCss, /\.bulk-add-summary/);
+  assert.match(railCss, /\.quick-filter-rail/);
+  assert.match(railCss, /\.quick-direct-add/);
+  assert.match(railCss, /\.bottom-navigation::after/);
+  assert.match(railCss, /@media \(max-width: 430px\)/);
 });
