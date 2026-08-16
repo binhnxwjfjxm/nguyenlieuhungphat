@@ -29,7 +29,7 @@ test("Hưng Phát login exposes explicit Clerk sign-in and sign-up modes", async
   assert.match(appearance, /socialButtonsBlockButton/);
 });
 
-test("account tab uses Core lifecycle as the shop source of truth and keeps Clerk account management available", async () => {
+test("account tab uses the Công Ty lifecycle as the shop source of truth and keeps Clerk account management available", async () => {
   const [account, lifecycle, profile] = await Promise.all([
     read("components/account-auth-card.tsx"),
     read("lib/customer-portal-lifecycle.ts"),
@@ -39,9 +39,9 @@ test("account tab uses Core lifecycle as the shop source of truth and keeps Cler
   assert.match(account, /submitPortalRegistration/);
   assert.match(account, /resubmitPortalRegistration/);
   assert.match(account, /updatePortalProfile/);
-  assert.match(account, /Mã khách Core:/);
+  assert.match(account, /Mã khách Công Ty:/);
   assert.match(account, /Gửi đăng ký điểm bán/);
-  assert.match(account, /Lưu lên Core/);
+  assert.match(account, /Lưu lên Công Ty/);
   assert.match(account, /ClerkUserProfilePanel/);
   assert.doesNotMatch(account, /SHOP_REGISTRATION_STORAGE_PREFIX/);
   assert.doesNotMatch(account, /window\.localStorage\.(getItem|setItem)/);
