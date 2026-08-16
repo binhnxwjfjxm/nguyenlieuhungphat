@@ -65,8 +65,8 @@ test("customer-facing copy and destructive actions do not expose implementation 
   }
 
   assert.match(account, /Gửi đăng ký điểm bán/);
-  assert.match(account, /Lưu lên Core/);
-  assert.match(account, /Mã khách Core:/);
+  assert.match(account, /Lưu lên Công Ty/);
+  assert.match(account, /Mã khách Công Ty:/);
   assert.doesNotMatch(account, /Lưu bản nháp|confirmDeleteDraft|SHOP_REGISTRATION_STORAGE_PREFIX/);
   assert.match(cart, /confirmClear/);
   assert.match(checkout, /Chưa có địa chỉ nhận hàng/);

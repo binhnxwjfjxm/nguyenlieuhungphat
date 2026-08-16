@@ -49,15 +49,15 @@ test("shop registration and edit use Core as source of truth with retry-stable i
   assert.match(account, /state === "need_more_info"/);
   assert.match(account, /state === "active_customer"/);
   assert.match(account, /Boolean\(snapshot\) && editableState/);
-  assert.match(account, /Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core/);
-  assert.match(account, /Mã khách Core:/);
+  assert.match(account, /Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Công Ty/);
+  assert.match(account, /Mã khách Công Ty:/);
   assert.match(account, /profile\.customerCode/);
   assert.match(account, /mutationKeyRef/);
   assert.match(account, /crypto\.randomUUID\(\)/);
   assert.match(account, /portalError\?\.retryable/);
   assert.match(account, /portalError\?\.statusCode === 409 && portalError\.code !== "IDEMPOTENCY_IN_PROGRESS"/);
   assert.match(account, /await refreshPortal\(\)/);
-  assert.match(account, /Dữ liệu trên Core đã thay đổi\. Hãy kiểm tra dữ liệu mới rồi gửi lại\./);
+  assert.match(account, /Dữ liệu Công Ty đã thay đổi\. Hãy kiểm tra dữ liệu mới rồi gửi lại\./);
   assert.match(account, /IDEMPOTENCY_IN_PROGRESS/);
   assert.match(account, /customer\.address\?\.addressLine1/);
   assert.match(lifecycle, /\/registrations\/current/);
