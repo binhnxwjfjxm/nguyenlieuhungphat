@@ -100,18 +100,23 @@ function registrationInput(form: ShopForm): PortalRegistrationInput {
   };
 }
 
+function locationUrlFromForm(form: ShopForm): string | undefined {
+  if (form.latitude === null || form.longitude === null) return undefined;
+  return `https://www.google.com/maps/search/?api=1&query=${form.latitude},${form.longitude}`;
+}
+
 const STATE_COPY: Record<string, { title: string; description: string }> = {
   unregistered: { title: "Chưa đăng ký điểm bán", description: "Gửi thông tin điểm bán để Hưng Phát xác minh trước khi mở danh mục và đặt hàng." },
   submitted: { title: "Đã gửi đăng ký", description: "Hưng Phát đã nhận thông tin và đang chờ xử lý." },
   under_review: { title: "Đang xác minh", description: "Thông tin điểm bán đang được bộ phận phụ trách kiểm tra." },
   need_more_info: { title: "Cần bổ sung thông tin", description: "Cập nhật lại thông tin theo ghi chú bên dưới rồi gửi lại." },
-  approved: { title: "Đã duyệt, đang kích hoạt", description: "Hệ thống đang hoàn tất liên kết khách hàng và membership." },
-  linked_existing: { title: "Đã liên kết, đang kích hoạt", description: "Hệ thống đang hoàn tất membership cho khách hàng hiện có." },
-  activation_pending: { title: "Đã duyệt, đang kích hoạt", description: "Chưa mở đặt hàng cho tới khi membership hoạt động đầy đủ." },
-  active_customer: { title: "Điểm bán đã liên thông Core", description: "Danh mục và đặt hàng đã được mở. Thông tin bên dưới là dữ liệu chính thức trên Core." },
+  approved: { title: "Đã duyệt, đang kích hoạt", description: "Hệ thống đang hoàn tất liên kết khách hàng và tài khoản đặt hàng." },
+  linked_existing: { title: "Đã liên kết, đang kích hoạt", description: "Hệ thống đang hoàn tất quyền đặt hàng cho khách hàng hiện có." },
+  activation_pending: { title: "Đã duyệt, đang kích hoạt", description: "Chưa mở đặt hàng cho tới khi tài khoản được kích hoạt đầy đủ." },
+  active_customer: { title: "Điểm bán đã liên thông Công Ty", description: "Danh mục và đặt hàng đã được mở. Thông tin bên dưới là dữ liệu chính thức của Công Ty." },
   rejected: { title: "Đăng ký chưa được chấp thuận", description: "Xem ghi chú xử lý và liên hệ Hưng Phát nếu cần hỗ trợ." },
   cancelled: { title: "Đăng ký đã hủy", description: "Yêu cầu này đã kết thúc. Liên hệ Hưng Phát nếu cần mở lại quy trình." },
-  suspended: { title: "Liên kết điểm bán tạm khóa", description: "Tài khoản hoặc membership hiện không sử dụng được. Vui lòng liên hệ Hưng Phát." },
+  suspended: { title: "Liên kết điểm bán tạm khóa", description: "Tài khoản hoặc liên kết điểm bán hiện không sử dụng được. Vui lòng liên hệ Hưng Phát." },
 };
 
 const STATE_BADGE: Record<string, { label: string; tone: "danger" | "info" | "neutral" | "progress" | "success" | "warning" }> = {
@@ -236,6 +241,7 @@ export function AccountAuthCard() {
         await applyLifecycleSnapshot(next);
         setNotice("Đã gửi lại thông tin bổ sung.");
       } else if (snapshot.state === "active_customer" && profile?.address) {
+        const locationUrl = locationUrlFromForm(form);
         const updated = await updatePortalProfile({
           outletName: form.shopName.trim(),
           phone: form.phone.trim(),
@@ -243,6 +249,7 @@ export function AccountAuthCard() {
           expectedAddressUpdatedAt: profile.address.updatedAt,
           address: {
             id: profile.address.id,
+            ...(locationUrl ? { locationUrl } : {}),
             addressLine1: form.addressLine.trim(),
             ward: form.wardName.trim(),
             province: form.provinceName.trim(),
@@ -252,14 +259,14 @@ export function AccountAuthCard() {
         mutationKeyRef.current = null;
         setProfile(updated);
         setForm(formFromProfile(updated));
-        setNotice("Đã cập nhật thông tin điểm bán trên Core.");
+        setNotice("Đã cập nhật thông tin điểm bán của Công Ty.");
       }
     } catch (saveError: unknown) {
       const portalError = saveError instanceof PortalLifecycleError ? saveError : null;
       if (portalError?.statusCode === 409 && portalError.code !== "IDEMPOTENCY_IN_PROGRESS") {
         mutationKeyRef.current = null;
         await refreshPortal();
-        setError("Dữ liệu trên Core đã thay đổi. Hãy kiểm tra dữ liệu mới rồi gửi lại.");
+        setError("Dữ liệu Công Ty đã thay đổi. Hãy kiểm tra dữ liệu mới rồi gửi lại.");
         return;
       }
       if (!portalError?.retryable && portalError?.code !== "IDEMPOTENCY_IN_PROGRESS") mutationKeyRef.current = null;
@@ -279,13 +286,13 @@ export function AccountAuthCard() {
   const badge = STATE_BADGE[state] ?? STATE_BADGE.unregistered;
   const editableState = state === "unregistered" || state === "need_more_info" || state === "active_customer";
   const editable = Boolean(snapshot) && editableState && (state !== "active_customer" || Boolean(profile?.address));
-  const submitLabel = state === "active_customer" ? "Lưu lên Core" : state === "need_more_info" ? "Gửi lại thông tin" : "Gửi đăng ký điểm bán";
+  const submitLabel = state === "active_customer" ? "Lưu lên Công Ty" : state === "need_more_info" ? "Gửi lại thông tin" : "Gửi đăng ký điểm bán";
   const openFormLabel = state === "active_customer" ? "Chỉnh sửa thông tin" : state === "need_more_info" ? "Bổ sung thông tin" : "Đăng ký điểm bán";
 
   return <div className="account-hub">
     <section className="account-identity-card"><ClerkAvatar className="account-avatar" imageSize={58} /><div className="account-identity-copy"><h1>{displayName}</h1><p className="account-email"><Mail aria-hidden="true" size={17} />{email}</p></div><button className="account-signout-button" disabled={signingOut} onClick={handleSignOut} type="button"><LogOut aria-hidden="true" size={18} />{signingOut ? "Đang đăng xuất..." : "Đăng xuất"}</button></section>
 
-    <section className="account-section account-link-summary" id="shop-registration"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán / Core</p><h2>{loading ? "Đang kiểm tra trạng thái..." : error && !snapshot ? "Không đọc được trạng thái điểm bán" : copy.title}</h2><p>{loading ? "Đang đọc dữ liệu chính thức từ Core." : error && !snapshot ? "Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Core." : copy.description}</p>{state === "active_customer" && profile?.customerCode ? <p><strong>Mã khách Core:</strong> {profile.customerCode}</p> : null}</div>{snapshot ? <span className={`status-pill portal-status-${badge.tone}`}>{state === "active_customer" ? <CheckCircle2 aria-hidden="true" size={15} /> : <Clock3 aria-hidden="true" size={15} />}{badge.label}</span> : null}</div>
+    <section className="account-section account-link-summary" id="shop-registration"><div className="account-section-heading"><span className="account-section-icon"><Building2 aria-hidden="true" size={21} /></span><div><p className="eyebrow">Điểm bán / Công Ty</p><h2>{loading ? "Đang kiểm tra trạng thái..." : error && !snapshot ? "Không đọc được trạng thái điểm bán" : copy.title}</h2><p>{loading ? "Đang đọc dữ liệu chính thức của Công Ty." : error && !snapshot ? "Không mở luồng đăng ký hoặc đặt hàng khi chưa xác minh được trạng thái Công Ty." : copy.description}</p>{state === "active_customer" && profile?.customerCode ? <p><strong>Mã khách Công Ty:</strong> {profile.customerCode}</p> : null}</div>{snapshot ? <span className={`status-pill portal-status-${badge.tone}`}>{state === "active_customer" ? <CheckCircle2 aria-hidden="true" size={15} /> : <Clock3 aria-hidden="true" size={15} />}{badge.label}</span> : null}</div>
       {snapshot?.registration?.reviewReason ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>{snapshot.registration.reviewReason}</span></div> : null}
       {state === "active_customer" && profile && !profile.address ? <div className="shop-registration-notice"><AlertCircle aria-hidden="true" size={18} /><span>Điểm bán chưa có địa chỉ đang hoạt động. Vui lòng liên hệ Hưng Phát để khôi phục địa chỉ trước khi chỉnh sửa.</span></div> : null}
       {editable && !loading ? <button className="account-card-action" onClick={() => setShopModalOpen(true)} type="button"><Store aria-hidden="true" size={18} />{openFormLabel}</button> : null}
@@ -293,13 +300,13 @@ export function AccountAuthCard() {
     </section>
 
     {editable && !loading ? <AccountModal
-      description={state === "active_customer" ? "Thông tin được đồng bộ trực tiếp với hồ sơ điểm bán trên Core." : "Thông tin sẽ được gửi tới Hưng Phát để xác minh."}
+      description={state === "active_customer" ? "Thông tin được đồng bộ trực tiếp với hồ sơ điểm bán của Công Ty." : "Thông tin sẽ được gửi tới Hưng Phát để xác minh."}
       icon={<Store aria-hidden="true" size={22} />}
       onClose={() => setShopModalOpen(false)}
       open={shopModalOpen}
       title={state === "active_customer" ? "Chỉnh sửa thông tin điểm bán" : state === "need_more_info" ? "Bổ sung thông tin điểm bán" : "Đăng ký điểm bán"}
     >
-      <div className="shop-registration-modal-intro"><strong>{state === "active_customer" ? "Thông tin chính thức trên Core" : "Thông tin gửi Hưng Phát xác minh"}</strong><p>{state === "active_customer" ? "Chỉ thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Core quản lý." : "Tên quán / điểm bán sẽ là tên khách mới nếu Hưng Phát duyệt tạo mã."}</p></div>
+      <div className="shop-registration-modal-intro"><strong>{state === "active_customer" ? "Thông tin chính thức của Công Ty" : "Thông tin gửi Hưng Phát xác minh"}</strong><p>{state === "active_customer" ? "Chỉ thông tin điểm bán được phép thay đổi; mã khách, kho và kênh bán do Công Ty quản lý." : "Tên quán / điểm bán sẽ là tên khách mới nếu Hưng Phát duyệt tạo mã."}</p></div>
       <form className="shop-registration-form" onSubmit={handleShopSubmit}>
         <label><span>Tên quán hoặc điểm bán</span><div className="input-with-icon"><Store aria-hidden="true" size={18} /><input autoComplete="organization" disabled={saving} onChange={(event) => updateField("shopName", event.target.value)} placeholder="Tên quán / điểm bán" required value={form.shopName} /></div></label>
         <label><span>Số điện thoại</span><div className="input-with-icon"><Phone aria-hidden="true" size={18} /><input autoComplete="tel" disabled={saving} inputMode="tel" onChange={(event) => updateField("phone", event.target.value)} placeholder="Số điện thoại" required value={form.phone} /></div></label>

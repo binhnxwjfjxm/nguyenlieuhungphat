@@ -50,6 +50,7 @@ export interface PortalEditableAddress {
   label: string;
   recipientName: string;
   phone: string;
+  locationUrl: string;
   addressLine1: string;
   addressLine2: string;
   ward: string;
@@ -92,6 +93,7 @@ export interface PortalProfileUpdateInput {
   expectedAddressUpdatedAt: string;
   address: {
     id: string;
+    locationUrl?: string;
     addressLine1: string;
     ward: string;
     province: string;
