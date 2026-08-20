@@ -13,6 +13,7 @@ function formatMoney(amount: number): string { return new Intl.NumberFormat("vi-
 function normalizeSearch(value: string): string { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replaceAll("đ", "d").toLocaleLowerCase("vi").replace(/[^a-z0-9]+/g, " ").trim(); }
 
 type OrdersView = "orders" | "purchased";
+type OrdersViewTransition = "forward" | "back";
 type PurchasedItem = { sku: string; name: string; lastOrderedAt: string; totalQuantity: number; orderCount: number; product: Product | null };
 
 export function OrdersScreen() {
@@ -22,6 +23,7 @@ export function OrdersScreen() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | OrderStatus>("ALL");
   const [view, setView] = useState<OrdersView>("orders");
+  const [viewTransition, setViewTransition] = useState<OrdersViewTransition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addedSku, setAddedSku] = useState<string | null>(null);
@@ -39,6 +41,13 @@ export function OrdersScreen() {
     try { const [orderItems, productItems] = await Promise.all([service.listOrders(), service.listProducts()]); setOrders(orderItems); setProducts(productItems); }
     catch (loadError) { setError(loadError instanceof Error ? loadError.message : "Không thể tải đơn hàng."); }
     finally { setLoading(false); }
+  }
+
+  function changeView(nextView: OrdersView) {
+    if (nextView === view) return;
+    setViewTransition(nextView === "purchased" ? "forward" : "back");
+    setView(nextView);
+    setQuery("");
   }
 
   const productMap = useMemo(() => new Map(products.map((product) => [product.sku, product])), [products]);
@@ -85,12 +94,14 @@ export function OrdersScreen() {
   if (error) return <section className="orders-state-card is-error"><TriangleAlert aria-hidden="true" size={34} /><strong>Chưa tải được đơn hàng</strong><span>{error}</span><button className="primary-button orders-retry-button" onClick={() => void retryLoadOrders()} type="button">Thử lại</button></section>;
 
   return <section className="orders-screen orders-screen-compact">
-    <div className="orders-inner-tabs" role="tablist" aria-label="Đơn hàng và sản phẩm đã mua"><button aria-selected={view === "orders"} className={view === "orders" ? "is-active" : ""} onClick={() => { setView("orders"); setQuery(""); }} role="tab" type="button">Đơn hàng <span>{orders.length}</span></button><button aria-selected={view === "purchased"} className={view === "purchased" ? "is-active" : ""} onClick={() => { setView("purchased"); setQuery(""); }} role="tab" type="button">Sản phẩm đã mua <span>{new Set(orders.flatMap((order) => order.lines.map((line) => line.sku))).size}</span></button></div>
-    <label className="orders-search"><Search aria-hidden="true" size={19} /><span className="sr-only">Tìm kiếm</span><input onChange={(event) => setQuery(event.target.value)} placeholder={view === "orders" ? "Mã đơn hoặc tên sản phẩm" : "Tên sản phẩm đã mua"} type="search" value={query} /></label>
+    <div className="orders-inner-tabs" role="tablist" aria-label="Đơn hàng và sản phẩm đã mua"><button aria-selected={view === "orders"} className={view === "orders" ? "is-active" : ""} onClick={() => changeView("orders")} role="tab" type="button">Đơn hàng <span>{orders.length}</span></button><button aria-selected={view === "purchased"} className={view === "purchased" ? "is-active" : ""} onClick={() => changeView("purchased")} role="tab" type="button">Sản phẩm đã mua <span>{new Set(orders.flatMap((order) => order.lines.map((line) => line.sku))).size}</span></button></div>
+    <div className={["orders-view-panel", viewTransition ? `is-slide-${viewTransition}` : ""].filter(Boolean).join(" ")} key={view}>
+      <label className="orders-search"><Search aria-hidden="true" size={19} /><span className="sr-only">Tìm kiếm</span><input onChange={(event) => setQuery(event.target.value)} placeholder={view === "orders" ? "Mã đơn hoặc tên sản phẩm" : "Tên sản phẩm đã mua"} type="search" value={query} /></label>
 
-    {view === "orders" ? <>
-      {orders.length > 0 ? <div aria-label="Lọc theo trạng thái" className="orders-status-filters" role="group">{ORDER_STATUS_FILTERS.map((filter) => <button className={`filter-${filter.tone}${statusFilter === filter.value ? " is-active" : ""}`} key={filter.value} onClick={() => setStatusFilter(filter.value)} type="button">{filter.label}</button>)}</div> : null}
-      {orders.length === 0 ? <section className="orders-state-card"><ClipboardList aria-hidden="true" size={38} /><strong>Chưa có đơn hàng</strong><Link className="primary-link-button" href="/quick-order">Đặt hàng</Link></section> : filteredOrders.length === 0 ? <section className="orders-state-card is-compact"><Search aria-hidden="true" size={30} /><strong>Không có đơn phù hợp</strong></section> : <div className="orders-list">{filteredOrders.map((order) => { const status = ORDER_STATUS_META[order.status]; return <article className="order-card" key={order.id}><div className="order-card-top"><div className="order-code-block"><span>Mã đơn</span><strong>{order.code}</strong><small>{formatDate(order.submittedAt)}</small></div><span className={`order-status-badge status-${status.tone}`}>{status.label}</span></div><div className="order-card-summary"><span>{order.lines.length} mặt hàng</span><span>{order.totalQuantity} đơn vị</span><strong>{formatMoney(order.pricedSubtotal)}</strong></div>{order.hasPendingPrice ? <p className="order-price-note">Có mặt hàng chờ xác nhận giá.</p> : null}<Link className="order-detail-link" href={`/orders/${order.id}`}>Chi tiết<ChevronRight aria-hidden="true" size={18} /></Link></article>; })}</div>}
-    </> : <div className="purchased-products-list">{purchasedItems.length === 0 ? <section className="orders-state-card is-compact"><ShoppingCart aria-hidden="true" size={30} /><strong>Chưa có sản phẩm đã mua</strong></section> : purchasedItems.map((item) => <article className="purchased-product-row" key={item.sku}><div><span>{item.product?.brand || item.product?.productType || "Đã mua"}</span><strong>{item.name}</strong><small>{item.orderCount} lần mua · {item.totalQuantity} sản phẩm</small></div><button aria-label={`Thêm lại ${item.name} vào giỏ`} disabled={!item.product || item.product.availability !== "available"} onClick={() => void addPurchasedItem(item)} type="button">{addedSku === item.sku ? <ShoppingCart aria-hidden="true" size={18} /> : <><Plus aria-hidden="true" size={13} /><ShoppingCart aria-hidden="true" size={18} /></>}</button></article>)}</div>}
+      {view === "orders" ? <>
+        {orders.length > 0 ? <div aria-label="Lọc theo trạng thái" className="orders-status-filters" role="group">{ORDER_STATUS_FILTERS.map((filter) => <button className={`filter-${filter.tone}${statusFilter === filter.value ? " is-active" : ""}`} key={filter.value} onClick={() => setStatusFilter(filter.value)} type="button">{filter.label}</button>)}</div> : null}
+        {orders.length === 0 ? <section className="orders-state-card"><ClipboardList aria-hidden="true" size={38} /><strong>Chưa có đơn hàng</strong><Link className="primary-link-button" href="/quick-order">Đặt hàng</Link></section> : filteredOrders.length === 0 ? <section className="orders-state-card is-compact"><Search aria-hidden="true" size={30} /><strong>Không có đơn phù hợp</strong></section> : <div className="orders-list">{filteredOrders.map((order) => { const status = ORDER_STATUS_META[order.status]; return <article className="order-card" key={order.id}><div className="order-card-top"><div className="order-code-block"><span>Mã đơn</span><strong>{order.code}</strong><small>{formatDate(order.submittedAt)}</small></div><span className={`order-status-badge status-${status.tone}`}>{status.label}</span></div><div className="order-card-summary"><span>{order.lines.length} mặt hàng</span><span>{order.totalQuantity} đơn vị</span><strong>{formatMoney(order.pricedSubtotal)}</strong></div>{order.hasPendingPrice ? <p className="order-price-note">Có mặt hàng chờ xác nhận giá.</p> : null}<Link className="order-detail-link" href={`/orders/${order.id}`}>Chi tiết<ChevronRight aria-hidden="true" size={18} /></Link></article>; })}</div>}
+      </> : <div className="purchased-products-list">{purchasedItems.length === 0 ? <section className="orders-state-card is-compact"><ShoppingCart aria-hidden="true" size={30} /><strong>Chưa có sản phẩm đã mua</strong></section> : purchasedItems.map((item) => <article className="purchased-product-row" key={item.sku}><div><span>{item.product?.brand || item.product?.productType || "Đã mua"}</span><strong>{item.name}</strong><small>{item.orderCount} lần mua · {item.totalQuantity} sản phẩm</small></div><button aria-label={`Thêm lại ${item.name} vào giỏ`} disabled={!item.product || item.product.availability !== "available"} onClick={() => void addPurchasedItem(item)} type="button">{addedSku === item.sku ? <ShoppingCart aria-hidden="true" size={18} /> : <><Plus aria-hidden="true" size={13} /><ShoppingCart aria-hidden="true" size={18} /></>}</button></article>)}</div>}
+    </div>
   </section>;
 }

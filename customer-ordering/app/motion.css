@@ -4,6 +4,7 @@
   --hp-motion-press-duration: 100ms;
   --hp-motion-control-duration: 140ms;
   --hp-motion-screen-duration: 160ms;
+  --hp-motion-page-slide-duration: 210ms;
   --hp-motion-backdrop-duration: 140ms;
   --hp-motion-sheet-duration: 220ms;
   --hp-motion-sheet-exit-duration: 170ms;
@@ -76,6 +77,18 @@
   will-change: opacity, transform;
 }
 
+.orders-view-panel {
+  min-width: 0;
+}
+
+.orders-view-panel.is-slide-forward {
+  animation: hp-orders-slide-forward var(--hp-motion-page-slide-duration) var(--hp-motion-ease-enter);
+}
+
+.orders-view-panel.is-slide-back {
+  animation: hp-orders-slide-back var(--hp-motion-page-slide-duration) var(--hp-motion-ease-enter);
+}
+
 .catalog-filter-menu[open] .catalog-filter-panel,
 .notification-settings-collapsible[open] .notification-preferences-card {
   animation: hp-control-enter var(--hp-motion-control-duration) var(--hp-motion-ease-enter);
@@ -108,6 +121,16 @@
 
 @keyframes hp-screen-enter {
   from { opacity: 0.86; transform: translate3d(0, 4px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes hp-orders-slide-forward {
+  from { opacity: 0.9; transform: translate3d(32px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes hp-orders-slide-back {
+  from { opacity: 0.9; transform: translate3d(-32px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
@@ -151,6 +174,8 @@
     transform: none !important;
   }
 
+  .orders-view-panel.is-slide-forward,
+  .orders-view-panel.is-slide-back,
   .catalog-filter-menu[open] .catalog-filter-panel,
   .notification-settings-collapsible[open] .notification-preferences-card,
   .order-success-screen,

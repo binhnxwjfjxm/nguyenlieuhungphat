@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { CART_UPDATED_EVENT } from "@/lib/cart-events";
 
 const SCREEN_SELECTOR = ".app-content";
@@ -12,6 +12,8 @@ const PRODUCT_ADD_SELECTOR = ".catalog-add-icon, .product-quick-view-add";
 const SHEET_BACKDROP_SELECTOR = ".product-quick-view-backdrop";
 const SHEET_SELECTOR = ".product-quick-view";
 const SHEET_CLOSE_SELECTOR = ".product-quick-view-close";
+
+type ScreenEntryDirection = "default" | "forward" | "back";
 
 function reducedMotionEnabled(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -31,17 +33,28 @@ function cssEasing(token: string, fallback: string): string {
   return window.getComputedStyle(document.documentElement).getPropertyValue(token).trim() || fallback;
 }
 
-function animateScreenEntry(): void {
+function resolveScreenEntryDirection(previousPathname: string | null, pathname: string): ScreenEntryDirection {
+  if (previousPathname === "/orders" && pathname.startsWith("/orders/")) return "forward";
+  if (previousPathname?.startsWith("/orders/") && pathname === "/orders") return "back";
+  return "default";
+}
+
+function animateScreenEntry(direction: ScreenEntryDirection): void {
   if (reducedMotionEnabled()) return;
   const screen = document.querySelector<HTMLElement>(SCREEN_SELECTOR);
   if (!screen) return;
+  const startFrame = direction === "forward"
+    ? { opacity: 0.9, transform: "translate3d(32px, 0, 0)" }
+    : direction === "back"
+      ? { opacity: 0.9, transform: "translate3d(-32px, 0, 0)" }
+      : { opacity: 0.86, transform: "translate3d(0, 4px, 0)" };
   screen.animate(
     [
-      { opacity: 0.86, transform: "translate3d(0, 4px, 0)" },
+      startFrame,
       { opacity: 1, transform: "translate3d(0, 0, 0)" },
     ],
     {
-      duration: cssMilliseconds("--hp-motion-screen-duration", 160),
+      duration: cssMilliseconds(direction === "default" ? "--hp-motion-screen-duration" : "--hp-motion-page-slide-duration", direction === "default" ? 160 : 210),
       easing: cssEasing("--hp-motion-ease-enter", "cubic-bezier(0.22, 0.61, 0.36, 1)"),
     },
   );
@@ -161,9 +174,12 @@ function animateAddedBackdrops(node: Node): void {
 
 export function MobileMotionProvider() {
   const pathname = usePathname();
+  const previousPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(animateScreenEntry);
+    const direction = resolveScreenEntryDirection(previousPathnameRef.current, pathname);
+    previousPathnameRef.current = pathname;
+    const frame = window.requestAnimationFrame(() => animateScreenEntry(direction));
     return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
