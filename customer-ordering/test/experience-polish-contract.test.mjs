@@ -16,12 +16,12 @@ test("catalog cards stay compact and product detail opens in-place", async () =>
   assert.doesNotMatch(source, /catalog-product-link/);
 });
 
-test("cart can switch exact retail and case SKU after adding", async () => {
+test("cart keeps the exact selected retail or case SKU after adding", async () => {
   const source = await read("components/cart-screen.tsx");
-  assert.match(source, /switchVariant/);
-  assert.match(source, /familyVariants/);
-  assert.match(source, /cart-variant-switch/);
-  assert.match(source, /sku: targetSku/);
+  assert.match(source, /cart-mode-static/);
+  assert.match(source, /purchaseModeLabel\(product\)/);
+  assert.match(source, /item\.sku === line\.sku/);
+  assert.doesNotMatch(source, /switchVariant|familyVariants|cart-variant-switch|targetSku/);
 });
 
 test("quick order loads catalog once and filters retail/case locally with visible exact SKU price", async () => {

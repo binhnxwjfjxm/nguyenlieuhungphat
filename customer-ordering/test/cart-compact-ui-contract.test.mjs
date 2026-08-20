@@ -18,20 +18,26 @@ test("cart items use compact list rows instead of one card per SKU", () => {
   assert.match(css, /\.cart-screen-compact \.cart-line-list/);
 });
 
-test("compact cart keeps variant, quantity, price, note and remove controls", () => {
-  assert.match(screen, /switchVariant\(line\.sku, variant\.sku\)/);
+test("compact cart keeps the selected SKU purchase mode static", () => {
+  assert.match(screen, /className="cart-mode-static"/);
+  assert.match(screen, /purchaseModeLabel\(product\)/);
+  assert.doesNotMatch(screen, /switchVariant/);
+  assert.doesNotMatch(screen, /familyMap/);
+  assert.doesNotMatch(screen, /targetSku/);
+  assert.doesNotMatch(screen, /cart-variant-switch/);
+  assert.match(screen, /cart\.lines\.map\(\(item\) => item\.sku === line\.sku/);
+  assert.match(screen, /cart\.lines\.filter\(\(item\) => item\.sku !== line\.sku\)/);
   assert.match(screen, /cart-quantity-stepper/);
   assert.match(screen, /cart-line-price/);
   assert.match(screen, /cart-line-note-compact/);
   assert.match(screen, /persistCurrentCart/);
   assert.match(screen, /cart-remove-button/);
-  assert.match(screen, /cart-mode-static/);
 });
 
 test("mobile controls stay deliberately compact", () => {
   assert.match(css, /grid-template-columns: minmax\(92px, 112px\) 96px minmax\(70px, 1fr\)/);
   assert.match(css, /\.cart-line-row \.cart-remove-button[\s\S]*width: 30px;[\s\S]*height: 30px;/);
-  assert.match(css, /\.cart-line-row \.cart-variant-switch button[\s\S]*min-height: 30px;/);
+  assert.match(css, /\.cart-mode-static[\s\S]*min-height: 30px;/);
   assert.match(css, /\.cart-line-note-compact input[\s\S]*min-height: 34px;/);
   assert.match(layout, /import "\.\/cart-compact\.css";/);
 });

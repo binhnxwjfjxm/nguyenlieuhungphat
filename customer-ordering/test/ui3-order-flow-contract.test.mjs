@@ -38,7 +38,8 @@ test("cart, checkout and success routes are real protected app screens", async (
   assert.match(checkoutPage, /<CheckoutScreen/);
   assert.match(successPage, /<OrderSuccess/);
   assert.match(cartScreen, /cart-line-note/);
-  assert.match(cartScreen, /switchVariant/);
+  assert.match(cartScreen, /cart-mode-static/);
+  assert.doesNotMatch(cartScreen, /switchVariant|familyVariants|cart-variant-switch|targetSku/);
   assert.match(checkoutScreen, /submitting/);
   assert.match(checkoutScreen, /submissionKeyRef/);
   assert.match(checkoutScreen, /service\.submitOrder/);
