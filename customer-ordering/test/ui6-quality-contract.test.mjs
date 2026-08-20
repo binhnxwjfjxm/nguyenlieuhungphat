@@ -52,13 +52,14 @@ test("home hero uses the public R2 image through Next Image", async () => {
   assert.match(css, /object-fit:\s*cover/);
 });
 
-test("PWA install is user-triggered and the combined root worker registers before or after window load", async () => {
-  const [installCard, accountPage, registration, worker, manifest] = await Promise.all([
+test("PWA startup uses one deferred root worker, a maskable icon and immutable versioned icon caching", async () => {
+  const [installCard, accountPage, registration, worker, manifest, vercel] = await Promise.all([
     read("components/pwa-install-card.tsx"),
     read("app/account/page.tsx"),
     read("components/service-worker-registration.tsx"),
     read("public/OneSignalSDKWorker.js"),
     read("app/manifest.ts"),
+    read("vercel.json"),
   ]);
 
   assert.match(accountPage, /<PwaInstallCard \/>/);
@@ -67,13 +68,19 @@ test("PWA install is user-triggered and the combined root worker registers befor
   assert.match(installCard, /async function handleInstall\(\)/);
   assert.match(installCard, /await installPrompt\.prompt\(\)/);
   assert.match(registration, /document\.readyState === "complete"/);
-  assert.match(registration, /window\.addEventListener\("load", scheduleRegistration/);
+  assert.match(registration, /window\.addEventListener\("load", scheduleMaintenance/);
   assert.match(registration, /COMBINED_WORKER_PATH = "\/OneSignalSDKWorker\.js"/);
   assert.match(registration, /register\(COMBINED_WORKER_PATH, \{ scope: "\/", updateViaCache: "none" \}\)/);
   assert.match(worker, /OneSignalSDK\.sw\.js/);
   assert.match(worker, /SAFE_ASSETS/);
   assert.match(worker, /caches\.match\("\/offline"\)/);
+  assert.doesNotMatch(worker, /skipWaiting\(\)/);
+  assert.doesNotMatch(worker, /clients\.claim\(\)/);
   assert.match(manifest, /display:\s*"standalone"/);
+  assert.match(manifest, /icon-maskable-512-20260820\.png/);
+  assert.match(manifest, /purpose:\s*"maskable"/);
+  assert.match(vercel, /max-age=31536000, immutable/);
+  assert.match(vercel, /icon-maskable-512-20260820\.png/);
 });
 
 test("UI-6 regression gate keeps auth, order flow and OneSignal/deep-link surfaces present", async () => {

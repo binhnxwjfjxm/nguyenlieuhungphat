@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
-const [account, addressFields, accessGate, shell, lifecycle, manifest, layout, sw] = await Promise.all([
+const [account, addressFields, accessGate, shell, lifecycle, manifest, layout, worker] = await Promise.all([
   readFile(new URL("../components/account-auth-card.tsx", import.meta.url), "utf8"),
   readFile(new URL("../components/vietnam-address-fields.tsx", import.meta.url), "utf8"),
   readFile(new URL("../components/customer-portal-access-gate.tsx", import.meta.url), "utf8"),
@@ -10,7 +10,7 @@ const [account, addressFields, accessGate, shell, lifecycle, manifest, layout, s
   readFile(new URL("../lib/customer-portal-lifecycle.ts", import.meta.url), "utf8"),
   readFile(new URL("../app/manifest.ts", import.meta.url), "utf8"),
   readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-  readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
+  readFile(new URL("../public/OneSignalSDKWorker.js", import.meta.url), "utf8"),
 ]);
 
 test("shop registration restores Vietnam address management and business type", () => {
@@ -34,19 +34,22 @@ test("pre-membership commerce is blocked without redirecting every navigation ac
   assert.match(shell, /<main className="app-content">\{content\}<\/main>/);
 });
 
-test("PWA icon cache uses versioned current icon URLs and existing precache assets", async () => {
-  for (const source of [manifest, layout, sw]) assert.match(source, /icon-192-20260809\.png/);
+test("PWA icon cache uses the canonical combined worker and versioned icon URLs", async () => {
+  for (const source of [manifest, layout, worker]) assert.match(source, /icon-192-20260809\.png/);
   assert.match(manifest, /icon-512-20260809\.png/);
-  assert.match(sw, /"\/icon-192-20260809\.png"/);
-  assert.match(sw, /"\/icon-512-20260809\.png"/);
-  assert.match(sw, /hp-customer-ordering-shell-v2-20260809/);
-  assert.doesNotMatch(sw, /hp-customer-ordering-shell-v1/);
-  const [icon192, icon512] = await Promise.all([
+  assert.match(manifest, /icon-maskable-512-20260820\.png/);
+  assert.match(worker, /"\/icon-192-20260809\.png"/);
+  assert.match(worker, /"\/icon-512-20260809\.png"/);
+  assert.match(worker, /"\/icon-maskable-512-20260820\.png"/);
+  assert.match(worker, /hp-customer-ordering-shell-v3-20260820/);
+  assert.doesNotMatch(worker, /hp-customer-ordering-shell-v1/);
+  const [icon192, icon512, iconMaskable] = await Promise.all([
     stat(new URL("../public/icon-192-20260809.png", import.meta.url)),
     stat(new URL("../public/icon-512-20260809.png", import.meta.url)),
+    stat(new URL("../public/icon-maskable-512-20260820.png", import.meta.url)),
   ]);
-  assert.equal(icon192.isFile(), true);
-  assert.equal(icon512.isFile(), true);
-  assert.ok(icon192.size > 0);
-  assert.ok(icon512.size > 0);
+  for (const icon of [icon192, icon512, iconMaskable]) {
+    assert.equal(icon.isFile(), true);
+    assert.ok(icon.size > 0);
+  }
 });

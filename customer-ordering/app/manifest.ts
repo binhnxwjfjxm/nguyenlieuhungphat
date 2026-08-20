@@ -6,6 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Hưng Phát",
     description: "Ứng dụng đặt hàng dành cho khách hàng Hưng Phát.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#F7F8F6",
     theme_color: "#198754",
@@ -23,6 +24,12 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/icon-maskable-512-20260820.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

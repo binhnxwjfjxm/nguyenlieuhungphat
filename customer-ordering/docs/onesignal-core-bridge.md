@@ -75,11 +75,13 @@ Payload push nên chỉ mang dữ liệu điều hướng tối thiểu như `ty
 
 ## Service worker
 
-PWA hiện có root worker `/sw.js`. OneSignal dùng worker riêng:
+Customer Ordering dùng đúng một worker gốc:
 
 ```text
-/push/onesignal/OneSignalSDKWorker.js
-scope: /push/onesignal/
+/OneSignalSDKWorker.js
+scope: /
 ```
 
-Cách tách scope này tránh OneSignal giành root scope của PWA worker hiện hữu.
+Worker này vừa import OneSignal Web Push worker, vừa giữ offline fallback và các tài nguyên PWA an toàn. Không đăng ký thêm `/sw.js` hoặc worker OneSignal ở scope con vì nhiều registration cùng tồn tại làm vòng đời PWA khó kiểm soát.
+
+Client chỉ kiểm tra cập nhật worker theo chu kỳ sau khi trang đã tải và trình duyệt rảnh; không ép `update()` mỗi lần mở app. Worker mới không tự `skipWaiting()` hoặc `clients.claim()`, nên bản cập nhật không chiếm quyền điều khiển giữa phiên đang dùng.
