@@ -26,12 +26,6 @@ export function CartScreen() {
   }, [service]);
 
   const productMap = useMemo(() => new Map(products.map((product) => [product.sku, product])), [products]);
-  const familyMap = useMemo(() => {
-    const map = new Map<string, Product[]>();
-    for (const product of products) map.set(product.familySku, [...(map.get(product.familySku) ?? []), product]);
-    for (const variants of map.values()) variants.sort((a, b) => a.purchaseMode === b.purchaseMode ? a.sku.localeCompare(b.sku) : a.purchaseMode === "retail" ? -1 : 1);
-    return map;
-  }, [products]);
   const displayLines = cart?.lines.map((line) => ({ line, product: productMap.get(line.sku) ?? null })) ?? [];
   const pricedSubtotal = displayLines.reduce((total, item) => {
     const amount = item.product?.price.status === "available" ? item.product.price.amount : null;
@@ -48,15 +42,6 @@ export function CartScreen() {
     setCart((current) => current ? { ...current, lines: current.lines.map((line) => line.sku === sku ? { ...line, note } : line) } : current);
   }
   async function persistCurrentCart() { if (cart) await service.saveCart({ ...cart, updatedAt: new Date().toISOString() }); }
-  async function switchVariant(sourceSku: string, targetSku: string) {
-    if (!cart || sourceSku === targetSku) return;
-    const source = cart.lines.find((line) => line.sku === sourceSku);
-    if (!source) return;
-    const existingTarget = cart.lines.find((line) => line.sku === targetSku);
-    const remaining = cart.lines.filter((line) => line.sku !== sourceSku && line.sku !== targetSku);
-    const merged: CartLine = { sku: targetSku, quantity: Math.min(999, source.quantity + (existingTarget?.quantity ?? 0)), note: existingTarget?.note || source.note };
-    await persist([...remaining, merged]);
-  }
   async function clearCart() { await persist([]); setConfirmClear(false); }
 
   if (error) return <section className="catalog-state-card cart-state-card is-error" role="alert"><PackageOpen aria-hidden="true" size={30} /><strong>Chưa tải được giỏ hàng</strong><span>{error}</span></section>;
@@ -68,7 +53,6 @@ export function CartScreen() {
     {confirmClear ? <div className="cart-clear-confirm" role="alert"><p>Xóa toàn bộ sản phẩm khỏi giỏ hàng?</p><div><button className="danger-button" onClick={() => void clearCart()} type="button">Xác nhận xóa</button><button className="secondary-action-button" onClick={() => setConfirmClear(false)} type="button">Giữ lại</button></div></div> : null}
     <div className="cart-line-list">{displayLines.map(({ line, product }) => {
       const unitPrice = product?.price.status === "available" ? product.price.amount : null;
-      const familyVariants = product ? (familyMap.get(product.familySku) ?? []) : [];
       const customerProductName = product?.name ?? "sản phẩm";
       return <article className="cart-line-row" key={line.sku}>
         <div className="cart-line-primary">
@@ -76,7 +60,7 @@ export function CartScreen() {
           <button aria-label={`Xóa ${customerProductName}`} className="cart-remove-button" onClick={() => void persist(cart.lines.filter((item) => item.sku !== line.sku))} type="button"><Trash2 aria-hidden="true" size={15} /></button>
         </div>
         <div className="cart-line-actions">
-          {familyVariants.length > 1 ? <div className="cart-variant-switch" role="group" aria-label={`Chọn mua lẻ hoặc thùng cho ${customerProductName}`}>{familyVariants.map((variant) => <button aria-pressed={variant.sku === line.sku} className={variant.sku === line.sku ? "is-active" : ""} key={variant.sku} onClick={() => void switchVariant(line.sku, variant.sku)} type="button">{purchaseModeLabel(variant)}</button>)}</div> : <span className="cart-mode-static">{product ? purchaseModeLabel(product) : "—"}</span>}
+          <span className="cart-mode-static">{product ? purchaseModeLabel(product) : "—"}</span>
           <div className="quantity-stepper cart-quantity-stepper" aria-label={`Số lượng ${customerProductName}`}><button aria-label="Giảm số lượng" disabled={line.quantity <= 1} onClick={() => void persist(cart.lines.map((item) => item.sku === line.sku ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))} type="button"><Minus aria-hidden="true" size={14} /></button><input aria-label={`Nhập số lượng ${customerProductName}`} inputMode="numeric" max={999} min={1} onChange={(event) => { const next = Math.min(999, Math.max(1, Number(event.target.value) || 1)); void persist(cart.lines.map((item) => item.sku === line.sku ? { ...item, quantity: next } : item)); }} onFocus={(event) => event.currentTarget.select()} type="number" value={line.quantity} /><button aria-label="Tăng số lượng" disabled={line.quantity >= 999} onClick={() => void persist(cart.lines.map((item) => item.sku === line.sku ? { ...item, quantity: Math.min(999, item.quantity + 1) } : item))} type="button"><Plus aria-hidden="true" size={14} /></button></div>
           <div className="cart-line-price"><strong>{unitPrice === null ? "—" : formatMoney(unitPrice * line.quantity)}</strong><span>{unitPrice === null ? "Chờ xác nhận giá" : `${formatMoney(unitPrice)} / ${product?.unit ?? "đơn vị"}`}</span></div>
         </div>
