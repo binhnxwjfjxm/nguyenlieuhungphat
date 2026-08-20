@@ -29,10 +29,11 @@ test("PWA manifest is standalone and pins the current versioned icons", async ()
   assert.match(manifest, /display: "standalone"/);
   assert.match(manifest, /src: "\/icon-192-20260809\.png"/);
   assert.match(manifest, /src: "\/icon-512-20260809\.png"/);
+  assert.match(manifest, /src: "\/icon-maskable-512-20260820\.png"/);
 });
 
-test("service worker caches only public shell assets", async () => {
-  const worker = await read("public/sw.js");
+test("canonical combined worker caches only public shell assets", async () => {
+  const worker = await read("public/OneSignalSDKWorker.js");
   assert.match(worker, /SAFE_ASSETS/);
   assert.doesNotMatch(worker, /cache\.put\(request/);
   assert.doesNotMatch(worker, /\/api\//);
