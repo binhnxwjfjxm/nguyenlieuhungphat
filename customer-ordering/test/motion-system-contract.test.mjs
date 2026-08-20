@@ -22,7 +22,7 @@ test("motion controller is mounted globally without changing ordering business f
   assert.match(layout, /MobileMotionProvider/);
   assert.match(layout, /import "\.\/motion\.css"/);
   assert.match(provider, /usePathname/);
-  assert.match(provider, /requestAnimationFrame\(animateScreenEntry\)/);
+  assert.match(provider, /requestAnimationFrame\(\(\) => animateScreenEntry\(direction\)\)/);
   assert.match(provider, /PRODUCT_ADD_SELECTOR = "\.catalog-add-icon, \.product-quick-view-add"/);
   assert.doesNotMatch(provider, /bulk-add-summary/);
   assert.match(provider, /CART_UPDATED_EVENT/);
