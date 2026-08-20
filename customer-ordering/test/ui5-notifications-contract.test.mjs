@@ -23,7 +23,7 @@ test("UI-5 replaces the news placeholder with an inbox and detail route", async 
   assert.match(service, /markAnnouncementRead/);
 });
 
-test("OneSignal uses one root combined worker so PWA caching and push cannot replace each other", async () => {
+test("OneSignal uses one root combined worker without forcing a worker update on every app launch", async () => {
   const [browser, provider, preferences, layout, worker, registration] = await Promise.all([
     read("lib/push/onesignal-browser.ts"),
     read("components/onesignal-provider.tsx"),
@@ -48,6 +48,8 @@ test("OneSignal uses one root combined worker so PWA caching and push cannot rep
   assert.match(provider, /PushSubscription\.optIn/);
   assert.match(provider, /PushSubscription\.optOut/);
   assert.match(provider, /visibilitychange/);
+  assert.match(provider, /window\.Notification\.permission/);
+  assert.match(provider, /scheduleIdleConnection/);
   assert.match(preferences, /push\.permission/);
   assert.match(preferences, /Đồng bộ lại/);
   assert.match(layout, /OneSignalProvider/);
@@ -55,8 +57,15 @@ test("OneSignal uses one root combined worker so PWA caching and push cannot rep
   assert.match(worker, /OneSignalSDK\.sw\.js/);
   assert.match(worker, /CACHE_NAME/);
   assert.match(worker, /request\.mode === "navigate"/);
+  assert.doesNotMatch(worker, /skipWaiting\(\)/);
+  assert.doesNotMatch(worker, /clients\.claim\(\)/);
   assert.match(registration, /COMBINED_WORKER_PATH = "\/OneSignalSDKWorker\.js"/);
-  assert.match(registration, /getRegistration\("\/"\)/);
+  assert.match(registration, /getRegistrations\(\)/);
+  assert.match(registration, /"\/sw\.js"/);
+  assert.match(registration, /"\/push\/onesignal\/OneSignalSDKWorker\.js"/);
+  assert.match(registration, /WORKER_UPDATE_INTERVAL_MS = 24 \* 60 \* 60 \* 1000/);
+  assert.match(registration, /requestIdleCallback/);
+  assert.doesNotMatch(registration, /existing\.update\(\)/);
   assert.doesNotMatch(registration, /register\("\/sw\.js"/);
   assert.doesNotMatch(browser, /os_v2_app_/);
   assert.doesNotMatch(provider, /os_v2_app_/);
