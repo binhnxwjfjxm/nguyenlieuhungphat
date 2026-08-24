@@ -15,10 +15,12 @@ import {
 } from "@/lib/telegram";
 import { recordChatConversation } from "@/lib/hung-phat-supabase";
 import { detectDialogflowReply, normalizeDialogflowSessionId } from "@/lib/dialogflow";
+import { createCompanyIdempotencyKey, recordCompanyAiUsage } from "@/lib/company-ai-usage";
 
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 24 * 1024;
+const MAX_TRANSCRIPT_CHARS = 4000;
 const PHONE_PATTERN = /(?:\+?84|0)(?:[\s.-]?\d){9,10}/g;
 
 function jsonError(status: 400 | 429 | 500 | 503, code: string, error: string, retryAfter?: number) {
@@ -26,9 +28,7 @@ function jsonError(status: 400 | 429 | 500 | 503, code: string, error: string, r
   if (retryAfter) body.retryAfter = retryAfter;
 
   const response = NextResponse.json(body, { status });
-  if (retryAfter) {
-    response.headers.set("Retry-After", String(retryAfter));
-  }
+  if (retryAfter) response.headers.set("Retry-After", String(retryAfter));
   return response;
 }
 
@@ -36,11 +36,18 @@ function extractPhoneCandidate(text: string) {
   const matches = text.match(PHONE_PATTERN) ?? [];
   for (const match of matches) {
     const phone = normalizePhone(match);
-    if (isValidVietnamPhone(phone)) {
-      return phone;
-    }
+    if (isValidVietnamPhone(phone)) return phone;
   }
   return "";
+}
+
+function buildRecentTranscript(value: unknown, message: string) {
+  const transcript = sanitizeText(value, Number.POSITIVE_INFINITY);
+  const currentTurn = `Khách: ${message}`;
+  const withCurrentTurn = transcript.endsWith(currentTurn)
+    ? transcript
+    : `${transcript} ${currentTurn}`.trim();
+  return withCurrentTurn.slice(-MAX_TRANSCRIPT_CHARS).trim();
 }
 
 async function maybeSendLeadNotification(input: {
@@ -94,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     const payload = (raw ?? {}) as Record<string, unknown>;
     const message = sanitizeText(payload.message, 1000);
-    const transcript = sanitizeText(payload.transcript ?? message, 4000);
+    const transcript = buildRecentTranscript(payload.transcript, message);
     const sessionId = normalizeDialogflowSessionId(sanitizeText(payload.sessionId, 80) || createLeadCode("CHAT"));
     const name = sanitizeText(payload.name, 80);
     const phone = sanitizeText(payload.phone, 40);
@@ -104,23 +111,36 @@ export async function POST(request: NextRequest) {
     const website = sanitizeText(payload.website, 160) || getSiteUrl();
     const honeypot = sanitizeText(payload.honeypot, 40);
 
-    if (honeypot) {
-      return jsonError(400, "BOT_DETECTED", "Yêu cầu không hợp lệ.");
-    }
-
-    if (!message) {
-      return jsonError(400, "VALIDATION_ERROR", "Tin nhắn không được để trống.");
-    }
+    if (honeypot) return jsonError(400, "BOT_DETECTED", "Yêu cầu không hợp lệ.");
+    if (!message) return jsonError(400, "VALIDATION_ERROR", "Tin nhắn không được để trống.");
 
     const confirmedPhone = extractPhoneCandidate(`${message} ${phone}`);
     const requestCallback = Boolean(confirmedPhone);
 
-    const dialogflow = await detectDialogflowReply({
-      sessionId,
-      message,
-    });
+    const aiReply = await detectDialogflowReply({ sessionId, message, transcript });
+    const usageIdempotencyKey = createCompanyIdempotencyKey();
+    try {
+      await recordCompanyAiUsage({
+        idempotencyKey: usageIdempotencyKey,
+        sessionId,
+        providerRequestId: aiReply.providerRequestId,
+        model: aiReply.model,
+        occurredAt: aiReply.occurredAt,
+        usageMetadata: aiReply.usageMetadata,
+      });
+    } catch (error) {
+      console.error("website_ai_usage_record_failed", JSON.stringify({
+        idempotencyKey: usageIdempotencyKey,
+        providerRequestId: aiReply.providerRequestId,
+        conversationId: sessionId,
+        model: aiReply.model,
+        occurredAt: aiReply.occurredAt,
+        usageMetadata: aiReply.usageMetadata,
+        error: error instanceof Error ? error.message : "unknown_error",
+      }));
+    }
 
-    const replyText = dialogflow.replyText || "Đã nhận nội dung. Em sẽ phản hồi sớm.";
+    const replyText = aiReply.replyText || "Đã nhận nội dung. Em sẽ phản hồi sớm.";
 
     let telegramResult: { chatId: string | number; messageId: number | null } | null = null;
     if (confirmedPhone) {
@@ -154,10 +174,10 @@ export async function POST(request: NextRequest) {
         telegramChatId: telegramResult?.chatId ?? null,
         telegramMessageId: telegramResult?.messageId ?? null,
         agentStatus: confirmedPhone ? "lead_confirmed" : "queued",
-        playbookKey: "dialogflow-cx",
+        playbookKey: "gemini-website",
       });
     } catch {
-      // Keep dialog delivery successful even if persistence is unavailable.
+      // Chat delivery must not depend on the legacy conversation store.
     }
 
     return NextResponse.json(
@@ -167,15 +187,10 @@ export async function POST(request: NextRequest) {
         replyText,
         phoneConfirmed: Boolean(confirmedPhone),
         leadNotified: Boolean(telegramResult),
-        dialogflow: {
-          agentDisplayName: dialogflow.agent.agentDisplayName,
-          intentDisplayName: dialogflow.intentDisplayName,
-          pageDisplayName: dialogflow.pageDisplayName,
-        },
       },
       { status: 200 },
     );
   } catch {
-    return jsonError(503, "DIALOGFLOW_UNAVAILABLE", "Không thể kết nối Dialogflow lúc này.");
+    return jsonError(503, "AI_ASSISTANT_UNAVAILABLE", "Trợ lý đang tạm gián đoạn. Vui lòng thử lại sau.");
   }
 }
