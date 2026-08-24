@@ -1,7 +1,15 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import "server-only";
+
 import { GoogleAuth } from "google-auth-library";
-import { getDialogflowRuntimeFromSupabase } from "@/lib/hung-phat-supabase";
+
+export type GeminiUsageMetadata = {
+  promptTokenCount: number;
+  cachedContentTokenCount: number;
+  candidatesTokenCount: number;
+  thoughtsTokenCount: number;
+  toolUsePromptTokenCount: number;
+  totalTokenCount: number;
+};
 
 type ServiceAccount = {
   project_id?: string;
@@ -10,65 +18,24 @@ type ServiceAccount = {
   [key: string]: unknown;
 };
 
-export type DialogflowConfig = {
-  projectId: string;
-  location: string;
-  agentId: string;
-  languageCode: string;
-};
-
-type SupabaseDialogflowRuntime = DialogflowConfig & {
-  serviceAccountJson: string;
-  agentDisplayName?: string;
-};
-
-const ROOT = process.cwd();
-const SERVICE_ACCOUNT_PATH = path.join(ROOT, "Project-ID-dialog-supprot-vlgn.json");
-
-const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
-const DIALOGFLOW_BASE_URL = "https://dialogflow.googleapis.com/v3";
-
+const GOOGLE_CLOUD_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+const VERTEX_API_BASE_URL = "https://aiplatform.googleapis.com/v1";
 const DEFAULT_LOCATION = "global";
-const DEFAULT_LANGUAGE_CODE = "vi";
-const DEFAULT_AGENT_ID = "291aef79-770c-4c6d-a8c8-a081206ace4e";
+const DEFAULT_MODEL = "gemini-2.5-flash";
+const SAFE_PROJECT_ID = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
+const SAFE_LOCATION = /^[a-z0-9-]{2,40}$/;
+const SAFE_MODEL = /^[A-Za-z0-9._-]{1,128}$/;
+
+const WEBSITE_SYSTEM_INSTRUCTION = [
+  "Bạn là Trợ lý Hưng Phát trên website dành cho khách hàng.",
+  "Trả lời bằng tiếng Việt rõ ràng, ngắn gọn và dùng ngôn ngữ văn phòng dễ hiểu.",
+  "Ưu tiên hỗ trợ thông tin sản phẩm, cách liên hệ, nhu cầu mua hàng và hướng dẫn sử dụng website.",
+  "Không tự bịa giá, tồn kho, chính sách hoặc thông tin sản phẩm khi dữ liệu trong hội thoại không đủ.",
+  "Khi cần xác nhận thông tin cụ thể, hãy nói rõ cần nhân viên Hưng Phát kiểm tra và mời khách để lại số điện thoại.",
+  "Không nhắc tới database, token, API, model, cấu hình hoặc lỗi kỹ thuật nội bộ.",
+].join("\n");
 
 let cachedServiceAccount: ServiceAccount | null = null;
-let cachedSupabaseRuntime: SupabaseDialogflowRuntime | null = null;
-
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function scoreAgent(displayName: string) {
-  const normalized = normalizeText(displayName);
-  if (!normalized) return -1;
-  if (normalized === "hung phat admin") return 100;
-  if (normalized === "hung phat web assistant") return 95;
-  if (normalized.includes("hung phat")) return 80;
-  return -1;
-}
-
-function chooseAgent(preferredAgent: { name?: string; displayName?: string } | null, agents: Array<{ name?: string; displayName?: string }>) {
-  if (preferredAgent && scoreAgent(preferredAgent.displayName ?? "") >= 0) {
-    return preferredAgent;
-  }
-
-  const ranked = agents
-    .map((agent) => ({ agent, score: scoreAgent(agent.displayName ?? "") }))
-    .filter(({ score }) => score >= 0)
-    .sort((a, b) => b.score - a.score);
-
-  if (!ranked.length) {
-    throw new Error("No Dialogflow CX agent matched Hưng Phát.");
-  }
-
-  return ranked[0].agent;
-}
 
 function getEnvValue(...keys: string[]) {
   for (const key of keys) {
@@ -82,143 +49,87 @@ export function normalizeDialogflowSessionId(sessionId: string) {
   return sessionId.trim().replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 36) || "hungphat-session";
 }
 
-async function readServiceAccount(): Promise<ServiceAccount> {
+function loadServiceAccount(): ServiceAccount {
   if (cachedServiceAccount) return cachedServiceAccount;
-
-  if (cachedSupabaseRuntime) {
-    cachedServiceAccount = JSON.parse(cachedSupabaseRuntime.serviceAccountJson) as ServiceAccount;
-    return cachedServiceAccount;
-  }
-
-  const runtimeFromSupabase = await getDialogflowRuntimeFromSupabase();
-  if (runtimeFromSupabase) {
-    cachedSupabaseRuntime = runtimeFromSupabase;
-    cachedServiceAccount = JSON.parse(runtimeFromSupabase.serviceAccountJson) as ServiceAccount;
-    return cachedServiceAccount;
-  }
-
-  const inlineJson = getEnvValue("DIALOGFLOW_SERVICE_ACCOUNT_JSON", "DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON", "GOOGLE_SERVICE_ACCOUNT_JSON");
-  if (inlineJson) {
-    cachedServiceAccount = JSON.parse(inlineJson) as ServiceAccount;
-    return cachedServiceAccount;
-  }
-
-  const raw = await fs.readFile(SERVICE_ACCOUNT_PATH, "utf8");
-  cachedServiceAccount = JSON.parse(raw) as ServiceAccount;
-  return cachedServiceAccount;
+  const inlineJson = getEnvValue("GOOGLE_SERVICE_ACCOUNT_JSON");
+  if (!inlineJson) throw new Error("google_service_account_missing");
+  const parsed = JSON.parse(inlineJson) as ServiceAccount;
+  if (!parsed.client_email || !parsed.private_key) throw new Error("google_service_account_invalid");
+  cachedServiceAccount = parsed;
+  return parsed;
 }
 
-export async function getDialogflowConfig(): Promise<DialogflowConfig> {
-  const serviceAccount = await readServiceAccount();
-  const runtimeFromSupabase = cachedSupabaseRuntime ?? (await getDialogflowRuntimeFromSupabase());
-  if (runtimeFromSupabase) {
-    cachedSupabaseRuntime = runtimeFromSupabase;
-  }
-
-  const projectId =
-    runtimeFromSupabase?.projectId ||
-    getEnvValue("DIALOGFLOW_CX_PROJECT_ID", "DIALOGFLOW_PROJECT_ID") ||
-    serviceAccount.project_id ||
-    "";
-  if (!projectId) {
-    throw new Error("Missing Dialogflow project id.");
-  }
-
-  return {
-    projectId,
-    location: runtimeFromSupabase?.location || getEnvValue("DIALOGFLOW_CX_LOCATION", "DIALOGFLOW_LOCATION") || DEFAULT_LOCATION,
-    agentId: runtimeFromSupabase?.agentId || getEnvValue("DIALOGFLOW_CX_AGENT_ID", "DIALOGFLOW_AGENT_ID") || DEFAULT_AGENT_ID,
-    languageCode:
-      runtimeFromSupabase?.languageCode || getEnvValue("DIALOGFLOW_CX_LANGUAGE_CODE", "DIALOGFLOW_LANGUAGE_CODE") || DEFAULT_LANGUAGE_CODE,
-  };
-}
-
-async function getAuthHeaders() {
-  const serviceAccount = await readServiceAccount();
-  const auth = new GoogleAuth({
-    credentials: serviceAccount,
-    scopes: [DIALOGFLOW_SCOPE],
-  });
-  const client = await auth.getClient();
-  return client.getRequestHeaders();
+function getGeminiConfig() {
+  const serviceAccount = loadServiceAccount();
+  const projectId = getEnvValue("GOOGLE_CLOUD_PROJECT") || serviceAccount.project_id || "";
+  const location = getEnvValue("GOOGLE_CLOUD_LOCATION") || DEFAULT_LOCATION;
+  const model = getEnvValue("GEMINI_WEBSITE_MODEL") || DEFAULT_MODEL;
+  if (!SAFE_PROJECT_ID.test(projectId)) throw new Error("google_cloud_project_invalid");
+  if (!SAFE_LOCATION.test(location)) throw new Error("google_cloud_location_invalid");
+  if (!SAFE_MODEL.test(model)) throw new Error("gemini_model_invalid");
+  return Object.freeze({ projectId, location, model });
 }
 
 async function getAccessToken() {
-  const serviceAccount = await readServiceAccount();
   const auth = new GoogleAuth({
-    credentials: serviceAccount,
-    scopes: [DIALOGFLOW_SCOPE],
+    credentials: loadServiceAccount(),
+    scopes: [GOOGLE_CLOUD_SCOPE],
   });
   const client = await auth.getClient();
   const token = await client.getAccessToken();
-  if (typeof token === "string") return token;
-  return token?.token ?? "";
+  const value = typeof token === "string" ? token : token?.token ?? "";
+  if (!value) throw new Error("google_access_token_missing");
+  return value;
 }
 
-async function listAgents(projectId: string, location: string) {
-  const headers = await getAuthHeaders();
-  const agents: Array<{ name?: string; displayName?: string }> = [];
-  let pageToken = "";
-
-  do {
-    const url = new URL(`${DIALOGFLOW_BASE_URL}/projects/${projectId}/locations/${location}/agents`);
-    url.searchParams.set("pageSize", "200");
-    if (pageToken) {
-      url.searchParams.set("pageToken", pageToken);
-    }
-    const response = await fetch(url, { headers });
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(`Dialogflow agent lookup failed ${response.status}: ${text.slice(0, 400)}`);
-    }
-    const payload = JSON.parse(text) as { agents?: Array<{ name?: string; displayName?: string }>; nextPageToken?: string };
-    agents.push(...(payload.agents ?? []));
-    pageToken = payload.nextPageToken ?? "";
-  } while (pageToken);
-
-  return agents;
+function tokenCount(value: unknown, field: string) {
+  const number = Number(value ?? 0);
+  if (!Number.isSafeInteger(number) || number < 0) throw new Error(`gemini_usage_${field}_invalid`);
+  return number;
 }
 
-export async function resolveDialogflowAgent() {
-  const config = await getDialogflowConfig();
-  const headers = await getAuthHeaders();
-  const preferredAgentPath = `projects/${config.projectId}/locations/${config.location}/agents/${config.agentId}`;
-  const preferredResponse = await fetch(`${DIALOGFLOW_BASE_URL}/${preferredAgentPath}`, { headers });
-  const preferredAgent = preferredResponse.ok
-    ? ((await preferredResponse.json()) as { name?: string; displayName?: string })
-    : null;
-
-  if (preferredAgent && scoreAgent(preferredAgent.displayName ?? "") >= 0) {
-    return { ...config, agentName: preferredAgent.name ?? preferredAgentPath, agentDisplayName: preferredAgent.displayName ?? "Hưng Phát" };
+function normalizeUsageMetadata(value: unknown): GeminiUsageMetadata {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("gemini_usage_metadata_missing");
+  const metadata = value as Record<string, unknown>;
+  const promptTokenCount = tokenCount(metadata.promptTokenCount, "prompt");
+  const cachedContentTokenCount = tokenCount(metadata.cachedContentTokenCount, "cached");
+  const candidatesTokenCount = tokenCount(metadata.candidatesTokenCount, "candidates");
+  const thoughtsTokenCount = tokenCount(metadata.thoughtsTokenCount, "thoughts");
+  const toolUsePromptTokenCount = tokenCount(metadata.toolUsePromptTokenCount, "tool");
+  const totalTokenCount = tokenCount(metadata.totalTokenCount, "total");
+  const expectedTotal = promptTokenCount + candidatesTokenCount + thoughtsTokenCount + toolUsePromptTokenCount;
+  if (cachedContentTokenCount > promptTokenCount || totalTokenCount !== expectedTotal) {
+    throw new Error("gemini_usage_metadata_inconsistent");
   }
+  return Object.freeze({
+    promptTokenCount,
+    cachedContentTokenCount,
+    candidatesTokenCount,
+    thoughtsTokenCount,
+    toolUsePromptTokenCount,
+    totalTokenCount,
+  });
+}
 
-  const agents = await listAgents(config.projectId, config.location);
-  const selectedAgent = chooseAgent(preferredAgent, agents);
-  if (!selectedAgent.name) {
-    throw new Error("Selected Dialogflow agent is missing resource name.");
-  }
-
-  return {
-    ...config,
-    agentName: selectedAgent.name,
-    agentDisplayName: selectedAgent.displayName ?? "Hưng Phát",
-  };
+function responseText(payload: Record<string, unknown>) {
+  const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+  const first = candidates[0] as { content?: { parts?: Array<{ text?: unknown }> } } | undefined;
+  return (first?.content?.parts ?? [])
+    .map((part) => (typeof part.text === "string" ? part.text.trim() : ""))
+    .filter(Boolean)
+    .join("\n")
+    .trim();
 }
 
 export async function detectDialogflowReply(input: {
   sessionId: string;
   message: string;
+  transcript?: string;
 }) {
-  const agent = await resolveDialogflowAgent();
+  const config = getGeminiConfig();
   const accessToken = await getAccessToken();
-  if (!accessToken) {
-    throw new Error("Missing Dialogflow access token.");
-  }
-
-  const sessionId = normalizeDialogflowSessionId(input.sessionId);
-  const sessionPath = `${agent.agentName}/sessions/${sessionId}`;
-  const url = `${DIALOGFLOW_BASE_URL}/${sessionPath}:detectIntent`;
-
+  const conversation = input.transcript?.trim() || input.message.trim();
+  const url = `${VERTEX_API_BASE_URL}/projects/${encodeURIComponent(config.projectId)}/locations/${encodeURIComponent(config.location)}/publishers/google/models/${encodeURIComponent(config.model)}:generateContent`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -226,46 +137,26 @@ export async function detectDialogflowReply(input: {
       "content-type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
-      queryInput: {
-        languageCode: agent.languageCode,
-        text: {
-          text: input.message,
-        },
-      },
+      systemInstruction: { parts: [{ text: WEBSITE_SYSTEM_INSTRUCTION }] },
+      contents: [{ role: "user", parts: [{ text: conversation }] }],
+      generationConfig: { temperature: 0.25, maxOutputTokens: 768 },
     }),
   });
-
   const text = await response.text();
-  if (!response.ok) {
-    throw new Error(`Dialogflow detectIntent failed ${response.status}: ${text.slice(0, 400)}`);
-  }
-
-  const payload = JSON.parse(text) as {
-    queryResult?: {
-      responseMessages?: Array<{ text?: { text?: string[] } }>;
-      intent?: { displayName?: string };
-      currentPage?: { displayName?: string };
-      parameters?: Record<string, unknown>;
-      fulfillmentText?: string;
-    };
-  };
-
-  const responseMessages = payload.queryResult?.responseMessages ?? [];
-  const replyText =
-    responseMessages
-      .flatMap((message) => message.text?.text ?? [])
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .join("\n")
-      .trim() ||
-    payload.queryResult?.fulfillmentText?.trim() ||
-    "";
-
-  return {
-    agent,
+  if (!response.ok) throw new Error(`vertex_gemini_unavailable_${response.status}`);
+  const payload = JSON.parse(text) as Record<string, unknown>;
+  const usageMetadata = normalizeUsageMetadata(payload.usageMetadata);
+  const replyText = responseText(payload);
+  if (!replyText) throw new Error("gemini_reply_empty");
+  const providerRequestId = typeof payload.responseId === "string" ? payload.responseId.trim() : "";
+  if (!providerRequestId) throw new Error("gemini_response_id_missing");
+  return Object.freeze({
     replyText,
-    intentDisplayName: payload.queryResult?.intent?.displayName ?? "",
-    pageDisplayName: payload.queryResult?.currentPage?.displayName ?? "",
-    parameters: payload.queryResult?.parameters ?? {},
-  };
+    providerRequestId,
+    model: config.model,
+    usageMetadata,
+    occurredAt: typeof payload.createTime === "string" && payload.createTime.trim()
+      ? payload.createTime.trim()
+      : new Date().toISOString(),
+  });
 }
