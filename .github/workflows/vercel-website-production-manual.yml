@@ -54,34 +54,35 @@ jobs:
           node-version: 22
       - name: Install pinned Vercel CLI
         run: npm install --global vercel@58.0.0
-      - name: Capture current Website production deployment
+      - name: Capture exact deployment serving Website production
         id: previous
         shell: bash
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
           VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+          WEBSITE_PRODUCTION_HOST: www.nguyenlieuhungphat.com
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
           import { appendFileSync } from "node:fs";
-          const url = new URL("https://api.vercel.com/v6/deployments");
-          url.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
-          url.searchParams.set("projectId", process.env.VERCEL_WEBSITE_PROJECT_ID);
-          url.searchParams.set("target", "production");
-          url.searchParams.set("state", "READY");
-          url.searchParams.set("limit", "1");
-          const response = await fetch(url, { headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` } });
+
+          const aliasUrl = new URL(`https://api.vercel.com/v4/aliases/${encodeURIComponent(process.env.WEBSITE_PRODUCTION_HOST)}`);
+          aliasUrl.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
+          aliasUrl.searchParams.set("projectId", process.env.VERCEL_WEBSITE_PROJECT_ID);
+          const response = await fetch(aliasUrl, {
+            headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
+          });
           const body = await response.json().catch(() => null);
-          if (!response.ok) throw new Error(`website_deployment_list_failed_${response.status}`);
-          const previous = Array.isArray(body?.deployments) ? body.deployments[0] : null;
-          const previousId = previous?.uid || previous?.id || "";
-          if (!previousId || previous?.state !== "READY") throw new Error("website_previous_production_missing");
-          appendFileSync(process.env.GITHUB_OUTPUT, `id=${previousId}\n`);
-          console.log(`Previous production captured: ${previousId.slice(0, 12)}...`);
+          if (!response.ok) throw new Error(`website_production_alias_lookup_failed_${response.status}`);
+          const deploymentId = body?.deploymentId || body?.deployment?.id || body?.deployment?.uid || "";
+          if (body?.projectId !== process.env.VERCEL_WEBSITE_PROJECT_ID) throw new Error("website_production_alias_project_mismatch");
+          if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId)) throw new Error("website_production_alias_deployment_missing");
+          appendFileSync(process.env.GITHUB_OUTPUT, `id=${deploymentId}\n`);
+          console.log(`Production alias owner captured: ${deploymentId.slice(0, 12)}...`);
           NODE
-      - name: Deploy Website, smoke Gemini and metering, then roll back on failure
-        shell: bash
+      - name: Create staged Website production deployment
+        id: staged
         env:
           EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -91,56 +92,167 @@ jobs:
           VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
           VERCEL_CUSTOMER_ORDERING_PROJECT_ID: prj_btLk3p4FhmShgKFdRBMq6ZFOagKe
           WEBSITE_PRODUCTION_ORIGIN: https://www.nguyenlieuhungphat.com
-          PREVIOUS_PRODUCTION_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+        run: node scripts/vercel/deploy-website-production.mjs
+      - name: Resolve and verify staged Website deployment
+        id: deployment
+        shell: bash
+        env:
+          EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
+          STAGED_DEPLOYMENT_URL: ${{ steps.staged.outputs.deployment_url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+          VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+          WEBSITE_PRODUCTION_HOST: www.nguyenlieuhungphat.com
         run: |
-          set -uo pipefail
-          rollout_status=0
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from "node:fs";
 
-          node scripts/vercel/deploy-website-production.mjs || rollout_status=$?
+          const stagedUrl = new URL(process.env.STAGED_DEPLOYMENT_URL);
+          const deploymentUrl = new URL(`https://api.vercel.com/v13/deployments/${encodeURIComponent(stagedUrl.hostname)}`);
+          deploymentUrl.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
+          deploymentUrl.searchParams.set("withGitRepoInfo", "true");
+          const response = await fetch(deploymentUrl, {
+            headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
+          });
+          const body = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(`website_staged_deployment_lookup_failed_${response.status}`);
 
-          if [ "$rollout_status" -eq 0 ]; then
-            smoke_file="$(mktemp)"
-            ai_status="$(curl --silent --show-error --connect-timeout 8 --max-time 60 \
-              --output "$smoke_file" --write-out '%{http_code}' \
-              -H 'content-type: application/json; charset=utf-8' \
-              --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"source\":\"production-smoke\",\"transcript\":\"\",\"honeypot\":\"\"}" \
-              "$WEBSITE_PRODUCTION_ORIGIN/api/dialogflow/chat" || true)"
-            if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0) and .usageRecorded == true' "$smoke_file" >/dev/null 2>&1; then
-              echo "Website AI/metering production smoke failed with HTTP ${ai_status:-none}." >&2
-              rollout_status=1
-            fi
-            rm -f "$smoke_file"
-          fi
+          const deploymentId = body?.id || body?.uid || "";
+          const readyState = body?.readyState || body?.state || "";
+          const sourceSha = body?.meta?.githubCommitSha || body?.gitSource?.sha || "";
+          if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId)) throw new Error("website_staged_deployment_id_missing");
+          if (readyState !== "READY") throw new Error(`website_staged_deployment_not_ready_${readyState || "unknown"}`);
+          if (body?.target !== "production") throw new Error("website_staged_deployment_target_mismatch");
+          if (body?.projectId && body.projectId !== process.env.VERCEL_WEBSITE_PROJECT_ID) throw new Error("website_staged_deployment_project_mismatch");
+          if (body?.project?.id && body.project.id !== process.env.VERCEL_WEBSITE_PROJECT_ID) throw new Error("website_staged_deployment_project_mismatch");
+          if (sourceSha !== process.env.EXPECTED_MAIN_SHA) throw new Error("website_staged_deployment_sha_mismatch");
 
-          if [ "$rollout_status" -ne 0 ]; then
-            echo "Website rollout failed; restoring previous production deployment." >&2
-            rollback_url="https://api.vercel.com/v1/projects/${VERCEL_WEBSITE_PROJECT_ID}/rollback/${PREVIOUS_PRODUCTION_DEPLOYMENT_ID}?teamId=${VERCEL_ORG_ID}"
-            rollback_status="$(curl --silent --show-error --connect-timeout 8 --max-time 30 \
-              --output /dev/null --write-out '%{http_code}' \
-              -X POST -H "Authorization: Bearer $VERCEL_TOKEN" \
-              -H 'Content-Type: application/json' \
-              "$rollback_url" || true)"
-            if [ "$rollback_status" != "200" ] && [ "$rollback_status" != "201" ] && [ "$rollback_status" != "202" ] && [ "$rollback_status" != "204" ]; then
-              echo "Website rollback request failed with HTTP ${rollback_status:-none}." >&2
-              exit 2
-            fi
+          const aliasesUrl = new URL(`https://api.vercel.com/v2/deployments/${encodeURIComponent(deploymentId)}/aliases`);
+          aliasesUrl.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
+          const aliasesResponse = await fetch(aliasesUrl, {
+            headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
+          });
+          const aliasesBody = await aliasesResponse.json().catch(() => null);
+          if (!aliasesResponse.ok) throw new Error(`website_staged_alias_lookup_failed_${aliasesResponse.status}`);
+          const aliases = Array.isArray(aliasesBody?.aliases) ? aliasesBody.aliases : [];
+          if (aliases.some((item) => item?.alias === process.env.WEBSITE_PRODUCTION_HOST)) {
+            throw new Error("website_staged_deployment_received_production_alias_before_smoke");
+          }
 
-            restored=0
-            for attempt in {1..20}; do
-              home_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 --output /dev/null --write-out '%{http_code}' "$WEBSITE_PRODUCTION_ORIGIN/" || true)"
-              if [ "$home_status" = "200" ]; then
-                restored=1
-                break
-              fi
-              sleep 3
-            done
-            if [ "$restored" -ne 1 ]; then
-              echo "Website rollback health verification failed." >&2
-              exit 2
-            fi
+          appendFileSync(process.env.GITHUB_OUTPUT, `id=${deploymentId}\n`);
+          appendFileSync(process.env.GITHUB_OUTPUT, `url=${process.env.STAGED_DEPLOYMENT_URL}\n`);
+          console.log(`Staged deployment verified: ${deploymentId.slice(0, 12)}... sha=${sourceSha.slice(0, 12)}`);
+          NODE
+      - name: Smoke Gemini and metering on exact staged deployment
+        shell: bash
+        env:
+          STAGED_DEPLOYMENT_URL: ${{ steps.deployment.outputs.url }}
+        run: |
+          set -euo pipefail
+          smoke_file="$(mktemp)"
+          trap 'rm -f "$smoke_file"' EXIT
+          ai_status="$(curl --silent --show-error --connect-timeout 8 --max-time 60 \
+            --output "$smoke_file" --write-out '%{http_code}' \
+            -H 'content-type: application/json; charset=utf-8' \
+            --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"source\":\"production-smoke\",\"transcript\":\"\",\"honeypot\":\"\"}" \
+            "$STAGED_DEPLOYMENT_URL/api/dialogflow/chat" || true)"
+          if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0) and .usageRecorded == true' "$smoke_file" >/dev/null 2>&1; then
+            echo "Website staged AI/metering smoke failed with HTTP ${ai_status:-none}." >&2
             exit 1
           fi
-
-          echo "WEBSITE_AI_PRODUCTION_SMOKE=success"
+          echo "WEBSITE_AI_STAGED_SMOKE=success"
           echo "WEBSITE_AI_METERING_SMOKE=success"
-          echo "DEPLOYED_SHA=${EXPECTED_MAIN_SHA}"
+      - name: Promote exact deployment and verify Website production identity
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+          VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+          WEBSITE_PRODUCTION_HOST: www.nguyenlieuhungphat.com
+          WEBSITE_PRODUCTION_ORIGIN: https://www.nguyenlieuhungphat.com
+          PREVIOUS_PRODUCTION_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+          NEW_DEPLOYMENT_ID: ${{ steps.deployment.outputs.id }}
+          EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const headers = {
+            authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
+            "content-type": "application/json",
+          };
+          const teamId = process.env.VERCEL_ORG_ID;
+          const projectId = process.env.VERCEL_WEBSITE_PROJECT_ID;
+          const host = process.env.WEBSITE_PRODUCTION_HOST;
+          const origin = process.env.WEBSITE_PRODUCTION_ORIGIN.replace(/\/+$/, "");
+          const previousDeploymentId = process.env.PREVIOUS_PRODUCTION_DEPLOYMENT_ID;
+          const newDeploymentId = process.env.NEW_DEPLOYMENT_ID;
+
+          const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+          async function aliasDeploymentId() {
+            const url = new URL(`https://api.vercel.com/v4/aliases/${encodeURIComponent(host)}`);
+            url.searchParams.set("teamId", teamId);
+            url.searchParams.set("projectId", projectId);
+            const response = await fetch(url, { headers });
+            const body = await response.json().catch(() => null);
+            if (!response.ok) throw new Error(`website_alias_lookup_failed_${response.status}`);
+            return body?.deploymentId || body?.deployment?.id || body?.deployment?.uid || "";
+          }
+
+          async function waitForAlias(expectedDeploymentId, attempts = 30) {
+            let lastSeen = "";
+            for (let attempt = 1; attempt <= attempts; attempt += 1) {
+              lastSeen = await aliasDeploymentId();
+              if (lastSeen === expectedDeploymentId) return;
+              if (attempt < attempts) await sleep(2000);
+            }
+            throw new Error(`website_alias_identity_timeout_expected_${expectedDeploymentId}_seen_${lastSeen || "none"}`);
+          }
+
+          async function assertProductionHealth() {
+            for (const path of ["/", "/san-pham"]) {
+              const response = await fetch(`${origin}${path}`, {
+                redirect: "follow",
+                signal: AbortSignal.timeout(15000),
+              });
+              if (response.status < 200 || response.status >= 400) {
+                throw new Error(`website_production_health_failed_${path}_${response.status}`);
+              }
+            }
+          }
+
+          async function rollbackToPrevious(cause) {
+            console.error(`Website promotion verification failed: ${cause}`);
+            console.error(`Restoring exact previous production deployment ${previousDeploymentId.slice(0, 12)}...`);
+            const rollbackUrl = new URL(`https://api.vercel.com/v1/projects/${encodeURIComponent(projectId)}/rollback/${encodeURIComponent(previousDeploymentId)}`);
+            rollbackUrl.searchParams.set("teamId", teamId);
+            const rollbackResponse = await fetch(rollbackUrl, { method: "POST", headers });
+            if (!rollbackResponse.ok) throw new Error(`website_rollback_request_failed_${rollbackResponse.status}`);
+            await waitForAlias(previousDeploymentId);
+            await assertProductionHealth();
+            console.error("Website rollback identity verified.");
+          }
+
+          try {
+            const promoteUrl = new URL(`https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/promote/${encodeURIComponent(newDeploymentId)}`);
+            promoteUrl.searchParams.set("teamId", teamId);
+            const promoteResponse = await fetch(promoteUrl, { method: "POST", headers });
+            if (!promoteResponse.ok) throw new Error(`website_promote_request_failed_${promoteResponse.status}`);
+
+            await waitForAlias(newDeploymentId);
+            await assertProductionHealth();
+            console.log("WEBSITE_PRODUCTION_ALIAS_VERIFIED=success");
+            console.log("WEBSITE_AI_PRODUCTION_SMOKE=success");
+            console.log(`DEPLOYED_SHA=${process.env.EXPECTED_MAIN_SHA}`);
+          } catch (error) {
+            const cause = error instanceof Error ? error.message : String(error);
+            try {
+              await rollbackToPrevious(cause);
+            } catch (rollbackError) {
+              console.error(rollbackError instanceof Error ? rollbackError.message : String(rollbackError));
+              process.exit(2);
+            }
+            process.exit(1);
+          }
+          NODE

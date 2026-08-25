@@ -11,6 +11,7 @@ export const TARGETS = {
     otherProjectEnv: "VERCEL_CUSTOMER_ORDERING_PROJECT_ID",
     originEnv: "WEBSITE_PRODUCTION_ORIGIN",
     deployMode: "source",
+    stagedProduction: true,
     smokePaths: ["/", "/san-pham"],
   },
   "customer-ordering": {
@@ -19,6 +20,7 @@ export const TARGETS = {
     otherProjectEnv: "VERCEL_WEBSITE_PROJECT_ID",
     originEnv: "CUSTOMER_ORDERING_PRODUCTION_ORIGIN",
     deployMode: "prebuilt",
+    stagedProduction: false,
     smokePaths: ["/login", "/", "/products", "/quick-order", "/orders", "/manifest.webmanifest"],
   },
 };
@@ -165,17 +167,25 @@ export async function deployTarget(target) {
     } else {
       deployArgs.push("--archive=tgz");
     }
-    deployArgs.push("--prod", "--yes", "--token", token);
+    deployArgs.push("--prod");
+    if (config.stagedProduction) deployArgs.push("--skip-domain");
+    deployArgs.push("--yes", "--token", token);
 
     const deploymentUrl = run("vercel", deployArgs, { cwd: repositoryCwd, env, capture: true })
       .split(/\s+/)
       .find((value) => value.startsWith("https://"));
     if (!deploymentUrl) throw new Error("Vercel CLI did not return a deployment URL.");
-    const productionOrigin = process.env[config.originEnv] ?? "";
-    if (!productionOrigin) throw new Error(`${config.originEnv} is required for production smoke.`);
+
     await smokeOrigin(deploymentUrl, config.smokePaths);
-    await smokeOrigin(productionOrigin, config.smokePaths);
-    console.log(`Production verified: target=${target} sha=${checkedOutSha.slice(0,12)} deployment=${fingerprint(deploymentUrl)}`);
+
+    if (!config.stagedProduction) {
+      const productionOrigin = process.env[config.originEnv] ?? "";
+      if (!productionOrigin) throw new Error(`${config.originEnv} is required for production smoke.`);
+      await smokeOrigin(productionOrigin, config.smokePaths);
+    }
+
+    console.log(`Deployment verified: target=${target} sha=${checkedOutSha.slice(0,12)} deployment=${fingerprint(deploymentUrl)} staged=${config.stagedProduction ? "yes" : "no"}`);
+    return Object.freeze({ deploymentUrl, checkedOutSha, stagedProduction: config.stagedProduction });
   } finally {
     rmSync(vercelDir, { recursive: true, force: true });
   }
