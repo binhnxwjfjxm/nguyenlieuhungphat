@@ -144,7 +144,7 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `url=${process.env.STAGED_DEPLOYMENT_URL}\n`);
           console.log(`Staged deployment verified: ${deploymentId.slice(0, 12)}... sha=${sourceSha.slice(0, 12)}`);
           NODE
-      - name: Smoke Gemini and metering on exact staged deployment
+      - name: Smoke Dialogflow CX and metering on exact staged deployment
         shell: bash
         env:
           STAGED_DEPLOYMENT_URL: ${{ steps.deployment.outputs.url }}

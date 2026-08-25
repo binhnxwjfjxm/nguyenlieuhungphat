@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
         telegramChatId: telegramResult?.chatId ?? null,
         telegramMessageId: telegramResult?.messageId ?? null,
         agentStatus: confirmedPhone ? "lead_confirmed" : "queued",
-        playbookKey: "gemini-website",
+        playbookKey: "dialogflow-cx-website",
       });
     } catch {
       // Chat delivery must not depend on the legacy conversation store.

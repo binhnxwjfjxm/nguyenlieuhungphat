@@ -2,13 +2,10 @@ import "server-only";
 
 import { GoogleAuth } from "google-auth-library";
 
-export type GeminiUsageMetadata = {
-  promptTokenCount: number;
-  cachedContentTokenCount: number;
-  candidatesTokenCount: number;
-  thoughtsTokenCount: number;
-  toolUsePromptTokenCount: number;
-  totalTokenCount: number;
+export type DialogflowCxUsageMetadata = {
+  requestCount: number;
+  billingUnit: "text-request";
+  requestClass: "flow" | "playbook";
 };
 
 type ServiceAccount = {
@@ -18,24 +15,32 @@ type ServiceAccount = {
   [key: string]: unknown;
 };
 
-const GOOGLE_CLOUD_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-const VERTEX_API_BASE_URL = "https://aiplatform.googleapis.com/v1";
+type DialogflowAgent = {
+  name?: string;
+  displayName?: string;
+};
+
+export type DialogflowCxConfig = {
+  projectId: string;
+  location: string;
+  agentId: string;
+  agentDisplayName: string;
+  languageCode: string;
+};
+
+const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
 const DEFAULT_LOCATION = "global";
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_LANGUAGE_CODE = "vi";
+const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát - Dialog CX";
+const FLOW_BILLING_MODEL = "dialogflow-cx-flow-text";
+const PLAYBOOK_BILLING_MODEL = "dialogflow-cx-playbook-text";
 const SAFE_PROJECT_ID = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
 const SAFE_LOCATION = /^[a-z0-9-]{2,40}$/;
-const SAFE_MODEL = /^[A-Za-z0-9._-]{1,128}$/;
-
-const WEBSITE_SYSTEM_INSTRUCTION = [
-  "Bạn là Trợ lý Hưng Phát trên website dành cho khách hàng.",
-  "Trả lời bằng tiếng Việt rõ ràng, ngắn gọn và dùng ngôn ngữ văn phòng dễ hiểu.",
-  "Ưu tiên hỗ trợ thông tin sản phẩm, cách liên hệ, nhu cầu mua hàng và hướng dẫn sử dụng website.",
-  "Không tự bịa giá, tồn kho, chính sách hoặc thông tin sản phẩm khi dữ liệu trong hội thoại không đủ.",
-  "Khi cần xác nhận thông tin cụ thể, hãy nói rõ cần nhân viên Hưng Phát kiểm tra và mời khách để lại số điện thoại.",
-  "Không nhắc tới database, token, API, model, cấu hình hoặc lỗi kỹ thuật nội bộ.",
-].join("\n");
+const SAFE_LANGUAGE = /^[A-Za-z]{2,3}(?:-[A-Za-z]{2,8})?$/;
+const AGENT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 let cachedServiceAccount: ServiceAccount | null = null;
+let cachedAgent: DialogflowCxConfig | null = null;
 
 function getEnvValue(...keys: string[]) {
   for (const key of keys) {
@@ -56,73 +61,147 @@ function loadServiceAccount(): ServiceAccount {
     "DIALOGFLOW_SERVICE_ACCOUNT_JSON",
     "DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON",
   );
-  if (!inlineJson) throw new Error("google_service_account_missing");
+  if (!inlineJson) throw new Error("dialogflow_service_account_missing");
   const parsed = JSON.parse(inlineJson) as ServiceAccount;
-  if (!parsed.client_email || !parsed.private_key) throw new Error("google_service_account_invalid");
+  if (!parsed.client_email || !parsed.private_key) throw new Error("dialogflow_service_account_invalid");
   cachedServiceAccount = parsed;
   return parsed;
 }
 
-function getGeminiConfig() {
+function getDialogflowBaseUrl(location: string) {
+  const host = location === "global" ? "dialogflow.googleapis.com" : `${location}-dialogflow.googleapis.com`;
+  return `https://${host}/v3`;
+}
+
+function getDialogflowRuntimeConfig() {
   const serviceAccount = loadServiceAccount();
-  const projectId = getEnvValue("GOOGLE_CLOUD_PROJECT") || serviceAccount.project_id || "";
-  const location = getEnvValue("GOOGLE_CLOUD_LOCATION") || DEFAULT_LOCATION;
-  const model = getEnvValue("GEMINI_WEBSITE_MODEL") || DEFAULT_MODEL;
-  if (!SAFE_PROJECT_ID.test(projectId)) throw new Error("google_cloud_project_invalid");
-  if (!SAFE_LOCATION.test(location)) throw new Error("google_cloud_location_invalid");
-  if (!SAFE_MODEL.test(model)) throw new Error("gemini_model_invalid");
-  return Object.freeze({ projectId, location, model });
+  const projectId = getEnvValue("DIALOGFLOW_CX_PROJECT_ID", "DIALOGFLOW_PROJECT_ID") || serviceAccount.project_id || "";
+  const location = getEnvValue("DIALOGFLOW_CX_LOCATION", "DIALOGFLOW_LOCATION") || DEFAULT_LOCATION;
+  const configuredAgentId = getEnvValue("DIALOGFLOW_CX_AGENT_ID", "DIALOGFLOW_AGENT_ID");
+  const agentDisplayName = getEnvValue("DIALOGFLOW_CX_AGENT_DISPLAY_NAME") || DEFAULT_AGENT_DISPLAY_NAME;
+  const languageCode = getEnvValue("DIALOGFLOW_CX_LANGUAGE_CODE", "DIALOGFLOW_LANGUAGE_CODE") || DEFAULT_LANGUAGE_CODE;
+
+  if (!SAFE_PROJECT_ID.test(projectId)) throw new Error("dialogflow_project_invalid");
+  if (!SAFE_LOCATION.test(location)) throw new Error("dialogflow_location_invalid");
+  if (configuredAgentId && !AGENT_ID_PATTERN.test(configuredAgentId)) throw new Error("dialogflow_agent_id_invalid");
+  if (agentDisplayName !== DEFAULT_AGENT_DISPLAY_NAME) throw new Error("dialogflow_agent_display_name_invalid");
+  if (!SAFE_LANGUAGE.test(languageCode)) throw new Error("dialogflow_language_invalid");
+
+  return Object.freeze({ projectId, location, configuredAgentId, agentDisplayName, languageCode });
 }
 
 async function getAccessToken() {
   const auth = new GoogleAuth({
     credentials: loadServiceAccount(),
-    scopes: [GOOGLE_CLOUD_SCOPE],
+    scopes: [DIALOGFLOW_SCOPE],
   });
   const client = await auth.getClient();
   const token = await client.getAccessToken();
   const value = typeof token === "string" ? token : token?.token ?? "";
-  if (!value) throw new Error("google_access_token_missing");
+  if (!value) throw new Error("dialogflow_access_token_missing");
   return value;
 }
 
-function tokenCount(value: unknown, field: string) {
-  const number = Number(value ?? 0);
-  if (!Number.isSafeInteger(number) || number < 0) throw new Error(`gemini_usage_${field}_invalid`);
-  return number;
+function agentIdFromName(name: string) {
+  const match = name.match(/\/agents\/([^/]+)$/);
+  const agentId = match?.[1] ?? "";
+  if (!AGENT_ID_PATTERN.test(agentId)) throw new Error("dialogflow_agent_resource_invalid");
+  return agentId;
 }
 
-function normalizeUsageMetadata(value: unknown): GeminiUsageMetadata {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("gemini_usage_metadata_missing");
-  const metadata = value as Record<string, unknown>;
-  const promptTokenCount = tokenCount(metadata.promptTokenCount, "prompt");
-  const cachedContentTokenCount = tokenCount(metadata.cachedContentTokenCount, "cached");
-  const candidatesTokenCount = tokenCount(metadata.candidatesTokenCount, "candidates");
-  const thoughtsTokenCount = tokenCount(metadata.thoughtsTokenCount, "thoughts");
-  const toolUsePromptTokenCount = tokenCount(metadata.toolUsePromptTokenCount, "tool");
-  const totalTokenCount = tokenCount(metadata.totalTokenCount, "total");
-  const expectedTotal = promptTokenCount + candidatesTokenCount + thoughtsTokenCount + toolUsePromptTokenCount;
-  if (cachedContentTokenCount > promptTokenCount || totalTokenCount !== expectedTotal) {
-    throw new Error("gemini_usage_metadata_inconsistent");
-  }
-  return Object.freeze({
-    promptTokenCount,
-    cachedContentTokenCount,
-    candidatesTokenCount,
-    thoughtsTokenCount,
-    toolUsePromptTokenCount,
-    totalTokenCount,
+async function fetchAgent(baseUrl: string, token: string, projectId: string, location: string, agentId: string) {
+  const path = `projects/${encodeURIComponent(projectId)}/locations/${encodeURIComponent(location)}/agents/${encodeURIComponent(agentId)}`;
+  const response = await fetch(`${baseUrl}/${path}`, {
+    headers: { authorization: `Bearer ${token}` },
   });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`dialogflow_agent_lookup_unavailable_${response.status}`);
+  return await response.json() as DialogflowAgent;
 }
 
-function responseText(payload: Record<string, unknown>) {
-  const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
-  const first = candidates[0] as { content?: { parts?: Array<{ text?: unknown }> } } | undefined;
-  return (first?.content?.parts ?? [])
-    .map((part) => (typeof part.text === "string" ? part.text.trim() : ""))
+async function listExactAgent(baseUrl: string, token: string, projectId: string, location: string, displayName: string) {
+  const matches: DialogflowAgent[] = [];
+  let pageToken = "";
+  do {
+    const url = new URL(`${baseUrl}/projects/${encodeURIComponent(projectId)}/locations/${encodeURIComponent(location)}/agents`);
+    url.searchParams.set("pageSize", "100");
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
+    const response = await fetch(url, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`dialogflow_agent_list_unavailable_${response.status}`);
+    const payload = await response.json() as { agents?: DialogflowAgent[]; nextPageToken?: string };
+    matches.push(...(payload.agents ?? []).filter((agent) => agent.displayName?.trim() === displayName));
+    pageToken = payload.nextPageToken ?? "";
+  } while (pageToken);
+
+  if (matches.length !== 1 || !matches[0]?.name) {
+    throw new Error(matches.length === 0 ? "dialogflow_agent_not_found" : "dialogflow_agent_not_unique");
+  }
+  return matches[0];
+}
+
+async function resolveDialogflowAgent(): Promise<DialogflowCxConfig> {
+  if (cachedAgent) return cachedAgent;
+  const runtime = getDialogflowRuntimeConfig();
+  const token = await getAccessToken();
+  const baseUrl = getDialogflowBaseUrl(runtime.location);
+
+  let selected: DialogflowAgent | null = null;
+  if (runtime.configuredAgentId) {
+    const configured = await fetchAgent(
+      baseUrl,
+      token,
+      runtime.projectId,
+      runtime.location,
+      runtime.configuredAgentId,
+    );
+    if (configured?.displayName?.trim() === runtime.agentDisplayName) selected = configured;
+  }
+
+  if (!selected) {
+    selected = await listExactAgent(baseUrl, token, runtime.projectId, runtime.location, runtime.agentDisplayName);
+  }
+
+  const agentId = selected.name ? agentIdFromName(selected.name) : "";
+  cachedAgent = Object.freeze({
+    projectId: runtime.projectId,
+    location: runtime.location,
+    agentId,
+    agentDisplayName: runtime.agentDisplayName,
+    languageCode: runtime.languageCode,
+  });
+  return cachedAgent;
+}
+
+function queryResult(payload: Record<string, unknown>) {
+  return payload.queryResult && typeof payload.queryResult === "object" && !Array.isArray(payload.queryResult)
+    ? payload.queryResult as Record<string, unknown>
+    : {};
+}
+
+function responseText(result: Record<string, unknown>) {
+  const messages = Array.isArray(result.responseMessages) ? result.responseMessages : [];
+  const text = messages
+    .flatMap((message) => {
+      if (!message || typeof message !== "object") return [];
+      const textPayload = (message as { text?: { text?: unknown } }).text?.text;
+      return Array.isArray(textPayload) ? textPayload : [];
+    })
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
     .filter(Boolean)
     .join("\n")
     .trim();
+  if (text) return text;
+  return typeof result.fulfillmentText === "string" ? result.fulfillmentText.trim() : "";
+}
+
+function requestClass(result: Record<string, unknown>): "flow" | "playbook" {
+  const generativeInfo = result.generativeInfo;
+  return generativeInfo && typeof generativeInfo === "object" && !Array.isArray(generativeInfo)
+    ? "playbook"
+    : "flow";
 }
 
 export async function detectDialogflowReply(input: {
@@ -130,37 +209,44 @@ export async function detectDialogflowReply(input: {
   message: string;
   transcript?: string;
 }) {
-  const config = getGeminiConfig();
-  const accessToken = await getAccessToken();
-  const conversation = input.transcript?.trim() || input.message.trim();
-  const url = `${VERTEX_API_BASE_URL}/projects/${encodeURIComponent(config.projectId)}/locations/${encodeURIComponent(config.location)}/publishers/google/models/${encodeURIComponent(config.model)}:generateContent`;
-  const response = await fetch(url, {
+  const agent = await resolveDialogflowAgent();
+  const token = await getAccessToken();
+  const baseUrl = getDialogflowBaseUrl(agent.location);
+  const sessionId = normalizeDialogflowSessionId(input.sessionId);
+  const sessionPath = `projects/${encodeURIComponent(agent.projectId)}/locations/${encodeURIComponent(agent.location)}/agents/${encodeURIComponent(agent.agentId)}/sessions/${encodeURIComponent(sessionId)}`;
+  const response = await fetch(`${baseUrl}/${sessionPath}:detectIntent`, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${accessToken}`,
+      authorization: `Bearer ${token}`,
       "content-type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: WEBSITE_SYSTEM_INSTRUCTION }] },
-      contents: [{ role: "user", parts: [{ text: conversation }] }],
-      generationConfig: { temperature: 0.25, maxOutputTokens: 768 },
+      queryInput: {
+        languageCode: agent.languageCode,
+        text: { text: input.message.trim() },
+      },
+      responseView: "DETECT_INTENT_RESPONSE_VIEW_FULL",
     }),
   });
-  const text = await response.text();
-  if (!response.ok) throw new Error(`vertex_gemini_unavailable_${response.status}`);
-  const payload = JSON.parse(text) as Record<string, unknown>;
-  const usageMetadata = normalizeUsageMetadata(payload.usageMetadata);
-  const replyText = responseText(payload);
-  if (!replyText) throw new Error("gemini_reply_empty");
+
+  if (!response.ok) throw new Error(`dialogflow_cx_detect_intent_unavailable_${response.status}`);
+  const payload = await response.json() as Record<string, unknown>;
+  const result = queryResult(payload);
+  const replyText = responseText(result);
+  if (!replyText) throw new Error("dialogflow_cx_reply_empty");
   const providerRequestId = typeof payload.responseId === "string" ? payload.responseId.trim() : "";
-  if (!providerRequestId) throw new Error("gemini_response_id_missing");
+  if (!providerRequestId) throw new Error("dialogflow_cx_response_id_missing");
+  const classifiedRequest = requestClass(result);
+
   return Object.freeze({
     replyText,
     providerRequestId,
-    model: config.model,
-    usageMetadata,
-    occurredAt: typeof payload.createTime === "string" && payload.createTime.trim()
-      ? payload.createTime.trim()
-      : new Date().toISOString(),
+    model: classifiedRequest === "playbook" ? PLAYBOOK_BILLING_MODEL : FLOW_BILLING_MODEL,
+    usageMetadata: Object.freeze({
+      requestCount: 1,
+      billingUnit: "text-request" as const,
+      requestClass: classifiedRequest,
+    }),
+    occurredAt: new Date().toISOString(),
   });
 }
