@@ -156,7 +156,6 @@ jobs:
           set +e
           ai_status="$(vercel curl /api/dialogflow/chat \
             --deployment "$STAGED_DEPLOYMENT_URL" \
-            --token "$VERCEL_TOKEN" \
             --yes \
             -- \
             --silent --show-error --fail-with-body --connect-timeout 8 --max-time 60 \

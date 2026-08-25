@@ -75,7 +75,9 @@ test("Website production rollout authenticates protected staged smoke, promotes 
   assert.match(workflow, /website_staged_deployment_received_production_alias_before_smoke/);
   assert.match(workflow, /vercel curl \/api\/dialogflow\/chat/);
   assert.match(workflow, /--deployment "\$STAGED_DEPLOYMENT_URL"/);
-  assert.match(workflow, /--token "\$VERCEL_TOKEN"/);
+  assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
+  assert.doesNotMatch(workflow, /--token "\$VERCEL_TOKEN"/);
+  assert.match(workflow, /--yes/);
   assert.match(workflow, /--fail-with-body/);
   assert.doesNotMatch(workflow, /"\$STAGED_DEPLOYMENT_URL\/api\/dialogflow\/chat"/);
   assert.match(workflow, /\\"source\\":\\"production-smoke\\"/);
