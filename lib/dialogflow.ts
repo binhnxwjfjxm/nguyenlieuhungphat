@@ -84,6 +84,10 @@ function loadServiceAccount(): ServiceAccount {
     throw new Error(`dialogflow_service_account_unreadable:${selectedCredential.key}`);
   }
   if (!parsed.client_email || !parsed.private_key) throw new Error("dialogflow_service_account_invalid");
+  console.info("dialogflow_cx_runtime_identity", {
+    credentialAlias: selectedCredential.key,
+    clientEmail: parsed.client_email,
+  });
   cachedServiceAccount = parsed;
   return parsed;
 }
