@@ -46,15 +46,23 @@ test("Website chat preserves newest turn and does not discard a successful Gemin
   assert.match(route, /website_ai_usage_record_failed/);
   assert.match(route, /providerRequestId: aiReply\.providerRequestId/);
   assert.match(route, /usageMetadata: aiReply\.usageMetadata/);
+  assert.match(route, /let usageRecorded = false/);
+  assert.match(route, /usageRecorded = true/);
+  assert.match(route, /source === "production-smoke"/);
+  assert.match(route, /responseBody\.usageRecorded = usageRecorded/);
   assert.match(route, /AI_ASSISTANT_UNAVAILABLE/);
   assert.doesNotMatch(route, /agentDisplayName|intentDisplayName|pageDisplayName/);
   assert.doesNotMatch(route, /Không thể kết nối Dialogflow/);
 });
 
-test("Website production rollout smokes Gemini and restores the previous Vercel deployment on failure", () => {
+test("Website production rollout smokes Gemini plus metering and restores the previous Vercel deployment on failure", () => {
   const workflow = read(".github/workflows/vercel-website-production-manual.yml");
+  assert.match(workflow, /WEBSITE_PRODUCTION_ORIGIN: https:\/\/www\.nguyenlieuhungphat\.com/);
   assert.match(workflow, /api\/dialogflow\/chat/);
+  assert.match(workflow, /\\"source\\":\\"production-smoke\\"/);
+  assert.match(workflow, /\.usageRecorded == true/);
   assert.match(workflow, /WEBSITE_AI_PRODUCTION_SMOKE=success/);
+  assert.match(workflow, /WEBSITE_AI_METERING_SMOKE=success/);
   assert.match(workflow, /\/v1\/projects\/\$\{VERCEL_WEBSITE_PROJECT_ID\}\/rollback\/\$\{PREVIOUS_PRODUCTION_DEPLOYMENT_ID\}/);
   assert.match(workflow, /restoring previous production deployment/i);
 });
