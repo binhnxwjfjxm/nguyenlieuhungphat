@@ -28,7 +28,7 @@ test("Website Dialogflow CX runtime pins exact identity and uses least-privilege
   assert.match(source, /if \(value !== undefined\) return \{ key, value \}/);
   assert.match(source, /dialogflow_service_account_unreadable:\$\{selectedCredential\.key\}/);
   assert.doesNotMatch(source, /const inlineJson = getEnvValue\(\s*"DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON"/);
-  assert.match(source, /DEFAULT_PROJECT_ID = "hck-agent-chat-prod"/);
+  assert.match(source, /DEFAULT_PROJECT_ID = "hck-agent-chat-prod-498413"/);
   assert.match(source, /DEFAULT_LOCATION = "global"/);
   assert.match(source, /DEFAULT_AGENT_ID = "e326abbf-77f7-4b16-996c-64408c4dd136"/);
   assert.match(source, /DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát"/);
@@ -120,7 +120,7 @@ test("Website production rollout authenticates protected staged smoke, promotes 
 
 test("Website environment contract pins the exact Dialogflow CX production identity", () => {
   const env = read(".env.example");
-  assert.match(env, /DIALOGFLOW_CX_PROJECT_ID=hck-agent-chat-prod/);
+  assert.match(env, /DIALOGFLOW_CX_PROJECT_ID=hck-agent-chat-prod-498413/);
   assert.match(env, /DIALOGFLOW_CX_LOCATION=global/);
   assert.match(env, /DIALOGFLOW_CX_AGENT_ID=e326abbf-77f7-4b16-996c-64408c4dd136/);
   assert.match(env, /DIALOGFLOW_CX_AGENT_DISPLAY_NAME=Hưng Phát/);
