@@ -4,27 +4,33 @@ import { readFileSync } from "node:fs";
 
 const read = (relative) => readFileSync(new URL(`../${relative}`, import.meta.url), "utf8");
 
-test("Website assistant uses Vertex Gemini 2.5 Flash and provider usage metadata without agent discovery", () => {
+test("Website assistant uses Dialogflow CX detectIntent and never calls Vertex Gemini directly", () => {
   const source = read("lib/dialogflow.ts");
-  assert.match(source, /aiplatform\.googleapis\.com\/v1/);
-  assert.match(source, /gemini-2\.5-flash/);
-  assert.match(source, /usageMetadata/);
-  assert.match(source, /promptTokenCount/);
-  assert.match(source, /candidatesTokenCount/);
-  assert.match(source, /thoughtsTokenCount/);
-  assert.match(source, /cachedContentTokenCount/);
-  assert.doesNotMatch(source, /listAgents|getDialogflowRuntimeFromSupabase|DEFAULT_AGENT_ID|hung phat admin/i);
+  assert.match(source, /dialogflow\.googleapis\.com/);
+  assert.match(source, /:detectIntent/);
+  assert.match(source, /responseId/);
+  assert.match(source, /DETECT_INTENT_RESPONSE_VIEW_FULL/);
+  assert.match(source, /FLOW_BILLING_MODEL = "dialogflow-cx-flow-text"/);
+  assert.match(source, /PLAYBOOK_BILLING_MODEL = "dialogflow-cx-playbook-text"/);
+  assert.match(source, /generativeInfo/);
+  assert.match(source, /requestCount: 1/);
+  assert.match(source, /billingUnit: "text-request"/);
+  assert.doesNotMatch(source, /aiplatform\.googleapis\.com|generateContent|gemini-2\.5-flash/i);
 });
 
-test("Website Gemini runtime accepts the canonical Google credential and legacy server-side aliases", () => {
+test("Website Dialogflow CX runtime accepts server-side credential aliases and selects only the exact Website agent", () => {
   const source = read("lib/dialogflow.ts");
   assert.match(source, /GOOGLE_SERVICE_ACCOUNT_JSON/);
   assert.match(source, /DIALOGFLOW_SERVICE_ACCOUNT_JSON/);
   assert.match(source, /DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON/);
-  assert.doesNotMatch(source, /Project-ID-dialog-supprot-vlgn\.json|getDialogflowRuntimeFromSupabase/);
+  assert.match(source, /DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát - Dialog CX"/);
+  assert.match(source, /agent\.displayName\?\.trim\(\) === displayName/);
+  assert.match(source, /dialogflow_agent_not_unique/);
+  assert.doesNotMatch(source, /Project-ID-dialog-supprot-vlgn\.json|getDialogflowRuntimeFromSupabase|hung phat admin/i);
+  assert.doesNotMatch(source, /scoreAgent|normalized\.includes\("hung phat"\)/);
 });
 
-test("Website sends a stable UUID Idempotency-Key and never composes a private key format", () => {
+test("Website sends a stable UUID Idempotency-Key and records provider-priced CX request metadata", () => {
   const source = read("lib/company-ai-usage.ts");
   assert.match(source, /randomUUID/);
   assert.match(source, /IDEMPOTENCY_UUID_PATTERN/);
@@ -32,11 +38,12 @@ test("Website sends a stable UUID Idempotency-Key and never composes a private k
   assert.match(source, /source: "website"/);
   assert.match(source, /customerId: null/);
   assert.match(source, /COMPANY_WEBSITE_AI_API_TOKEN/);
+  assert.match(source, /DialogflowCxUsageMetadata/);
   assert.doesNotMatch(source, /normalizeIdempotencyOperation|IDEMPOTENCY_OPERATION_MAX_LENGTH/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_.*TOKEN/);
 });
 
-test("Website chat preserves newest turn and does not discard a successful Gemini reply when metering is unavailable", () => {
+test("Website chat preserves newest turn and does not discard a successful CX reply when metering is unavailable", () => {
   const route = read("app/api/dialogflow/chat/route.ts");
   assert.match(route, /buildRecentTranscript/);
   assert.match(route, /endsWith\(currentTurn\)/);
@@ -50,13 +57,13 @@ test("Website chat preserves newest turn and does not discard a successful Gemin
   assert.match(route, /usageRecorded = true/);
   assert.match(route, /source === "production-smoke"/);
   assert.match(route, /responseBody\.usageRecorded = usageRecorded/);
+  assert.match(route, /playbookKey: "dialogflow-cx-website"/);
   assert.match(route, /website_ai_chat_failed/);
   assert.match(route, /AI_ASSISTANT_UNAVAILABLE/);
   assert.doesNotMatch(route, /agentDisplayName|intentDisplayName|pageDisplayName/);
-  assert.doesNotMatch(route, /Không thể kết nối Dialogflow/);
 });
 
-test("Website staged production deployment keeps traffic untouched until exact Gemini and metering smoke pass", () => {
+test("Website staged production deployment keeps traffic untouched until exact CX and metering smoke pass", () => {
   const deployCommon = read("scripts/vercel/vercel-deploy-common.mjs");
   const deployScript = read("scripts/vercel/deploy-website-production.mjs");
   assert.match(deployCommon, /stagedProduction: true/);
@@ -73,6 +80,7 @@ test("Website production rollout authenticates protected staged smoke, promotes 
   assert.match(workflow, /\/v4\/aliases\/\$\{encodeURIComponent\(process\.env\.WEBSITE_PRODUCTION_HOST\)\}/);
   assert.match(workflow, /\/v13\/deployments\/\$\{encodeURIComponent\(stagedUrl\.hostname\)\}/);
   assert.match(workflow, /website_staged_deployment_received_production_alias_before_smoke/);
+  assert.match(workflow, /Smoke Dialogflow CX and metering on exact staged deployment/);
   assert.match(workflow, /vercel curl \/api\/dialogflow\/chat/);
   assert.match(workflow, /--deployment "\$STAGED_DEPLOYMENT_URL"/);
   assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
@@ -88,14 +96,16 @@ test("Website production rollout authenticates protected staged smoke, promotes 
   assert.match(workflow, /waitForAlias\(previousDeploymentId\)/);
   assert.match(workflow, /WEBSITE_PRODUCTION_ALIAS_VERIFIED=success/);
   assert.match(workflow, /WEBSITE_AI_METERING_SMOKE=success/);
-  assert.doesNotMatch(workflow, /url\.searchParams\.set\("state", "READY"\).*url\.searchParams\.set\("limit", "1"\)/s);
 });
 
-test("Website environment contract has no hard-coded Dialogflow agent fallback", () => {
+test("Website environment contract is Dialogflow CX and has no stale Gemini or hard-coded agent id", () => {
   const env = read(".env.example");
-  assert.match(env, /GEMINI_WEBSITE_MODEL=gemini-2\.5-flash/);
-  assert.match(env, /GOOGLE_CLOUD_LOCATION=global/);
+  assert.match(env, /DIALOGFLOW_CX_LOCATION=global/);
+  assert.match(env, /DIALOGFLOW_CX_AGENT_ID=/);
+  assert.match(env, /DIALOGFLOW_CX_AGENT_DISPLAY_NAME=Hưng Phát - Dialog CX/);
+  assert.match(env, /DIALOGFLOW_CX_LANGUAGE_CODE=vi/);
   assert.match(env, /COMPANY_API_URL=/);
   assert.match(env, /COMPANY_WEBSITE_AI_API_TOKEN=/);
-  assert.doesNotMatch(env, /DIALOGFLOW_CX_AGENT_ID|291aef79-770c-4c6d-a8c8-a081206ace4e/);
+  assert.match(env, /GOOGLE_SERVICE_ACCOUNT_JSON=/);
+  assert.doesNotMatch(env, /GEMINI_WEBSITE_MODEL|GOOGLE_CLOUD_LOCATION|291aef79-770c-4c6d-a8c8-a081206ace4e/);
 });

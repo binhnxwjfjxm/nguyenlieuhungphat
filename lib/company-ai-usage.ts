@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import type { GeminiUsageMetadata } from "@/lib/dialogflow";
+import type { DialogflowCxUsageMetadata } from "@/lib/dialogflow";
 
 const IDEMPOTENCY_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);
@@ -40,7 +40,7 @@ export async function recordCompanyAiUsage(input: {
   providerRequestId: string;
   model: string;
   occurredAt: string;
-  usageMetadata: GeminiUsageMetadata;
+  usageMetadata: DialogflowCxUsageMetadata;
 }) {
   if (!IDEMPOTENCY_UUID_PATTERN.test(input.idempotencyKey)) throw new Error("idempotency_key_invalid");
   const runtime = config();
