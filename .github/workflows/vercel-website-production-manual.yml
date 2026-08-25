@@ -148,17 +148,26 @@ jobs:
         shell: bash
         env:
           STAGED_DEPLOYMENT_URL: ${{ steps.deployment.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
           smoke_file="$(mktemp)"
           trap 'rm -f "$smoke_file"' EXIT
-          ai_status="$(curl --silent --show-error --connect-timeout 8 --max-time 60 \
+          set +e
+          ai_status="$(vercel curl /api/dialogflow/chat \
+            --deployment "$STAGED_DEPLOYMENT_URL" \
+            --token "$VERCEL_TOKEN" \
+            -- \
+            --silent --show-error --fail-with-body --connect-timeout 8 --max-time 60 \
             --output "$smoke_file" --write-out '%{http_code}' \
-            -H 'content-type: application/json; charset=utf-8' \
-            --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"source\":\"production-smoke\",\"transcript\":\"\",\"honeypot\":\"\"}" \
-            "$STAGED_DEPLOYMENT_URL/api/dialogflow/chat" || true)"
-          if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0) and .usageRecorded == true' "$smoke_file" >/dev/null 2>&1; then
-            echo "Website staged AI/metering smoke failed with HTTP ${ai_status:-none}." >&2
+            --request POST \
+            --header 'content-type: application/json; charset=utf-8' \
+            --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"source\":\"production-smoke\",\"transcript\":\"\",\"honeypot\":\"\"}")"
+          request_status=$?
+          set -e
+          if [ "$request_status" -ne 0 ] || [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0) and .usageRecorded == true' "$smoke_file" >/dev/null 2>&1; then
+            smoke_code="$(jq -r '.code // "unknown"' "$smoke_file" 2>/dev/null || echo unknown)"
+            echo "Website staged AI/metering smoke failed: command=${request_status}, HTTP=${ai_status:-none}, code=${smoke_code}." >&2
             exit 1
           fi
           echo "WEBSITE_AI_STAGED_SMOKE=success"

@@ -50,6 +50,7 @@ test("Website chat preserves newest turn and does not discard a successful Gemin
   assert.match(route, /usageRecorded = true/);
   assert.match(route, /source === "production-smoke"/);
   assert.match(route, /responseBody\.usageRecorded = usageRecorded/);
+  assert.match(route, /website_ai_chat_failed/);
   assert.match(route, /AI_ASSISTANT_UNAVAILABLE/);
   assert.doesNotMatch(route, /agentDisplayName|intentDisplayName|pageDisplayName/);
   assert.doesNotMatch(route, /Không thể kết nối Dialogflow/);
@@ -66,13 +67,17 @@ test("Website staged production deployment keeps traffic untouched until exact G
   assert.match(deployScript, /deployment_url=/);
 });
 
-test("Website production rollout promotes only the exact staged deployment and verifies alias identity with exact rollback", () => {
+test("Website production rollout authenticates protected staged smoke, promotes exact deployment and verifies rollback identity", () => {
   const workflow = read(".github/workflows/vercel-website-production-manual.yml");
   assert.match(workflow, /WEBSITE_PRODUCTION_HOST: www\.nguyenlieuhungphat\.com/);
   assert.match(workflow, /\/v4\/aliases\/\$\{encodeURIComponent\(process\.env\.WEBSITE_PRODUCTION_HOST\)\}/);
   assert.match(workflow, /\/v13\/deployments\/\$\{encodeURIComponent\(stagedUrl\.hostname\)\}/);
   assert.match(workflow, /website_staged_deployment_received_production_alias_before_smoke/);
-  assert.match(workflow, /STAGED_DEPLOYMENT_URL\/api\/dialogflow\/chat/);
+  assert.match(workflow, /vercel curl \/api\/dialogflow\/chat/);
+  assert.match(workflow, /--deployment "\$STAGED_DEPLOYMENT_URL"/);
+  assert.match(workflow, /--token "\$VERCEL_TOKEN"/);
+  assert.match(workflow, /--fail-with-body/);
+  assert.doesNotMatch(workflow, /"\$STAGED_DEPLOYMENT_URL\/api\/dialogflow\/chat"/);
   assert.match(workflow, /\\"source\\":\\"production-smoke\\"/);
   assert.match(workflow, /\.usageRecorded == true/);
   assert.match(workflow, /\/v10\/projects\/\$\{encodeURIComponent\(projectId\)\}\/promote\/\$\{encodeURIComponent\(newDeploymentId\)\}/);
