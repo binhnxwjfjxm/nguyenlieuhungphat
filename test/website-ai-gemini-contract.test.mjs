@@ -55,16 +55,33 @@ test("Website chat preserves newest turn and does not discard a successful Gemin
   assert.doesNotMatch(route, /Không thể kết nối Dialogflow/);
 });
 
-test("Website production rollout smokes Gemini plus metering and restores the previous Vercel deployment on failure", () => {
+test("Website staged production deployment keeps traffic untouched until exact Gemini and metering smoke pass", () => {
+  const deployCommon = read("scripts/vercel/vercel-deploy-common.mjs");
+  const deployScript = read("scripts/vercel/deploy-website-production.mjs");
+  assert.match(deployCommon, /stagedProduction: true/);
+  assert.match(deployCommon, /deployArgs\.push\("--skip-domain"\)/);
+  assert.match(deployCommon, /await smokeOrigin\(deploymentUrl, config\.smokePaths\)/);
+  assert.match(deployCommon, /if \(!config\.stagedProduction\)/);
+  assert.match(deployScript, /GITHUB_OUTPUT/);
+  assert.match(deployScript, /deployment_url=/);
+});
+
+test("Website production rollout promotes only the exact staged deployment and verifies alias identity with exact rollback", () => {
   const workflow = read(".github/workflows/vercel-website-production-manual.yml");
-  assert.match(workflow, /WEBSITE_PRODUCTION_ORIGIN: https:\/\/www\.nguyenlieuhungphat\.com/);
-  assert.match(workflow, /api\/dialogflow\/chat/);
+  assert.match(workflow, /WEBSITE_PRODUCTION_HOST: www\.nguyenlieuhungphat\.com/);
+  assert.match(workflow, /\/v4\/aliases\/\$\{encodeURIComponent\(process\.env\.WEBSITE_PRODUCTION_HOST\)\}/);
+  assert.match(workflow, /\/v13\/deployments\/\$\{encodeURIComponent\(stagedUrl\.hostname\)\}/);
+  assert.match(workflow, /website_staged_deployment_received_production_alias_before_smoke/);
+  assert.match(workflow, /STAGED_DEPLOYMENT_URL\/api\/dialogflow\/chat/);
   assert.match(workflow, /\\"source\\":\\"production-smoke\\"/);
   assert.match(workflow, /\.usageRecorded == true/);
-  assert.match(workflow, /WEBSITE_AI_PRODUCTION_SMOKE=success/);
+  assert.match(workflow, /\/v10\/projects\/\$\{encodeURIComponent\(projectId\)\}\/promote\/\$\{encodeURIComponent\(newDeploymentId\)\}/);
+  assert.match(workflow, /waitForAlias\(newDeploymentId\)/);
+  assert.match(workflow, /\/v1\/projects\/\$\{encodeURIComponent\(projectId\)\}\/rollback\/\$\{encodeURIComponent\(previousDeploymentId\)\}/);
+  assert.match(workflow, /waitForAlias\(previousDeploymentId\)/);
+  assert.match(workflow, /WEBSITE_PRODUCTION_ALIAS_VERIFIED=success/);
   assert.match(workflow, /WEBSITE_AI_METERING_SMOKE=success/);
-  assert.match(workflow, /\/v1\/projects\/\$\{VERCEL_WEBSITE_PROJECT_ID\}\/rollback\/\$\{PREVIOUS_PRODUCTION_DEPLOYMENT_ID\}/);
-  assert.match(workflow, /restoring previous production deployment/i);
+  assert.doesNotMatch(workflow, /url\.searchParams\.set\("state", "READY"\).*url\.searchParams\.set\("limit", "1"\)/s);
 });
 
 test("Website environment contract has no hard-coded Dialogflow agent fallback", () => {
