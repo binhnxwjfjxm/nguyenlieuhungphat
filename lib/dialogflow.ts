@@ -24,7 +24,7 @@ export type DialogflowCxConfig = {
 };
 
 const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
-const DEFAULT_PROJECT_ID = "hck-agent-chat-prod";
+const DEFAULT_PROJECT_ID = "hck-agent-chat-prod-498413";
 const DEFAULT_LOCATION = "global";
 const DEFAULT_AGENT_ID = "e326abbf-77f7-4b16-996c-64408c4dd136";
 const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát";
