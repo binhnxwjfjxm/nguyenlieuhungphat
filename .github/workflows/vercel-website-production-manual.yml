@@ -80,7 +80,7 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `id=${previousId}\n`);
           console.log(`Previous production captured: ${previousId.slice(0, 12)}...`);
           NODE
-      - name: Deploy Website, smoke Gemini and roll back on failure
+      - name: Deploy Website, smoke Gemini and metering, then roll back on failure
         shell: bash
         env:
           EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
@@ -90,7 +90,7 @@ jobs:
           VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
           VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
           VERCEL_CUSTOMER_ORDERING_PROJECT_ID: prj_btLk3p4FhmShgKFdRBMq6ZFOagKe
-          WEBSITE_PRODUCTION_ORIGIN: https://nguyenlieuhungphat.com
+          WEBSITE_PRODUCTION_ORIGIN: https://www.nguyenlieuhungphat.com
           PREVIOUS_PRODUCTION_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
         run: |
           set -uo pipefail
@@ -103,10 +103,10 @@ jobs:
             ai_status="$(curl --silent --show-error --connect-timeout 8 --max-time 60 \
               --output "$smoke_file" --write-out '%{http_code}' \
               -H 'content-type: application/json; charset=utf-8' \
-              --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"transcript\":\"\",\"honeypot\":\"\"}" \
+              --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"source\":\"production-smoke\",\"transcript\":\"\",\"honeypot\":\"\"}" \
               "$WEBSITE_PRODUCTION_ORIGIN/api/dialogflow/chat" || true)"
-            if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0)' "$smoke_file" >/dev/null 2>&1; then
-              echo "Website AI production smoke failed with HTTP ${ai_status:-none}." >&2
+            if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0) and .usageRecorded == true' "$smoke_file" >/dev/null 2>&1; then
+              echo "Website AI/metering production smoke failed with HTTP ${ai_status:-none}." >&2
               rollout_status=1
             fi
             rm -f "$smoke_file"
@@ -142,4 +142,5 @@ jobs:
           fi
 
           echo "WEBSITE_AI_PRODUCTION_SMOKE=success"
+          echo "WEBSITE_AI_METERING_SMOKE=success"
           echo "DEPLOYED_SHA=${EXPECTED_MAIN_SHA}"

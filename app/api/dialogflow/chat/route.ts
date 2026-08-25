@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
 
     const aiReply = await detectDialogflowReply({ sessionId, message, transcript });
     const usageIdempotencyKey = createCompanyIdempotencyKey();
+    let usageRecorded = false;
     try {
       await recordCompanyAiUsage({
         idempotencyKey: usageIdempotencyKey,
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         occurredAt: aiReply.occurredAt,
         usageMetadata: aiReply.usageMetadata,
       });
+      usageRecorded = true;
     } catch (error) {
       console.error("website_ai_usage_record_failed", JSON.stringify({
         idempotencyKey: usageIdempotencyKey,
@@ -180,16 +182,16 @@ export async function POST(request: NextRequest) {
       // Chat delivery must not depend on the legacy conversation store.
     }
 
-    return NextResponse.json(
-      {
-        ok: true,
-        sessionId,
-        replyText,
-        phoneConfirmed: Boolean(confirmedPhone),
-        leadNotified: Boolean(telegramResult),
-      },
-      { status: 200 },
-    );
+    const responseBody: Record<string, unknown> = {
+      ok: true,
+      sessionId,
+      replyText,
+      phoneConfirmed: Boolean(confirmedPhone),
+      leadNotified: Boolean(telegramResult),
+    };
+    if (source === "production-smoke") responseBody.usageRecorded = usageRecorded;
+
+    return NextResponse.json(responseBody, { status: 200 });
   } catch {
     return jsonError(503, "AI_ASSISTANT_UNAVAILABLE", "Trợ lý đang tạm gián đoạn. Vui lòng thử lại sau.");
   }
