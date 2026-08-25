@@ -1,0 +1,128 @@
+name: Dialogflow canonical runtime probe
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - app/api/dialogflow/metadata/route.ts
+      - .github/workflows/dialogflow-canonical-runtime-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: github.head_ref == 'agent/issue-764-canonical-agent-runtime-probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+      VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+      WEBSITE_PRODUCTION_HOST: www.nguyenlieuhungphat.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies and verify build
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@58.0.0
+
+      - name: Create staged Website deployment without production alias
+        id: staged
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          mkdir -p .vercel
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          writeFileSync('.vercel/project.json', JSON.stringify({
+            orgId: process.env.VERCEL_ORG_ID,
+            projectId: process.env.VERCEL_WEBSITE_PROJECT_ID,
+          }), { mode: 0o600 });
+          NODE
+          trap 'rm -rf .vercel' EXIT
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN" >/dev/null
+          deploy_output="$(vercel deploy --archive=tgz --prod --skip-domain --yes --token "$VERCEL_TOKEN")"
+          deployment_url="$(printf '%s\n' "$deploy_output" | tr ' ' '\n' | grep '^https://' | tail -n 1)"
+          test -n "$deployment_url"
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+          echo "Staged deployment created without production alias."
+
+      - name: Verify staged deployment identity and alias boundary
+        id: verify
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          STAGED_DEPLOYMENT_URL: ${{ steps.staged.outputs.url }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+
+          const headers = { authorization: `Bearer ${process.env.VERCEL_TOKEN}` };
+          const staged = new URL(process.env.STAGED_DEPLOYMENT_URL);
+          const deploymentUrl = new URL(`https://api.vercel.com/v13/deployments/${encodeURIComponent(staged.hostname)}`);
+          deploymentUrl.searchParams.set('teamId', process.env.VERCEL_ORG_ID);
+          deploymentUrl.searchParams.set('withGitRepoInfo', 'true');
+          const response = await fetch(deploymentUrl, { headers });
+          const body = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(`staged_lookup_failed_${response.status}`);
+          const deploymentId = body?.id || body?.uid || '';
+          if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId)) throw new Error('staged_id_missing');
+          if ((body?.readyState || body?.state) !== 'READY') throw new Error('staged_not_ready');
+          if (body?.target !== 'production') throw new Error('staged_target_mismatch');
+          const projectId = body?.projectId || body?.project?.id || '';
+          if (projectId && projectId !== process.env.VERCEL_WEBSITE_PROJECT_ID) throw new Error('staged_project_mismatch');
+
+          const aliasesUrl = new URL(`https://api.vercel.com/v2/deployments/${encodeURIComponent(deploymentId)}/aliases`);
+          aliasesUrl.searchParams.set('teamId', process.env.VERCEL_ORG_ID);
+          const aliasesResponse = await fetch(aliasesUrl, { headers });
+          const aliasesBody = await aliasesResponse.json().catch(() => null);
+          if (!aliasesResponse.ok) throw new Error(`staged_alias_lookup_failed_${aliasesResponse.status}`);
+          const aliases = Array.isArray(aliasesBody?.aliases) ? aliasesBody.aliases : [];
+          if (aliases.some((item) => item?.alias === process.env.WEBSITE_PRODUCTION_HOST)) {
+            throw new Error('production_alias_attached_to_probe');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `id=${deploymentId}\n`);
+          console.log('Staged deployment identity and no-production-alias boundary verified.');
+          NODE
+
+      - name: Read canonical Dialogflow provider metadata through staged runtime
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          STAGED_DEPLOYMENT_URL: ${{ steps.staged.outputs.url }}
+        run: |
+          set -euo pipefail
+          result_file="$(mktemp)"
+          trap 'rm -f "$result_file"' EXIT
+          set +e
+          status="$(vercel curl /api/dialogflow/metadata \
+            --deployment "$STAGED_DEPLOYMENT_URL" \
+            --yes \
+            -- \
+            --silent --show-error --max-time 60 \
+            --output "$result_file" --write-out '%{http_code}')"
+          command_status=$?
+          set -e
+          jq '{ok, expectedAgentId, expectedDisplayName, location, canonicalNames, probes, code}' "$result_file"
+          if [ "$command_status" -ne 0 ]; then
+            echo "Runtime metadata probe command failed: $command_status" >&2
+            exit 1
+          fi
+          if ! jq -e '.ok == true and (.canonicalNames | length == 1)' "$result_file" >/dev/null; then
+            echo "Canonical Dialogflow agent name is still unresolved; provider metadata above is authoritative evidence." >&2
+            exit 1
+          fi
+          canonical="$(jq -r '.canonicalNames[0]' "$result_file")"
+          echo "CANONICAL_DIALOGFLOW_AGENT_NAME=$canonical"
