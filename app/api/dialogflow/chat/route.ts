@@ -192,7 +192,8 @@ export async function POST(request: NextRequest) {
     if (source === "production-smoke") responseBody.usageRecorded = usageRecorded;
 
     return NextResponse.json(responseBody, { status: 200 });
-  } catch {
+  } catch (error) {
+    console.error("website_ai_chat_failed", error instanceof Error ? error.message : "unknown_error");
     return jsonError(503, "AI_ASSISTANT_UNAVAILABLE", "Trợ lý đang tạm gián đoạn. Vui lòng thử lại sau.");
   }
 }
