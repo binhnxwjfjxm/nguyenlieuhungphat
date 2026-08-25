@@ -24,7 +24,7 @@ export type DialogflowCxConfig = {
 };
 
 const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
-const DEFAULT_PROJECT_ID = "hck-agent-chat-prod-498413";
+const DEFAULT_PROJECT_ID = "hck-agent-chat-prod";
 const DEFAULT_LOCATION = "global";
 const DEFAULT_AGENT_ID = "e326abbf-77f7-4b16-996c-64408c4dd136";
 const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát";
@@ -84,10 +84,6 @@ function loadServiceAccount(): ServiceAccount {
     throw new Error(`dialogflow_service_account_unreadable:${selectedCredential.key}`);
   }
   if (!parsed.client_email || !parsed.private_key) throw new Error("dialogflow_service_account_invalid");
-  console.info("dialogflow_cx_runtime_identity", {
-    credentialAlias: selectedCredential.key,
-    clientEmail: parsed.client_email,
-  });
   cachedServiceAccount = parsed;
   return parsed;
 }
@@ -148,12 +144,6 @@ function queryResult(payload: Record<string, unknown>) {
     : {};
 }
 
-function providerErrorText(value: unknown) {
-  return typeof value === "string"
-    ? value.replace(/[\r\n\t]+/g, " ").trim().slice(0, 500)
-    : "";
-}
-
 function responseText(result: Record<string, unknown>) {
   const messages = Array.isArray(result.responseMessages) ? result.responseMessages : [];
   const text = messages
@@ -203,19 +193,7 @@ export async function detectDialogflowReply(input: {
     }),
   });
 
-  if (!response.ok) {
-    const providerPayload = await response.json().catch(() => null) as Record<string, unknown> | null;
-    const providerError = providerPayload?.error && typeof providerPayload.error === "object" && !Array.isArray(providerPayload.error)
-      ? providerPayload.error as Record<string, unknown>
-      : {};
-    console.error("dialogflow_cx_detect_intent_provider_error", {
-      httpStatus: response.status,
-      code: typeof providerError.code === "number" ? providerError.code : null,
-      status: providerErrorText(providerError.status),
-      message: providerErrorText(providerError.message),
-    });
-    throw new Error(`dialogflow_cx_detect_intent_unavailable_${response.status}`);
-  }
+  if (!response.ok) throw new Error(`dialogflow_cx_detect_intent_unavailable_${response.status}`);
   const payload = await response.json() as Record<string, unknown>;
   const result = queryResult(payload);
   const replyText = responseText(result);
