@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 20
     env:
       VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+      VERCEL_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
       VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
       WEBSITE_PRODUCTION_HOST: www.nguyenlieuhungphat.com
     steps:
