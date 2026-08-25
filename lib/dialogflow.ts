@@ -15,11 +15,6 @@ type ServiceAccount = {
   [key: string]: unknown;
 };
 
-type DialogflowAgent = {
-  name?: string;
-  displayName?: string;
-};
-
 export type DialogflowCxConfig = {
   projectId: string;
   location: string;
@@ -129,48 +124,14 @@ async function getAccessToken() {
   return value;
 }
 
-function agentIdFromName(name: string) {
-  const match = name.match(/\/agents\/([^/]+)$/);
-  const agentId = match?.[1] ?? "";
-  if (!AGENT_ID_PATTERN.test(agentId)) throw new Error("dialogflow_agent_resource_invalid");
-  return agentId;
-}
-
-async function fetchAgent(baseUrl: string, token: string, projectId: string, location: string, agentId: string) {
-  const path = `projects/${encodeURIComponent(projectId)}/locations/${encodeURIComponent(location)}/agents/${encodeURIComponent(agentId)}`;
-  const response = await fetch(`${baseUrl}/${path}`, {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`dialogflow_agent_lookup_unavailable_${response.status}`);
-  return await response.json() as DialogflowAgent;
-}
-
 async function resolveDialogflowAgent(): Promise<DialogflowCxConfig> {
   if (cachedAgent) return cachedAgent;
   const runtime = getDialogflowRuntimeConfig();
-  const token = await getAccessToken();
-  const baseUrl = getDialogflowBaseUrl(runtime.location);
-  const configured = await fetchAgent(
-    baseUrl,
-    token,
-    runtime.projectId,
-    runtime.location,
-    runtime.configuredAgentId,
-  );
-  if (!configured) throw new Error("dialogflow_configured_agent_not_found");
-  if (configured.displayName !== runtime.agentDisplayName) {
-    throw new Error("dialogflow_configured_agent_name_mismatch");
-  }
-  if (!configured.name) throw new Error("dialogflow_agent_resource_invalid");
-  const expectedResource = `projects/${runtime.projectId}/locations/${runtime.location}/agents/${runtime.configuredAgentId}`;
-  if (configured.name !== expectedResource) throw new Error("dialogflow_configured_agent_resource_mismatch");
-  const agentId = agentIdFromName(configured.name);
 
   cachedAgent = Object.freeze({
     projectId: runtime.projectId,
     location: runtime.location,
-    agentId,
+    agentId: runtime.configuredAgentId,
     agentDisplayName: runtime.agentDisplayName,
     languageCode: runtime.languageCode,
   });
