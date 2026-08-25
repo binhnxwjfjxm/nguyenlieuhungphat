@@ -18,12 +18,15 @@ test("Website assistant uses Dialogflow CX detectIntent and never calls Vertex G
   assert.doesNotMatch(source, /aiplatform\.googleapis\.com|generateContent|gemini-2\.5-flash/i);
 });
 
-test("Website Dialogflow CX runtime accepts server-side credential aliases and selects only the exact Website agent", () => {
+test("Website Dialogflow CX runtime prioritizes CX credentials and locks the configured agent identity", () => {
   const source = read("lib/dialogflow.ts");
-  assert.match(source, /GOOGLE_SERVICE_ACCOUNT_JSON/);
-  assert.match(source, /DIALOGFLOW_SERVICE_ACCOUNT_JSON/);
-  assert.match(source, /DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON/);
-  assert.match(source, /DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát - Dialog CX"/);
+  const cxCredential = source.indexOf('"DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON"');
+  const dialogflowCredential = source.indexOf('"DIALOGFLOW_SERVICE_ACCOUNT_JSON"');
+  const genericCredential = source.indexOf('"GOOGLE_SERVICE_ACCOUNT_JSON"');
+  assert.ok(cxCredential >= 0 && dialogflowCredential > cxCredential && genericCredential > dialogflowCredential);
+  assert.match(source, /DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát"/);
+  assert.match(source, /dialogflow_configured_agent_not_found/);
+  assert.match(source, /dialogflow_configured_agent_name_mismatch/);
   assert.match(source, /agent\.displayName\?\.trim\(\) === displayName/);
   assert.match(source, /dialogflow_agent_not_unique/);
   assert.doesNotMatch(source, /Project-ID-dialog-supprot-vlgn\.json|getDialogflowRuntimeFromSupabase|hung phat admin/i);
@@ -98,14 +101,15 @@ test("Website production rollout authenticates protected staged smoke, promotes 
   assert.match(workflow, /WEBSITE_AI_METERING_SMOKE=success/);
 });
 
-test("Website environment contract is Dialogflow CX and has no stale Gemini or hard-coded agent id", () => {
+test("Website environment contract pins the exact Dialogflow CX production identity", () => {
   const env = read(".env.example");
+  assert.match(env, /DIALOGFLOW_CX_PROJECT_ID=hck-agent-chat-prod/);
   assert.match(env, /DIALOGFLOW_CX_LOCATION=global/);
-  assert.match(env, /DIALOGFLOW_CX_AGENT_ID=/);
-  assert.match(env, /DIALOGFLOW_CX_AGENT_DISPLAY_NAME=Hưng Phát - Dialog CX/);
+  assert.match(env, /DIALOGFLOW_CX_AGENT_ID=e326abbf-77f7-4b16-996c-64408c4dd136/);
+  assert.match(env, /DIALOGFLOW_CX_AGENT_DISPLAY_NAME=Hưng Phát/);
   assert.match(env, /DIALOGFLOW_CX_LANGUAGE_CODE=vi/);
   assert.match(env, /COMPANY_API_URL=/);
   assert.match(env, /COMPANY_WEBSITE_AI_API_TOKEN=/);
   assert.match(env, /GOOGLE_SERVICE_ACCOUNT_JSON=/);
-  assert.doesNotMatch(env, /GEMINI_WEBSITE_MODEL|GOOGLE_CLOUD_LOCATION|291aef79-770c-4c6d-a8c8-a081206ace4e/);
+  assert.doesNotMatch(env, /GEMINI_WEBSITE_MODEL|GOOGLE_CLOUD_LOCATION|291aef79-770c-4c6d-a8c8-a081206ace4e|Hưng Phát - Dialog CX/);
 });

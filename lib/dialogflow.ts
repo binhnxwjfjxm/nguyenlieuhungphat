@@ -31,7 +31,7 @@ export type DialogflowCxConfig = {
 const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
 const DEFAULT_LOCATION = "global";
 const DEFAULT_LANGUAGE_CODE = "vi";
-const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát - Dialog CX";
+const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát";
 const FLOW_BILLING_MODEL = "dialogflow-cx-flow-text";
 const PLAYBOOK_BILLING_MODEL = "dialogflow-cx-playbook-text";
 const SAFE_PROJECT_ID = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
@@ -57,9 +57,9 @@ export function normalizeDialogflowSessionId(sessionId: string) {
 function loadServiceAccount(): ServiceAccount {
   if (cachedServiceAccount) return cachedServiceAccount;
   const inlineJson = getEnvValue(
-    "GOOGLE_SERVICE_ACCOUNT_JSON",
-    "DIALOGFLOW_SERVICE_ACCOUNT_JSON",
     "DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON",
+    "DIALOGFLOW_SERVICE_ACCOUNT_JSON",
+    "GOOGLE_SERVICE_ACCOUNT_JSON",
   );
   if (!inlineJson) throw new Error("dialogflow_service_account_missing");
   const parsed = JSON.parse(inlineJson) as ServiceAccount;
@@ -147,7 +147,7 @@ async function resolveDialogflowAgent(): Promise<DialogflowCxConfig> {
   const token = await getAccessToken();
   const baseUrl = getDialogflowBaseUrl(runtime.location);
 
-  let selected: DialogflowAgent | null = null;
+  let selected: DialogflowAgent;
   if (runtime.configuredAgentId) {
     const configured = await fetchAgent(
       baseUrl,
@@ -156,10 +156,12 @@ async function resolveDialogflowAgent(): Promise<DialogflowCxConfig> {
       runtime.location,
       runtime.configuredAgentId,
     );
-    if (configured?.displayName?.trim() === runtime.agentDisplayName) selected = configured;
-  }
-
-  if (!selected) {
+    if (!configured) throw new Error("dialogflow_configured_agent_not_found");
+    if (configured.displayName?.trim() !== runtime.agentDisplayName) {
+      throw new Error("dialogflow_configured_agent_name_mismatch");
+    }
+    selected = configured;
+  } else {
     selected = await listExactAgent(baseUrl, token, runtime.projectId, runtime.location, runtime.agentDisplayName);
   }
 
