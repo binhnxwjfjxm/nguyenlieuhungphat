@@ -18,7 +18,7 @@ test("Website assistant uses Dialogflow CX detectIntent and never calls Vertex G
   assert.doesNotMatch(source, /aiplatform\.googleapis\.com|generateContent|gemini-2\.5-flash/i);
 });
 
-test("Website Dialogflow CX runtime pins exact identity and never discovers another agent by display name", () => {
+test("Website Dialogflow CX runtime pins exact identity and uses least-privilege detectIntent without agent metadata reads", () => {
   const source = read("lib/dialogflow.ts");
   const cxCredential = source.indexOf('"DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON"');
   const dialogflowCredential = source.indexOf('"DIALOGFLOW_SERVICE_ACCOUNT_JSON"');
@@ -35,17 +35,15 @@ test("Website Dialogflow CX runtime pins exact identity and never discovers anot
   assert.match(source, /dialogflow_project_identity_mismatch/);
   assert.match(source, /dialogflow_location_identity_mismatch/);
   assert.match(source, /dialogflow_agent_identity_mismatch/);
-  assert.match(source, /dialogflow_configured_agent_not_found/);
-  assert.match(source, /dialogflow_configured_agent_name_mismatch/);
-  assert.match(source, /dialogflow_configured_agent_resource_mismatch/);
-  assert.match(source, /configured\.displayName !== runtime\.agentDisplayName/);
-  assert.doesNotMatch(source, /configured\.displayName\?\.trim\(\)/);
-  assert.match(source, /const expectedResource = `projects\/\$\{runtime\.projectId\}\/locations\/\$\{runtime\.location\}\/agents\/\$\{runtime\.configuredAgentId\}`/);
-  assert.match(source, /configured\.name !== expectedResource/);
+  assert.match(source, /dialogflow_agent_display_name_invalid/);
+  assert.match(source, /agentId: runtime\.configuredAgentId/);
+  assert.match(source, /const sessionPath = `projects\/\$\{encodeURIComponent\(agent\.projectId\)\}\/locations\/\$\{encodeURIComponent\(agent\.location\)\}\/agents\/\$\{encodeURIComponent\(agent\.agentId\)\}\/sessions\/\$\{encodeURIComponent\(sessionId\)\}`/);
+  assert.match(source, /fetch\(`\$\{baseUrl\}\/\$\{sessionPath\}:detectIntent`/);
   assert.match(source, /getExactEnvValue\("DIALOGFLOW_CX_PROJECT_ID", "DIALOGFLOW_PROJECT_ID"\)/);
   assert.match(source, /getExactEnvValue\("DIALOGFLOW_CX_LOCATION", "DIALOGFLOW_LOCATION"\)/);
   assert.match(source, /getExactEnvValue\("DIALOGFLOW_CX_AGENT_ID", "DIALOGFLOW_AGENT_ID"\)/);
   assert.match(source, /getExactEnvValue\("DIALOGFLOW_CX_AGENT_DISPLAY_NAME"\)/);
+  assert.doesNotMatch(source, /fetchAgent|dialogflow_agent_lookup_unavailable|dialogflow_configured_agent_/);
   assert.doesNotMatch(source, /listExactAgent|dialogflow_agent_not_unique|pageSize|nextPageToken/);
   assert.doesNotMatch(source, /serviceAccount\.project_id/);
   assert.doesNotMatch(source, /Project-ID-dialog-supprot-vlgn\.json|getDialogflowRuntimeFromSupabase|hung phat admin/i);
