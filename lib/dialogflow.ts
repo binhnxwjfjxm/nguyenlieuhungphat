@@ -51,7 +51,11 @@ export function normalizeDialogflowSessionId(sessionId: string) {
 
 function loadServiceAccount(): ServiceAccount {
   if (cachedServiceAccount) return cachedServiceAccount;
-  const inlineJson = getEnvValue("GOOGLE_SERVICE_ACCOUNT_JSON");
+  const inlineJson = getEnvValue(
+    "GOOGLE_SERVICE_ACCOUNT_JSON",
+    "DIALOGFLOW_SERVICE_ACCOUNT_JSON",
+    "DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON",
+  );
   if (!inlineJson) throw new Error("google_service_account_missing");
   const parsed = JSON.parse(inlineJson) as ServiceAccount;
   if (!parsed.client_email || !parsed.private_key) throw new Error("google_service_account_invalid");

@@ -54,7 +54,34 @@ jobs:
           node-version: 22
       - name: Install pinned Vercel CLI
         run: npm install --global vercel@58.0.0
-      - name: Deploy Website
+      - name: Capture current Website production deployment
+        id: previous
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_hBA8rX68UHC8ogvREkOyQlJ2
+          VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from "node:fs";
+          const url = new URL("https://api.vercel.com/v6/deployments");
+          url.searchParams.set("teamId", process.env.VERCEL_ORG_ID);
+          url.searchParams.set("projectId", process.env.VERCEL_WEBSITE_PROJECT_ID);
+          url.searchParams.set("target", "production");
+          url.searchParams.set("state", "READY");
+          url.searchParams.set("limit", "1");
+          const response = await fetch(url, { headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` } });
+          const body = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(`website_deployment_list_failed_${response.status}`);
+          const previous = Array.isArray(body?.deployments) ? body.deployments[0] : null;
+          const previousId = previous?.uid || previous?.id || "";
+          if (!previousId || previous?.state !== "READY") throw new Error("website_previous_production_missing");
+          appendFileSync(process.env.GITHUB_OUTPUT, `id=${previousId}\n`);
+          console.log(`Previous production captured: ${previousId.slice(0, 12)}...`);
+          NODE
+      - name: Deploy Website, smoke Gemini and roll back on failure
+        shell: bash
         env:
           EXPECTED_MAIN_SHA: ${{ steps.exact.outputs.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -64,4 +91,55 @@ jobs:
           VERCEL_WEBSITE_PROJECT_ID: prj_rXqH83GFDHuEGUcQrrv82JBPWnjU
           VERCEL_CUSTOMER_ORDERING_PROJECT_ID: prj_btLk3p4FhmShgKFdRBMq6ZFOagKe
           WEBSITE_PRODUCTION_ORIGIN: https://nguyenlieuhungphat.com
-        run: node scripts/vercel/deploy-website-production.mjs
+          PREVIOUS_PRODUCTION_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+        run: |
+          set -uo pipefail
+          rollout_status=0
+
+          node scripts/vercel/deploy-website-production.mjs || rollout_status=$?
+
+          if [ "$rollout_status" -eq 0 ]; then
+            smoke_file="$(mktemp)"
+            ai_status="$(curl --silent --show-error --connect-timeout 8 --max-time 60 \
+              --output "$smoke_file" --write-out '%{http_code}' \
+              -H 'content-type: application/json; charset=utf-8' \
+              --data "{\"message\":\"Xin chào, vui lòng giới thiệu ngắn gọn Hưng Phát có thể hỗ trợ khách hàng điều gì.\",\"sessionId\":\"production-smoke-${GITHUB_RUN_ID}\",\"transcript\":\"\",\"honeypot\":\"\"}" \
+              "$WEBSITE_PRODUCTION_ORIGIN/api/dialogflow/chat" || true)"
+            if [ "$ai_status" != "200" ] || ! jq -e '.ok == true and (.replyText | type == "string" and length > 0)' "$smoke_file" >/dev/null 2>&1; then
+              echo "Website AI production smoke failed with HTTP ${ai_status:-none}." >&2
+              rollout_status=1
+            fi
+            rm -f "$smoke_file"
+          fi
+
+          if [ "$rollout_status" -ne 0 ]; then
+            echo "Website rollout failed; restoring previous production deployment." >&2
+            rollback_url="https://api.vercel.com/v1/projects/${VERCEL_WEBSITE_PROJECT_ID}/rollback/${PREVIOUS_PRODUCTION_DEPLOYMENT_ID}?teamId=${VERCEL_ORG_ID}"
+            rollback_status="$(curl --silent --show-error --connect-timeout 8 --max-time 30 \
+              --output /dev/null --write-out '%{http_code}' \
+              -X POST -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H 'Content-Type: application/json' \
+              "$rollback_url" || true)"
+            if [ "$rollback_status" != "200" ] && [ "$rollback_status" != "201" ] && [ "$rollback_status" != "202" ] && [ "$rollback_status" != "204" ]; then
+              echo "Website rollback request failed with HTTP ${rollback_status:-none}." >&2
+              exit 2
+            fi
+
+            restored=0
+            for attempt in {1..20}; do
+              home_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 --output /dev/null --write-out '%{http_code}' "$WEBSITE_PRODUCTION_ORIGIN/" || true)"
+              if [ "$home_status" = "200" ]; then
+                restored=1
+                break
+              fi
+              sleep 3
+            done
+            if [ "$restored" -ne 1 ]; then
+              echo "Website rollback health verification failed." >&2
+              exit 2
+            fi
+            exit 1
+          fi
+
+          echo "WEBSITE_AI_PRODUCTION_SMOKE=success"
+          echo "DEPLOYED_SHA=${EXPECTED_MAIN_SHA}"

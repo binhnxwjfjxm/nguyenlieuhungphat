@@ -16,6 +16,14 @@ test("Website assistant uses Vertex Gemini 2.5 Flash and provider usage metadata
   assert.doesNotMatch(source, /listAgents|getDialogflowRuntimeFromSupabase|DEFAULT_AGENT_ID|hung phat admin/i);
 });
 
+test("Website Gemini runtime accepts the canonical Google credential and legacy server-side aliases", () => {
+  const source = read("lib/dialogflow.ts");
+  assert.match(source, /GOOGLE_SERVICE_ACCOUNT_JSON/);
+  assert.match(source, /DIALOGFLOW_SERVICE_ACCOUNT_JSON/);
+  assert.match(source, /DIALOGFLOW_CX_SERVICE_ACCOUNT_JSON/);
+  assert.doesNotMatch(source, /Project-ID-dialog-supprot-vlgn\.json|getDialogflowRuntimeFromSupabase/);
+});
+
 test("Website sends a stable UUID Idempotency-Key and never composes a private key format", () => {
   const source = read("lib/company-ai-usage.ts");
   assert.match(source, /randomUUID/);
@@ -41,6 +49,14 @@ test("Website chat preserves newest turn and does not discard a successful Gemin
   assert.match(route, /AI_ASSISTANT_UNAVAILABLE/);
   assert.doesNotMatch(route, /agentDisplayName|intentDisplayName|pageDisplayName/);
   assert.doesNotMatch(route, /Không thể kết nối Dialogflow/);
+});
+
+test("Website production rollout smokes Gemini and restores the previous Vercel deployment on failure", () => {
+  const workflow = read(".github/workflows/vercel-website-production-manual.yml");
+  assert.match(workflow, /api\/dialogflow\/chat/);
+  assert.match(workflow, /WEBSITE_AI_PRODUCTION_SMOKE=success/);
+  assert.match(workflow, /\/v1\/projects\/\$\{VERCEL_WEBSITE_PROJECT_ID\}\/rollback\/\$\{PREVIOUS_PRODUCTION_DEPLOYMENT_ID\}/);
+  assert.match(workflow, /restoring previous production deployment/i);
 });
 
 test("Website environment contract has no hard-coded Dialogflow agent fallback", () => {
