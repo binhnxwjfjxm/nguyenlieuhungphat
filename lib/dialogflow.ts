@@ -201,7 +201,7 @@ export async function detectDialogflowReply(input: {
     method: "POST",
     headers: {
       authorization: `Bearer ${token}`,
-      "x-goog-user-project": serviceAccount.project_id!,
+      "x-goog-user-project": DEFAULT_CONSUMER_PROJECT_ID,
       "content-type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
