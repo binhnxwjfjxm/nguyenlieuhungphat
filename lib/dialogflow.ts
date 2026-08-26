@@ -25,6 +25,7 @@ export type DialogflowCxConfig = {
 
 const DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/dialogflow";
 const DEFAULT_PROJECT_ID = "hck-agent-chat-prod";
+const DEFAULT_CONSUMER_PROJECT_ID = "hck-agent-chat-prod-498413";
 const DEFAULT_LOCATION = "global";
 const DEFAULT_AGENT_ID = "e326abbf-77f7-4b16-996c-64408c4dd136";
 const DEFAULT_AGENT_DISPLAY_NAME = "Hưng Phát";
@@ -83,10 +84,17 @@ function loadServiceAccount(): ServiceAccount {
   } catch {
     throw new Error(`dialogflow_service_account_unreadable:${selectedCredential.key}`);
   }
-  if (!parsed.client_email || !parsed.private_key) throw new Error("dialogflow_service_account_invalid");
+  if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
+    throw new Error("dialogflow_service_account_invalid");
+  }
+  if (!SAFE_PROJECT_ID.test(parsed.project_id)) throw new Error("dialogflow_consumer_project_invalid");
+  if (parsed.project_id !== DEFAULT_CONSUMER_PROJECT_ID) {
+    throw new Error("dialogflow_consumer_project_identity_mismatch");
+  }
   console.info("dialogflow_cx_runtime_identity", {
     credentialAlias: selectedCredential.key,
     clientEmail: parsed.client_email,
+    consumerProjectId: parsed.project_id,
   });
   cachedServiceAccount = parsed;
   return parsed;
@@ -116,9 +124,9 @@ function getDialogflowRuntimeConfig() {
   return Object.freeze({ projectId, location, configuredAgentId, agentDisplayName, languageCode });
 }
 
-async function getAccessToken() {
+async function getAccessToken(serviceAccount: ServiceAccount) {
   const auth = new GoogleAuth({
-    credentials: loadServiceAccount(),
+    credentials: serviceAccount,
     scopes: [DIALOGFLOW_SCOPE],
   });
   const client = await auth.getClient();
@@ -184,7 +192,8 @@ export async function detectDialogflowReply(input: {
   transcript?: string;
 }) {
   const agent = await resolveDialogflowAgent();
-  const token = await getAccessToken();
+  const serviceAccount = loadServiceAccount();
+  const token = await getAccessToken(serviceAccount);
   const baseUrl = getDialogflowBaseUrl(agent.location);
   const sessionId = normalizeDialogflowSessionId(input.sessionId);
   const sessionPath = `projects/${encodeURIComponent(agent.projectId)}/locations/${encodeURIComponent(agent.location)}/agents/${encodeURIComponent(agent.agentId)}/sessions/${encodeURIComponent(sessionId)}`;
@@ -192,6 +201,7 @@ export async function detectDialogflowReply(input: {
     method: "POST",
     headers: {
       authorization: `Bearer ${token}`,
+      "x-goog-user-project": serviceAccount.project_id!,
       "content-type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
