@@ -5,6 +5,7 @@ import { HomeAnnouncementPreview } from "@/components/home-announcement-preview"
 import { ProductVisual } from "@/components/product-visual";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
 import { sortCustomerCategories } from "@/lib/category-order";
+import styles from "./home-screen.module.css";
 
 const R2_IMAGE_BASE = "https://pub-7d2987fab97d4e3ebb2021a823973862.r2.dev/app-customer/image-system";
 const HERO_IMAGE_URL = `${R2_IMAGE_BASE}/hero-app-customer.jpg`;
@@ -43,7 +44,7 @@ export function HomeScreen() {
         <Link href="/products"><Boxes aria-hidden="true" /><span>Sản phẩm</span></Link>
         <Link href="/quick-order"><ShoppingBasket aria-hidden="true" /><span>Đặt nhanh</span></Link>
         <Link href="/orders"><ClipboardList aria-hidden="true" /><span>Đơn hàng</span></Link>
-        <Link href="/assistant"><MessageCircleQuestion aria-hidden="true" /><span>Hỏi Hưng Phát</span></Link>
+        <Link aria-label="Hỏi Hưng Phát" className={styles.assistantAction} href="/assistant"><MessageCircleQuestion aria-hidden="true" /><span>Hỏi Hưng Phát</span></Link>
       </section>
 
       <section className="content-section home-category-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => {
