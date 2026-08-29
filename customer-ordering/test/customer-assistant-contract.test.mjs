@@ -38,8 +38,12 @@ test("Customer Ordering reuses Website Dialogflow through a server-only gateway 
   assert.match(orderingRoute, /\/api\/dialogflow\/chat/);
   assert.match(orderingRoute, /x-ordering-ai-gateway/);
   assert.match(orderingRoute, /ORDERING_AI_API_TOKEN/);
+  assert.match(orderingRoute, /AbortSignal\.timeout\(35_000\)/);
   assert.doesNotMatch(orderingRoute, /DIALOGFLOW_(?:CX_)?SERVICE_ACCOUNT_JSON|google-auth-library|detectDialogflowReply/);
-  assert.match(websiteRoute, /ORDERING_AI_API_TOKEN/);
+  assert.match(websiteRoute, /COMPANY_API_URL/);
+  assert.match(websiteRoute, /\/api\/ai\/ordering-gateway-auth/);
+  assert.match(websiteRoute, /AbortSignal\.timeout\(3_000\)/);
+  assert.doesNotMatch(websiteRoute, /process\.env\.ORDERING_AI_API_TOKEN/);
   assert.match(websiteRoute, /gatewayAuth === "authorized"/);
   assert.match(websiteRoute, /usageMetadata: aiReply\.usageMetadata/);
   assert.ok(
