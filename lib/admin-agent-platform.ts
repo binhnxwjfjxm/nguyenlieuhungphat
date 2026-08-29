@@ -82,7 +82,7 @@ async function accessToken() {
 }
 
 function resourceProjectId() {
-  const configured = text(process.env.DIALOGFLOW_CX_PROJECT_ID || process.env.DIALOGFLOW_PROJECT_ID);
+  const configured = text(loadCredential().project_id);
   if (!SAFE_PROJECT.test(configured)) throw new Error("admin_agent_resource_project_missing");
   return configured;
 }
