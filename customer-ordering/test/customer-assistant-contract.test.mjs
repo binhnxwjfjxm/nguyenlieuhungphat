@@ -43,7 +43,7 @@ test("Customer Ordering reuses Website Dialogflow through a server-only gateway 
   assert.match(websiteRoute, /gatewayAuth === "authorized"/);
   assert.match(websiteRoute, /usageMetadata: aiReply\.usageMetadata/);
   assert.ok(
-    websiteRoute.indexOf('gatewayAuth === "authorized"') < websiteRoute.indexOf("recordCompanyAiUsage"),
+    websiteRoute.indexOf('gatewayAuth === "authorized"') < websiteRoute.indexOf("await recordCompanyAiUsage({"),
     "Ordering proxy must return before Website usage metering",
   );
   assert.doesNotMatch(envExample, /DIALOGFLOW_(?:CX_)?SERVICE_ACCOUNT_JSON|GOOGLE_SERVICE_ACCOUNT_JSON/);
