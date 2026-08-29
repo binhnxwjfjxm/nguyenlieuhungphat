@@ -27,6 +27,7 @@ type UsageMetadata = {
 
 const CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const AGENT_MODEL = "gemini-2.5-pro";
+const AGENT_QUERY_TIMEOUT_MS = 35_000;
 const RESOURCE_PATTERN = /^projects\/([^/]+)\/locations\/([a-z0-9-]+)\/reasoningEngines\/([A-Za-z0-9._-]+)$/;
 const SAFE_PROJECT = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
 const PRIMARY_LOCATIONS = ["us-central1", "asia-southeast1"] as const;
@@ -239,27 +240,6 @@ function providerUserId(actorId: string) {
   return `admin-${createHash("sha256").update(actorId).digest("hex").slice(0, 32)}`;
 }
 
-async function ensureSession(resource: AgentResource, token: string, consumerProjectId: string, actorId: string, conversationId: string) {
-  const endpoint = `https://${resource.location}-aiplatform.googleapis.com/v1/${resource.name}:query`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${token}`,
-      "content-type": "application/json; charset=utf-8",
-      "x-goog-user-project": consumerProjectId,
-    },
-    body: JSON.stringify({
-      class_method: "async_create_session",
-      input: { user_id: providerUserId(actorId), session_id: conversationId },
-    }),
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (response.ok || response.status === 409) return;
-  const payload = await response.json().catch(() => null) as { error?: { status?: unknown } } | null;
-  if (text(payload?.error?.status) === "ALREADY_EXISTS") return;
-  throw new Error(`admin_agent_session_unavailable_${response.status}`);
-}
-
 export async function adminAgentReadiness() {
   const resource = await discoverResource();
   return { capability: "company-admin-ai", model: AGENT_MODEL, location: resource.location, displayName: resource.displayName || null };
@@ -268,7 +248,6 @@ export async function adminAgentReadiness() {
 export async function queryAdminAgent(input: { actorId: string; conversationId: string; message: string }) {
   const resource = await discoverResource();
   const { token, consumerProjectId } = await accessToken();
-  await ensureSession(resource, token, consumerProjectId, input.actorId, input.conversationId);
   const endpoint = `https://${resource.location}-aiplatform.googleapis.com/v1/${resource.name}:streamQuery?alt=sse`;
   const response = await fetch(endpoint, {
     method: "POST",
@@ -282,11 +261,10 @@ export async function queryAdminAgent(input: { actorId: string; conversationId: 
       class_method: "async_stream_query",
       input: {
         user_id: providerUserId(input.actorId),
-        session_id: input.conversationId,
         message: input.message,
       },
     }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(AGENT_QUERY_TIMEOUT_MS),
   });
   const bodyText = await response.text();
   if (!response.ok) throw new Error(`admin_agent_query_unavailable_${response.status}`);
