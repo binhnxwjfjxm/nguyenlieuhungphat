@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSiteUrl } from "@/lib/site";
 import {
@@ -25,6 +24,15 @@ const MAX_TRANSCRIPT_CHARS = 4000;
 const PHONE_PATTERN = /(?:\+?84|0)(?:[\s.-]?\d){9,10}/g;
 const ORDERING_GATEWAY_HEADER = "x-ordering-ai-gateway";
 const ORDERING_GATEWAY_VALUE = "customer-ordering";
+
+type OrderingGatewayAuth = "public" | "authorized" | "invalid" | "unavailable";
+
+type OrderingGatewayAuthEnvelope = {
+  data?: {
+    authorized?: boolean;
+    capability?: string;
+  };
+};
 
 function jsonError(status: 400 | 401 | 429 | 500 | 503, code: string, error: string, retryAfter?: number) {
   const body: Record<string, unknown> = { ok: false, code, error };
@@ -53,19 +61,40 @@ function buildRecentTranscript(value: unknown, message: string) {
   return withCurrentTurn.slice(-MAX_TRANSCRIPT_CHARS).trim();
 }
 
-function safeTokenEquals(candidate: string, expected: string) {
-  const left = Buffer.from(candidate);
-  const right = Buffer.from(expected);
-  return left.length === right.length && timingSafeEqual(left, right);
+function companyApiBaseUrl() {
+  const value = process.env.COMPANY_API_URL?.trim().replace(/\/$/, "") ?? "";
+  return /^https?:\/\/[^/]+$/.test(value) ? value : "";
 }
 
-function orderingGatewayAuth(request: NextRequest): "public" | "authorized" | "invalid" {
+async function orderingGatewayAuth(request: NextRequest): Promise<OrderingGatewayAuth> {
   if (request.headers.get(ORDERING_GATEWAY_HEADER)?.trim() !== ORDERING_GATEWAY_VALUE) return "public";
-  const configured = process.env.ORDERING_AI_API_TOKEN?.trim() ?? "";
+
   const authorization = request.headers.get("authorization")?.trim() ?? "";
-  const match = authorization.match(/^Bearer\s+(\S+)$/i);
-  if (!configured || !match?.[1]) return "invalid";
-  return safeTokenEquals(match[1], configured) ? "authorized" : "invalid";
+  if (!/^Bearer\s+\S+$/i.test(authorization)) return "invalid";
+
+  const baseUrl = companyApiBaseUrl();
+  if (!baseUrl) return "unavailable";
+
+  try {
+    const response = await fetch(`${baseUrl}/api/ai/ordering-gateway-auth`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        authorization,
+        accept: "application/json",
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (response.status === 401 || response.status === 403) return "invalid";
+    if (!response.ok) return "unavailable";
+
+    const body = await response.json().catch(() => ({})) as OrderingGatewayAuthEnvelope;
+    return body.data?.authorized === true && body.data?.capability === "ordering-ai"
+      ? "authorized"
+      : "unavailable";
+  } catch {
+    return "unavailable";
+  }
 }
 
 async function maybeSendLeadNotification(input: {
@@ -105,9 +134,12 @@ async function maybeSendLeadNotification(input: {
 
 export async function POST(request: NextRequest) {
   try {
-    const gatewayAuth = orderingGatewayAuth(request);
+    const gatewayAuth = await orderingGatewayAuth(request);
     if (gatewayAuth === "invalid") {
       return jsonError(401, "UNAUTHORIZED", "Yêu cầu không hợp lệ.");
+    }
+    if (gatewayAuth === "unavailable") {
+      return jsonError(503, "AI_GATEWAY_AUTH_UNAVAILABLE", "Trợ lý đang tạm gián đoạn. Vui lòng thử lại sau.");
     }
 
     const bodyText = await request.text();
