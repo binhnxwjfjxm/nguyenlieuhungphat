@@ -14,13 +14,24 @@ test("Admin Agent gateway reuses Website Google credential and stays server-only
   assert.match(runtime, /GOOGLE_SERVICE_ACCOUNT_JSON/);
   assert.match(runtime, /cloud-platform/);
   assert.match(runtime, /reasoningEngines/);
-  assert.match(runtime, /async_create_session/);
   assert.match(runtime, /async_stream_query/);
+  assert.match(runtime, /AGENT_QUERY_TIMEOUT_MS = 35_000/);
+  assert.doesNotMatch(runtime, /async_create_session/);
+  assert.doesNotMatch(runtime, /session_id:/);
   assert.match(runtime, /gemini-2\.5-pro/);
   assert.match(route, /COMPANY_WEBSITE_AI_API_TOKEN/);
   assert.match(route, /x-company-admin-ai-gateway/);
   assert.match(route, /timingSafeEqual/);
   assert.doesNotMatch(route, /NEXT_PUBLIC_/);
+});
+
+test("Admin Agent query lets Agent Platform manage ephemeral sessions instead of pre-creating a missing session", () => {
+  const runtime = source("lib/admin-agent-platform.ts");
+  assert.match(runtime, /class_method: "async_stream_query"/);
+  assert.match(runtime, /user_id: providerUserId\(input\.actorId\)/);
+  assert.match(runtime, /message: input\.message/);
+  assert.doesNotMatch(runtime, /ensureSession|async_create_session|session_id:/);
+  assert.match(runtime, /AbortSignal\.timeout\(AGENT_QUERY_TIMEOUT_MS\)/);
 });
 
 test("Admin Agent gateway is read-only and does not meter as Website", () => {
