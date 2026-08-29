@@ -38,6 +38,7 @@ test("Customer Ordering reuses Website Dialogflow through a server-only gateway 
   assert.match(orderingRoute, /\/api\/dialogflow\/chat/);
   assert.match(orderingRoute, /x-ordering-ai-gateway/);
   assert.match(orderingRoute, /ORDERING_AI_API_TOKEN/);
+  assert.match(orderingRoute, /redirect:\s*"error"/);
   assert.match(orderingRoute, /AbortSignal\.timeout\(35_000\)/);
   assert.doesNotMatch(orderingRoute, /DIALOGFLOW_(?:CX_)?SERVICE_ACCOUNT_JSON|google-auth-library|detectDialogflowReply/);
   assert.match(websiteRoute, /COMPANY_API_URL/);
@@ -54,10 +55,17 @@ test("Customer Ordering reuses Website Dialogflow through a server-only gateway 
   assert.match(envExample, /Google credentials stay only in the Website project/);
 });
 
-test("Home exposes Hỏi Hưng Phát without replacing the ordering flow", async () => {
-  const home = await read("components/home-screen.tsx");
+test("Home exposes a visible Hỏi Hưng Phát action without replacing the ordering flow", async () => {
+  const [home, assistantStyle] = await Promise.all([
+    read("components/home-screen.tsx"),
+    read("components/home-screen.module.css"),
+  ]);
   assert.match(home, /href="\/assistant"/);
+  assert.match(home, /className=\{styles\.assistantAction\}/);
   assert.match(home, />Hỏi Hưng Phát</);
   assert.match(home, /href="\/quick-order"/);
   assert.match(home, /href="\/orders"/);
+  assert.match(assistantStyle, /:global\(\.home-depth-stack\)\s+:global\(\.quick-actions\)\s+\.assistantAction/);
+  assert.match(assistantStyle, /background:\s*radial-gradient/);
+  assert.match(assistantStyle, /color:\s*#fff/);
 });

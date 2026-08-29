@@ -83,6 +83,7 @@ async function requestSharedDialogflow(input: { sessionId: string; message: stri
   const response = await fetch(`${websiteAiBaseUrl()}/api/dialogflow/chat`, {
     method: "POST",
     cache: "no-store",
+    redirect: "error",
     headers: {
       authorization: `Bearer ${orderingAiToken()}`,
       [ORDERING_GATEWAY_HEADER]: ORDERING_GATEWAY_VALUE,

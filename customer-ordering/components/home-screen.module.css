@@ -1,0 +1,30 @@
+:global(.home-depth-stack) :global(.quick-actions) .assistantAction {
+  border-color: rgba(15, 107, 61, .32);
+  background: radial-gradient(circle at 82% 18%, rgba(255, 193, 7, .46), transparent 34%), linear-gradient(145deg, #0f6b3d, #198754 66%, #2c9f67);
+  color: #fff;
+  box-shadow: 0 11px 22px rgba(15, 107, 61, .22);
+}
+
+:global(.home-depth-stack) :global(.quick-actions) .assistantAction svg {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, .32);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .15);
+  color: #fff;
+}
+
+:global(.home-depth-stack) :global(.quick-actions) .assistantAction > span {
+  color: #fff;
+  font-weight: 820;
+}
+
+@media (max-width: 360px) {
+  :global(.home-depth-stack) :global(.quick-actions) .assistantAction svg {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+}
