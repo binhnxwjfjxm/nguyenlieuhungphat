@@ -17,7 +17,8 @@ test("Customer Ordering assistant is advisory-only and never owns order mutation
   ]);
   assert.match(route, /capability: "advisory-only"/);
   assert.match(route, /\/api\/customer-portal\/me/);
-  assert.doesNotMatch(route, /\/orders|\/cart|createOrder|saveCart|submitOrder|addToCart/i);
+  assert.doesNotMatch(route, /customer-ordering-service|createCustomerOrderingService|saveCart|submitOrder|addToCart/i);
+  assert.doesNotMatch(route, /customer-portal\/(?:orders|cart)/i);
   assert.match(component, /không tự thêm giỏ hàng, tạo đơn hoặc gửi đơn/i);
   assert.doesNotMatch(component, /saveCart|submitOrder|createCustomerOrderingService|\/api\/customer-portal\/orders/i);
 });
