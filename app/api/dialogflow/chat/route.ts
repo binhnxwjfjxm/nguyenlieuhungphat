@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSiteUrl } from "@/lib/site";
 import {
@@ -22,8 +23,10 @@ export const runtime = "nodejs";
 const MAX_BODY_BYTES = 24 * 1024;
 const MAX_TRANSCRIPT_CHARS = 4000;
 const PHONE_PATTERN = /(?:\+?84|0)(?:[\s.-]?\d){9,10}/g;
+const ORDERING_GATEWAY_HEADER = "x-ordering-ai-gateway";
+const ORDERING_GATEWAY_VALUE = "customer-ordering";
 
-function jsonError(status: 400 | 429 | 500 | 503, code: string, error: string, retryAfter?: number) {
+function jsonError(status: 400 | 401 | 429 | 500 | 503, code: string, error: string, retryAfter?: number) {
   const body: Record<string, unknown> = { ok: false, code, error };
   if (retryAfter) body.retryAfter = retryAfter;
 
@@ -48,6 +51,21 @@ function buildRecentTranscript(value: unknown, message: string) {
     ? transcript
     : `${transcript} ${currentTurn}`.trim();
   return withCurrentTurn.slice(-MAX_TRANSCRIPT_CHARS).trim();
+}
+
+function safeTokenEquals(candidate: string, expected: string) {
+  const left = Buffer.from(candidate);
+  const right = Buffer.from(expected);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+function orderingGatewayAuth(request: NextRequest): "public" | "authorized" | "invalid" {
+  if (request.headers.get(ORDERING_GATEWAY_HEADER)?.trim() !== ORDERING_GATEWAY_VALUE) return "public";
+  const configured = process.env.ORDERING_AI_API_TOKEN?.trim() ?? "";
+  const authorization = request.headers.get("authorization")?.trim() ?? "";
+  const match = authorization.match(/^Bearer\s+(\S+)$/i);
+  if (!configured || !match?.[1]) return "invalid";
+  return safeTokenEquals(match[1], configured) ? "authorized" : "invalid";
 }
 
 async function maybeSendLeadNotification(input: {
@@ -87,6 +105,11 @@ async function maybeSendLeadNotification(input: {
 
 export async function POST(request: NextRequest) {
   try {
+    const gatewayAuth = orderingGatewayAuth(request);
+    if (gatewayAuth === "invalid") {
+      return jsonError(401, "UNAUTHORIZED", "Yêu cầu không hợp lệ.");
+    }
+
     const bodyText = await request.text();
     if (bodyText.length > MAX_BODY_BYTES) {
       return jsonError(400, "PAYLOAD_TOO_LARGE", "Nội dung yêu cầu quá lớn.");
@@ -114,10 +137,23 @@ export async function POST(request: NextRequest) {
     if (honeypot) return jsonError(400, "BOT_DETECTED", "Yêu cầu không hợp lệ.");
     if (!message) return jsonError(400, "VALIDATION_ERROR", "Tin nhắn không được để trống.");
 
+    const aiReply = await detectDialogflowReply({ sessionId, message, transcript });
+
+    if (gatewayAuth === "authorized") {
+      return NextResponse.json({
+        ok: true,
+        sessionId,
+        replyText: aiReply.replyText,
+        providerRequestId: aiReply.providerRequestId,
+        model: aiReply.model,
+        occurredAt: aiReply.occurredAt,
+        usageMetadata: aiReply.usageMetadata,
+        capability: "advisory-only",
+      }, { status: 200 });
+    }
+
     const confirmedPhone = extractPhoneCandidate(`${message} ${phone}`);
     const requestCallback = Boolean(confirmedPhone);
-
-    const aiReply = await detectDialogflowReply({ sessionId, message, transcript });
     const usageIdempotencyKey = createCompanyIdempotencyKey();
     let usageRecorded = false;
     try {
