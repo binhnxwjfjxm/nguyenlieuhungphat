@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
-import { parseEnv } from "node:util";
 
 export const TARGETS = {
   website: {
@@ -62,6 +61,50 @@ export async function fetchVercelProject({ token, teamId, projectId }) {
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error(`Unable to audit Vercel project (${response.status}).`);
   return response.json();
+}
+
+export async function fetchVercelProductionEnvEntries({ token, teamId, projectId, fetchImpl = fetch }) {
+  const url = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}/env`);
+  url.searchParams.set("teamId", teamId);
+  url.searchParams.set("decrypt", "true");
+  url.searchParams.set("source", "vercel-cli:pull");
+  const response = await fetchImpl(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(`Unable to audit Vercel production env (${response.status}).`);
+  const entries = Array.isArray(body) ? body : Array.isArray(body?.envs) ? body.envs : [];
+  return entries.filter((entry) => {
+    const targets = Array.isArray(entry?.target) ? entry.target : [entry?.target].filter(Boolean);
+    return targets.includes("production") && !entry?.gitBranch;
+  });
+}
+
+function productionEnvEntriesFor(entries, key) {
+  return entries.filter((entry) => entry?.key === key);
+}
+
+function productionOriginValue(entries, key) {
+  const matches = productionEnvEntriesFor(entries, key);
+  if (matches.length !== 1) throw new Error(`${key} production env must exist exactly once.`);
+  const value = typeof matches[0]?.value === "string" ? matches[0].value.trim().replace(/\/+$/, "") : "";
+  if (!/^https:\/\/[^/]+$/.test(value)) throw new Error(`${key} production env must be a valid HTTPS origin.`);
+  return value;
+}
+
+export function validateCustomerOrderingProductionAiEnv(entries) {
+  const tokenEntries = productionEnvEntriesFor(entries, "ORDERING_AI_API_TOKEN");
+  if (tokenEntries.length !== 1) throw new Error("ORDERING_AI_API_TOKEN production metadata must exist exactly once.");
+  const tokenType = String(tokenEntries[0]?.type || "");
+  if (!["sensitive", "encrypted"].includes(tokenType)) {
+    throw new Error("ORDERING_AI_API_TOKEN must remain a protected Vercel secret.");
+  }
+  return Object.freeze({
+    tokenType,
+    coreApiBaseUrl: productionOriginValue(entries, "CORE_API_BASE_URL"),
+    websiteAiBaseUrl: productionOriginValue(entries, "WEBSITE_AI_BASE_URL"),
+  });
 }
 
 export function assertProviderBoundary(project, expectedRoot) {
@@ -145,31 +188,27 @@ export async function smokeOrigin(origin, paths, retryOptions = {}) {
   });
 }
 
-export async function smokeOrderingAiGateway({ origin, token, sessionId = "ordering-deploy-smoke", fetchImpl = fetch }) {
+export async function smokeOrderingAiGatewayProtection({ origin, sessionId = "ordering-gateway-protection-smoke", fetchImpl = fetch }) {
   const normalizedOrigin = String(origin || "").trim().replace(/\/+$/, "");
-  const normalizedToken = String(token || "").trim();
   if (!/^https:\/\/[^/]+$/.test(normalizedOrigin)) throw new Error("Ordering AI gateway origin is missing or invalid.");
-  if (!normalizedToken) throw new Error("Ordering AI gateway token is missing from production env.");
 
   const response = await fetchImpl(`${normalizedOrigin}/api/dialogflow/chat`, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${normalizedToken}`,
       "x-ordering-ai-gateway": "customer-ordering",
       "content-type": "application/json; charset=utf-8",
       accept: "application/json",
     },
     body: JSON.stringify({
       sessionId,
-      message: "Kiểm tra kết nối tư vấn sản phẩm.",
-      source: "production-smoke-ordering-gateway",
+      message: "Kiểm tra bảo vệ kết nối tư vấn sản phẩm.",
+      source: "production-smoke-ordering-gateway-protection",
     }),
     signal: AbortSignal.timeout(20_000),
   });
   const body = await response.json().catch(() => ({}));
-  const replyText = typeof body?.replyText === "string" ? body.replyText.trim() : "";
-  if (response.status !== 200 || body?.ok !== true || !replyText) {
-    throw new Error(`Ordering AI gateway smoke failed: HTTP ${response.status} ${body?.code || "unknown"}`);
+  if (response.status !== 401 || body?.code !== "UNAUTHORIZED") {
+    throw new Error(`Ordering AI gateway protection smoke failed: HTTP ${response.status} ${body?.code || "unknown"}`);
   }
   return body;
 }
@@ -185,19 +224,14 @@ export async function deployTarget(target) {
   try {
     run("npm", ["ci"], { cwd: appCwd, env });
     run("npm", ["run", "build"], { cwd: appCwd, env });
-    run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd: repositoryCwd, env });
 
     if (target === "customer-ordering") {
-      const pulledEnvPath = resolve(vercelDir, ".env.production.local");
-      if (!existsSync(pulledEnvPath)) throw new Error("Customer Ordering production env pull is missing.");
-      const pulledEnv = parseEnv(readFileSync(pulledEnvPath, "utf8"));
-      await smokeOrderingAiGateway({
-        origin: pulledEnv.WEBSITE_AI_BASE_URL,
-        token: pulledEnv.ORDERING_AI_API_TOKEN,
-        sessionId: `ordering-deploy-${checkedOutSha.slice(0, 12)}`,
-      });
-      console.log(`Ordering AI gateway verified: sha=${checkedOutSha.slice(0,12)} token=${fingerprint(pulledEnv.ORDERING_AI_API_TOKEN || "")}`);
+      const productionEntries = await fetchVercelProductionEnvEntries({ token, teamId, projectId });
+      const productionAi = validateCustomerOrderingProductionAiEnv(productionEntries);
+      console.log(`Ordering AI production env metadata verified: secret=${productionAi.tokenType}`);
     }
+
+    run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd: repositoryCwd, env });
 
     if (config.deployMode === "prebuilt") {
       run("vercel", ["build", "--prod", "--token", token], { cwd: repositoryCwd, env });
