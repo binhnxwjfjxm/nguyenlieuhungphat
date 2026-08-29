@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { fetchWithRetry, smokeOrigin } from "./vercel-deploy-common.mjs";
+import { fetchWithRetry, smokeOrderingAiGateway, smokeOrigin } from "./vercel-deploy-common.mjs";
 
 test("fetchWithRetry retries temporary network failures", async () => {
   let calls = 0;
@@ -63,4 +63,39 @@ test("smokeOrigin waits for home, routes and a Next.js static asset", async () =
     "https://sales.example.com/orders",
     "https://sales.example.com/_next/static/app.css",
   ]);
+});
+
+test("smokeOrderingAiGateway verifies the exact Ordering token against Website", async () => {
+  let request;
+  const body = await smokeOrderingAiGateway({
+    origin: "https://website.example.com",
+    token: "ordering-token",
+    sessionId: "ordering-deploy-test",
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return new Response(JSON.stringify({ ok: true, replyText: "Kết nối tốt." }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+
+  assert.equal(body.replyText, "Kết nối tốt.");
+  assert.equal(request.url, "https://website.example.com/api/dialogflow/chat");
+  assert.equal(request.options.headers.authorization, "Bearer ordering-token");
+  assert.equal(request.options.headers["x-ordering-ai-gateway"], "customer-ordering");
+});
+
+test("smokeOrderingAiGateway rejects a mismatched production token", async () => {
+  await assert.rejects(
+    smokeOrderingAiGateway({
+      origin: "https://website.example.com",
+      token: "wrong-token",
+      fetchImpl: async () => new Response(JSON.stringify({ ok: false, code: "UNAUTHORIZED" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      }),
+    }),
+    /Ordering AI gateway smoke failed: HTTP 401 UNAUTHORIZED/,
+  );
 });

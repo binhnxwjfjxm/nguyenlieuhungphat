@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
+import { parseEnv } from "node:util";
 
 export const TARGETS = {
   website: {
@@ -144,6 +145,35 @@ export async function smokeOrigin(origin, paths, retryOptions = {}) {
   });
 }
 
+export async function smokeOrderingAiGateway({ origin, token, sessionId = "ordering-deploy-smoke", fetchImpl = fetch }) {
+  const normalizedOrigin = String(origin || "").trim().replace(/\/+$/, "");
+  const normalizedToken = String(token || "").trim();
+  if (!/^https:\/\/[^/]+$/.test(normalizedOrigin)) throw new Error("Ordering AI gateway origin is missing or invalid.");
+  if (!normalizedToken) throw new Error("Ordering AI gateway token is missing from production env.");
+
+  const response = await fetchImpl(`${normalizedOrigin}/api/dialogflow/chat`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${normalizedToken}`,
+      "x-ordering-ai-gateway": "customer-ordering",
+      "content-type": "application/json; charset=utf-8",
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      sessionId,
+      message: "Kiểm tra kết nối tư vấn sản phẩm.",
+      source: "production-smoke-ordering-gateway",
+    }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  const body = await response.json().catch(() => ({}));
+  const replyText = typeof body?.replyText === "string" ? body.replyText.trim() : "";
+  if (response.status !== 200 || body?.ok !== true || !replyText) {
+    throw new Error(`Ordering AI gateway smoke failed: HTTP ${response.status} ${body?.code || "unknown"}`);
+  }
+  return body;
+}
+
 export async function deployTarget(target) {
   const { config, projectId, teamId, token, checkedOutSha } = await verifyBoundary(target);
   const repositoryCwd = resolve(".");
@@ -156,6 +186,18 @@ export async function deployTarget(target) {
     run("npm", ["ci"], { cwd: appCwd, env });
     run("npm", ["run", "build"], { cwd: appCwd, env });
     run("vercel", ["pull", "--yes", "--environment=production", "--token", token], { cwd: repositoryCwd, env });
+
+    if (target === "customer-ordering") {
+      const pulledEnvPath = resolve(vercelDir, ".env.production.local");
+      if (!existsSync(pulledEnvPath)) throw new Error("Customer Ordering production env pull is missing.");
+      const pulledEnv = parseEnv(readFileSync(pulledEnvPath, "utf8"));
+      await smokeOrderingAiGateway({
+        origin: pulledEnv.WEBSITE_AI_BASE_URL,
+        token: pulledEnv.ORDERING_AI_API_TOKEN,
+        sessionId: `ordering-deploy-${checkedOutSha.slice(0, 12)}`,
+      });
+      console.log(`Ordering AI gateway verified: sha=${checkedOutSha.slice(0,12)} token=${fingerprint(pulledEnv.ORDERING_AI_API_TOKEN || "")}`);
+    }
 
     if (config.deployMode === "prebuilt") {
       run("vercel", ["build", "--prod", "--token", token], { cwd: repositoryCwd, env });
