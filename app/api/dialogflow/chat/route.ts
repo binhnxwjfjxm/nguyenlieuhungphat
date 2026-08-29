@@ -83,7 +83,7 @@ async function orderingGatewayAuth(request: NextRequest): Promise<OrderingGatewa
         authorization,
         accept: "application/json",
       },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(3_000),
     });
     if (response.status === 401 || response.status === 403) return "invalid";
     if (!response.ok) return "unavailable";
