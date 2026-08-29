@@ -18,18 +18,25 @@ test("Website delegates Customer Ordering gateway authorization to Công Ty", ()
   assert.doesNotMatch(route, /timingSafeEqual|safeTokenEquals/);
 });
 
-test("Ordering and Website production guards verify the whole gateway with the canonical token", () => {
+test("Production deploy guards keep Ordering token protected and verify the gateway boundary", () => {
   const common = read("scripts/vercel/vercel-deploy-common.mjs");
   const websiteDeploy = read("scripts/vercel/deploy-website-production.mjs");
   const orderingRoute = read("customer-ordering/app/api/assistant/chat/route.ts");
-  assert.match(common, /smokeOrderingAiGateway/);
-  assert.match(common, /pulledEnv\.ORDERING_AI_API_TOKEN/);
-  assert.match(common, /pulledEnv\.WEBSITE_AI_BASE_URL/);
-  assert.match(common, /Ordering AI gateway smoke failed/);
-  assert.match(websiteDeploy, /VERCEL_CUSTOMER_ORDERING_PROJECT_ID/);
-  assert.match(websiteDeploy, /ORDERING_AI_API_TOKEN/);
-  assert.match(websiteDeploy, /smokeOrderingAiGateway/);
+
+  assert.match(common, /fetchVercelProductionEnvEntries/);
+  assert.match(common, /validateCustomerOrderingProductionAiEnv/);
+  assert.match(common, /ORDERING_AI_API_TOKEN/);
+  assert.match(common, /\["sensitive", "encrypted"\]/);
+  assert.match(common, /CORE_API_BASE_URL/);
+  assert.match(common, /WEBSITE_AI_BASE_URL/);
+  assert.match(common, /smokeOrderingAiGatewayProtection/);
+  assert.doesNotMatch(common, /pulledEnv\.ORDERING_AI_API_TOKEN/);
+
+  assert.match(websiteDeploy, /smokeOrderingAiGatewayProtection/);
   assert.match(websiteDeploy, /origin: result\.deploymentUrl/);
-  assert.match(websiteDeploy, /WEBSITE_ORDERING_GATEWAY_STAGED_SMOKE=success/);
+  assert.match(websiteDeploy, /WEBSITE_ORDERING_GATEWAY_PROTECTION_STAGED_SMOKE=success/);
+  assert.doesNotMatch(websiteDeploy, /process\.env\.ORDERING_AI_API_TOKEN|fetchOrderingProductionToken/);
+
+  assert.match(orderingRoute, /ORDERING_AI_API_TOKEN/);
   assert.match(orderingRoute, /AbortSignal\.timeout\(35_000\)/);
 });
