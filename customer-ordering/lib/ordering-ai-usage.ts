@@ -1,11 +1,16 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import type { DialogflowCxUsageMetadata } from "@/lib/dialogflow";
 
 const IDEMPOTENCY_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);
+
+type DialogflowCxUsageMetadata = {
+  requestCount: 1;
+  billingUnit: "text-request";
+  requestClass: "flow" | "playbook";
+};
 
 type AiCredit = {
   limitUsd: string;
