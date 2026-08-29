@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Boxes, ChevronRight, ClipboardList, Newspaper, PackageSearch, ShoppingBasket } from "lucide-react";
+import { ArrowRight, Boxes, ChevronRight, ClipboardList, MessageCircleQuestion, PackageSearch, ShoppingBasket } from "lucide-react";
 import { HomeAnnouncementPreview } from "@/components/home-announcement-preview";
 import { ProductVisual } from "@/components/product-visual";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
@@ -43,7 +43,7 @@ export function HomeScreen() {
         <Link href="/products"><Boxes aria-hidden="true" /><span>Sản phẩm</span></Link>
         <Link href="/quick-order"><ShoppingBasket aria-hidden="true" /><span>Đặt nhanh</span></Link>
         <Link href="/orders"><ClipboardList aria-hidden="true" /><span>Đơn hàng</span></Link>
-        <Link href="/news"><Newspaper aria-hidden="true" /><span>Tin tức</span></Link>
+        <Link href="/assistant"><MessageCircleQuestion aria-hidden="true" /><span>Hỏi Hưng Phát</span></Link>
       </section>
 
       <section className="content-section home-category-section"><div className="section-heading"><h2>Ngành hàng</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="category-scroller">{categories.map((category) => {
