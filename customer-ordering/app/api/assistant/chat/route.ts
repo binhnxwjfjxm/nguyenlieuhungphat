@@ -94,7 +94,7 @@ async function requestSharedDialogflow(input: { sessionId: string; message: stri
       message: input.message,
       source: "customer-ordering",
     }),
-    signal: AbortSignal.timeout(20_000),
+    signal: AbortSignal.timeout(35_000),
   });
   const body = await response.json().catch(() => ({})) as GatewayEnvelope;
   if (!response.ok || body.ok !== true) throw new Error(`ordering_ai_gateway_unavailable_${response.status}`);
