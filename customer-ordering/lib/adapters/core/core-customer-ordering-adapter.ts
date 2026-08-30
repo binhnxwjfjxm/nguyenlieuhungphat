@@ -14,7 +14,6 @@ import type {
   ProductPageInput,
   ProductSearchInput,
   ReorderOrderResult,
-  SignInInput,
   SubmitOrderInput,
 } from "@/lib/contracts";
 import { loadClerkBrowser } from "@/lib/auth/clerk-browser";
@@ -299,7 +298,7 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     return new MockCustomerOrderingAdapter(await this.userStorage());
   }
 
-  async signIn(_input: SignInInput): Promise<CustomerSession> {
+  async signIn(): Promise<CustomerSession> {
     throw new CustomerPortalRequestError("CLERK_SIGN_IN_REQUIRED", "Đăng nhập được quản lý bởi Clerk.", false, 400);
   }
 

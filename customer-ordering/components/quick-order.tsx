@@ -123,13 +123,10 @@ export function QuickOrder() {
   );
 
   const selectedPurchaseMode = purchaseMode === "all" ? null : purchaseMode;
+  const useMockProductTypeFallback = USE_MOCK_CATALOG_FALLBACK && Boolean(activeCategory) && subcategories.length === 0;
 
   useEffect(() => {
-    if (!USE_MOCK_CATALOG_FALLBACK || !activeCategory || subcategories.length > 0) {
-      setMockProductTypes([]);
-      setActiveProductType(null);
-      return;
-    }
+    if (!useMockProductTypeFallback || !activeCategory) return;
 
     let cancelled = false;
     void service.listProducts({ categoryId: activeCategory, purchaseMode: selectedPurchaseMode })
@@ -147,17 +144,14 @@ export function QuickOrder() {
       });
 
     return () => { cancelled = true; };
-  }, [activeCategory, selectedPurchaseMode, service, subcategories.length]);
+  }, [activeCategory, selectedPurchaseMode, service, useMockProductTypeFallback]);
 
   const selectedCategoryId = activeSubcategory ?? activeCategory;
-  const selectedProductType = subcategories.length === 0 ? activeProductType : null;
+  const selectedProductType = useMockProductTypeFallback ? activeProductType : null;
 
   useEffect(() => {
     const requestVersion = requestVersionRef.current + 1;
     requestVersionRef.current = requestVersion;
-    setLoaded(false);
-    setLoadingMore(false);
-    setError("");
     void service.listProductPage({
       query: searchQuery,
       categoryId: selectedCategoryId,
@@ -170,6 +164,8 @@ export function QuickOrder() {
       if (requestVersionRef.current !== requestVersion) return;
       setProducts(page.products);
       setHasMore(page.hasMore);
+      setLoadingMore(false);
+      setError("");
       if (page.categories.length > 0) {
         categoriesLoadedRef.current = true;
         setCategories(page.categories);
@@ -179,6 +175,7 @@ export function QuickOrder() {
       if (requestVersionRef.current !== requestVersion) return;
       setProducts([]);
       setHasMore(false);
+      setLoadingMore(false);
       setError("Không tải được danh sách đặt nhanh.");
       setLoaded(true);
     });
@@ -234,10 +231,17 @@ export function QuickOrder() {
     }
   }, [service]);
 
+  function clearTransientRequestState() {
+    setLoadingMore(false);
+    setError("");
+  }
+
   function selectCategory(categoryId: string | null) {
+    clearTransientRequestState();
     setActiveCategory(categoryId);
     setActiveSubcategory(null);
     setActiveProductType(null);
+    setMockProductTypes([]);
   }
 
   const modeIndex = purchaseMode === "all" ? 0 : purchaseMode === "retail" ? 1 : 2;
@@ -245,15 +249,22 @@ export function QuickOrder() {
   const subcategoryIndex = activeSubcategory ? subcategories.findIndex((category) => category.id === activeSubcategory) + 1 : 0;
   const productTypeIndex = activeProductType ? mockProductTypes.indexOf(activeProductType) + 1 : 0;
   const groupIndex = subcategories.length > 0 ? subcategoryIndex : productTypeIndex;
-  const hasGroupFilters = Boolean(activeCategory && (subcategories.length > 0 || mockProductTypes.length > 0));
+  const hasGroupFilters = Boolean(activeCategory && (subcategories.length > 0 || (useMockProductTypeFallback && mockProductTypes.length > 0)));
   const searchPending = query.trim() !== searchQuery;
 
   return <section className="quick-order-screen quick-order-screen-compact">
     <label className={`catalog-search quick-order-search quick-order-search-top ${searchPending ? "is-filtering" : ""}`}>
       <Search aria-hidden="true" size={18} />
       <span className="sr-only">Tìm sản phẩm đặt nhanh</span>
-      <input ref={searchInputRef} autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tìm tên, mã hàng, nhãn hàng, nhóm hàng" type="search" value={query} />
-      {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={16} /></button> : null}
+      <input
+        ref={searchInputRef}
+        autoComplete="off"
+        onChange={(event) => { clearTransientRequestState(); setQuery(event.target.value); }}
+        placeholder="Tìm tên, mã hàng, nhãn hàng, nhóm hàng"
+        type="search"
+        value={query}
+      />
+      {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => { clearTransientRequestState(); setQuery(""); }} type="button"><RotateCcw aria-hidden="true" size={16} /></button> : null}
     </label>
 
     <div className="quick-order-catalog-layout">
@@ -266,7 +277,7 @@ export function QuickOrder() {
             aria-pressed={purchaseMode === mode}
             className={`quick-filter-button ${purchaseMode === mode ? "is-active" : ""}`}
             key={mode}
-            onClick={() => setPurchaseMode(mode)}
+            onClick={() => { clearTransientRequestState(); setPurchaseMode(mode); setActiveProductType(null); setMockProductTypes([]); }}
             type="button"
           ><Icon aria-hidden="true" size={15} /><span>{label}</span></button>)}
         </div>
@@ -296,12 +307,12 @@ export function QuickOrder() {
             <button
               aria-pressed={activeSubcategory === null && activeProductType === null}
               className={`quick-filter-button ${activeSubcategory === null && activeProductType === null ? "is-active" : ""}`}
-              onClick={() => { setActiveSubcategory(null); setActiveProductType(null); }}
+              onClick={() => { clearTransientRequestState(); setActiveSubcategory(null); setActiveProductType(null); }}
               type="button"
             ><Layers3 aria-hidden="true" size={14} /><span>Tất cả</span></button>
             {subcategories.length > 0
-              ? subcategories.map((category) => <button aria-pressed={activeSubcategory === category.id} className={`quick-filter-button ${activeSubcategory === category.id ? "is-active" : ""}`} key={category.id} onClick={() => setActiveSubcategory(category.id)} title={category.name} type="button"><Tag aria-hidden="true" size={13} /><span>{category.shortName}</span></button>)
-              : mockProductTypes.map((productType) => <button aria-pressed={activeProductType === productType} className={`quick-filter-button ${activeProductType === productType ? "is-active" : ""}`} key={productType} onClick={() => setActiveProductType(productType)} title={productType} type="button"><Tag aria-hidden="true" size={13} /><span>{productType}</span></button>)}
+              ? subcategories.map((category) => <button aria-pressed={activeSubcategory === category.id} className={`quick-filter-button ${activeSubcategory === category.id ? "is-active" : ""}`} key={category.id} onClick={() => { clearTransientRequestState(); setActiveSubcategory(category.id); }} title={category.name} type="button"><Tag aria-hidden="true" size={13} /><span>{category.shortName}</span></button>)
+              : mockProductTypes.map((productType) => <button aria-pressed={activeProductType === productType} className={`quick-filter-button ${activeProductType === productType ? "is-active" : ""}`} key={productType} onClick={() => { clearTransientRequestState(); setActiveProductType(productType); }} title={productType} type="button"><Tag aria-hidden="true" size={13} /><span>{productType}</span></button>)}
           </div>
         </> : null}
       </aside>
