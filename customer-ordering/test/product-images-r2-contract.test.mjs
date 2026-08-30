@@ -25,11 +25,12 @@ test("product image resolver keys images by family SKU, not sale-mode SKU", asyn
   assert.doesNotMatch(source, /replace\([^\n]*T/);
 });
 
-test("product visual renders direct unoptimized R2 photos with placeholder fallback", async () => {
+test("product visual uses Next Image optimization for R2 photos with placeholder fallback", async () => {
   const source = await readFile(visualPath, "utf8");
   assert.match(source, /productImageUrl\(product\)/);
   assert.match(source, /className="catalog-product-image"/);
-  assert.match(source, /unoptimized/);
+  assert.match(source, /sizes=\{/);
+  assert.doesNotMatch(source, /\bunoptimized\b/);
   assert.match(source, /PackageOpen/);
 
   const nextConfig = await readFile(nextConfigPath, "utf8");
