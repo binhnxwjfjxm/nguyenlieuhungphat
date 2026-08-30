@@ -10,9 +10,10 @@ import type {
   DeliveryAddress,
   NotificationPreference,
   Product,
+  ProductPage,
+  ProductPageInput,
   ProductSearchInput,
   ReorderOrderResult,
-  SignInInput,
   SubmitOrderInput,
 } from "@/lib/contracts";
 import { loadClerkBrowser } from "@/lib/auth/clerk-browser";
@@ -28,14 +29,26 @@ interface PortalEnvelope<T> {
 
 interface PortalCatalogItem {
   sku: string;
+  variantId?: string;
+  productId?: string;
+  productCode?: string;
   name: string;
   variantName: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  parentCategoryId?: string | null;
+  parentCategoryName?: string | null;
+  brandName?: string | null;
+  purchaseMode?: Product["purchaseMode"];
   unitCode: string | null;
+  unitName?: string | null;
+  conversionToBase?: string | number | null;
   price: Product["price"];
 }
 
 interface PortalCatalogPage {
   items: PortalCatalogItem[];
+  categories?: Category[];
   hasMore: boolean;
   limit: number;
   offset: number;
@@ -93,7 +106,7 @@ function sanitizeCoreCart(cart: Partial<Cart> | null): Cart {
   return { lines, updatedAt: typeof cart?.updatedAt === "string" ? cart.updatedAt : new Date().toISOString() };
 }
 
-function genericProduct(item: PortalCatalogItem): Product {
+function legacyGenericProduct(item: PortalCatalogItem): Product {
   return {
     sku: item.sku,
     familySku: item.sku,
@@ -115,11 +128,60 @@ function genericProduct(item: PortalCatalogItem): Product {
   };
 }
 
-function mapCatalogItem(item: PortalCatalogItem): Product {
+function mapLegacyCatalogItem(item: PortalCatalogItem): Product {
   const metadata = MOCK_PRODUCTS.find((product) => product.sku.toUpperCase() === item.sku.toUpperCase());
   return metadata
     ? { ...cloneProduct(metadata), availability: "available", price: { ...item.price } }
-    : genericProduct(item);
+    : legacyGenericProduct(item);
+}
+
+function caseQuantity(item: PortalCatalogItem): number | null {
+  const conversion = Number(item.conversionToBase);
+  return item.purchaseMode === "case" && Number.isFinite(conversion) && conversion > 1 ? conversion : null;
+}
+
+function canonicalGenericProduct(item: PortalCatalogItem): Product {
+  const purchaseMode = item.purchaseMode ?? "retail";
+  return {
+    sku: item.sku,
+    familySku: item.productCode || item.sku,
+    categoryId: item.parentCategoryId || item.categoryId || "other",
+    name: item.name || item.variantName || item.sku,
+    aliases: [],
+    brand: item.brandName || "",
+    productType: item.parentCategoryId ? item.categoryName || "" : "",
+    flavor: null,
+    size: item.variantName || "",
+    purchaseMode,
+    caseQuantity: caseQuantity({ ...item, purchaseMode }),
+    packaging: item.unitCode || "đơn vị",
+    unit: item.unitCode || "đơn vị",
+    description: "",
+    availability: "available",
+    price: { ...item.price },
+    visualTone: "wheat",
+  };
+}
+
+function mapCanonicalCatalogItem(item: PortalCatalogItem): Product {
+  const metadata = MOCK_PRODUCTS.find((product) => product.sku.toUpperCase() === item.sku.toUpperCase());
+  if (!metadata) return canonicalGenericProduct(item);
+  const fallback = cloneProduct(metadata);
+  const purchaseMode = item.purchaseMode ?? fallback.purchaseMode;
+  return {
+    ...fallback,
+    categoryId: item.parentCategoryId || item.categoryId || fallback.categoryId,
+    name: item.name || fallback.name,
+    brand: item.brandName || fallback.brand,
+    productType: item.parentCategoryId ? item.categoryName || fallback.productType : fallback.productType,
+    size: item.variantName || fallback.size,
+    purchaseMode,
+    caseQuantity: caseQuantity({ ...item, purchaseMode }) ?? fallback.caseQuantity,
+    packaging: item.unitCode || fallback.packaging,
+    unit: item.unitCode || fallback.unit,
+    availability: "available",
+    price: { ...item.price },
+  };
 }
 
 function filterCatalog(products: Product[], input: ProductSearchInput = {}): Product[] {
@@ -183,6 +245,25 @@ async function requestPortal<T>(path: string, init: RequestInit = {}, idempotenc
   return envelope.data;
 }
 
+async function fetchCatalogPage(input: ProductPageInput = {}): Promise<ProductPage> {
+  const limit = Math.max(1, Math.min(PAGE_SIZE, Math.trunc(Number(input.limit) || PAGE_SIZE)));
+  const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));
+  const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  const search = input.query?.trim();
+  if (search) query.set("search", search);
+  if (input.categoryId) query.set("categoryId", input.categoryId);
+  if (input.purchaseMode) query.set("purchaseMode", input.purchaseMode);
+  if (input.includeCategories === true) query.set("includeCategories", "1");
+  const page = await requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
+  return {
+    products: page.items.map(mapCanonicalCatalogItem),
+    categories: (page.categories ?? []).map((category) => ({ ...category })),
+    hasMore: page.hasMore,
+    limit: page.limit,
+    offset: page.offset,
+  };
+}
+
 async function fetchCatalogPages(): Promise<Product[]> {
   const products: Product[] = [];
   for (let startOffset = 0; startOffset < MAX_CATALOG_ITEMS; startOffset += PAGE_SIZE * PAGE_BATCH_SIZE) {
@@ -194,7 +275,7 @@ async function fetchCatalogPages(): Promise<Product[]> {
     }));
     let reachedEnd = false;
     for (const page of pages) {
-      products.push(...page.items.map(mapCatalogItem));
+      products.push(...page.items.map(mapLegacyCatalogItem));
       if (!page.hasMore || page.items.length < PAGE_SIZE) {
         reachedEnd = true;
         break;
@@ -217,7 +298,7 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     return new MockCustomerOrderingAdapter(await this.userStorage());
   }
 
-  async signIn(_input: SignInInput): Promise<CustomerSession> {
+  async signIn(): Promise<CustomerSession> {
     throw new CustomerPortalRequestError("CLERK_SIGN_IN_REQUIRED", "Đăng nhập được quản lý bởi Clerk.", false, 400);
   }
 
@@ -261,9 +342,14 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     return filterCatalog((await this.loadCatalog()).map(cloneProduct), input);
   }
 
+  async listProductPage(input: ProductPageInput = {}): Promise<ProductPage> {
+    return fetchCatalogPage(input);
+  }
+
   async getProductBySku(sku: string): Promise<Product | null> {
     const normalized = sku.trim().toUpperCase();
-    const found = (await this.loadCatalog()).find((product) => product.sku.toUpperCase() === normalized);
+    const page = await fetchCatalogPage({ query: normalized, limit: PAGE_SIZE, offset: 0 });
+    const found = page.products.find((product) => product.sku.toUpperCase() === normalized);
     return found ? cloneProduct(found) : null;
   }
 

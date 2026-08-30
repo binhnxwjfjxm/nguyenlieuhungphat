@@ -24,14 +24,18 @@ test("cart keeps the exact selected retail or case SKU after adding", async () =
   assert.doesNotMatch(source, /switchVariant|familyVariants|cart-variant-switch|targetSku/);
 });
 
-test("quick order loads catalog once and filters retail/case locally with visible exact SKU price", async () => {
+test("quick order pages and filters the full catalog through the service with visible exact prices", async () => {
   const source = await read("components/quick-order.tsx");
-  assert.match(source, /Promise\.all\(\[service\.listCategories\(\), service\.listProducts\(\)\]\)/);
-  assert.match(source, /purchaseMode === "all" \|\| product\.purchaseMode === purchaseMode/);
-  assert.match(source, /productMatchesQuery\(product, deferredQuery\)/);
+  assert.match(source, /service\.listProductPage\(\{/);
+  assert.match(source, /limit: PAGE_SIZE/);
+  assert.match(source, /query: searchQuery/);
+  assert.match(source, /categoryId: selectedCategoryId/);
+  assert.match(source, /purchaseMode: selectedPurchaseMode/);
+  assert.match(source, /productType: selectedProductType/);
+  assert.match(source, /offset: products\.length/);
   assert.match(source, /Mua lẻ/);
   assert.match(source, /Mua thùng/);
-  assert.doesNotMatch(source, /purchaseMode:\s*purchaseMode === "all" \? null : purchaseMode/);
+  assert.doesNotMatch(source, /Promise\.all\(\[service\.listCategories\(\), service\.listProducts\(\)\]\)/);
   assert.match(source, /quick-product-mode-price/);
   assert.match(source, /formatPrice\(product\)/);
 });

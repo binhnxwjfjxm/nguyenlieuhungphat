@@ -23,13 +23,14 @@ test("product popup keeps flavor lists compact and bulk-adds exact canonical SKU
 test("quick order keeps one top query while the left rail owns purchase/category filtering", async () => {
   const quickOrder = await read("components/quick-order.tsx");
   assert.match(quickOrder, /quick-order-search-top/);
-  assert.match(quickOrder, /Lọc nhanh tên, nhãn, vị, quy cách/);
-  assert.doesNotMatch(quickOrder, /Lọc nhanh tên, nhãn, SKU/);
+  assert.match(quickOrder, /Tìm tên, mã hàng, nhãn hàng, nhóm hàng/);
+  assert.doesNotMatch(quickOrder, /mã SKU|Lọc nhanh tên, nhãn, SKU/);
   assert.match(quickOrder, /ref=\{searchInputRef\}/);
   assert.match(quickOrder, /quick-filter-rail/);
   assert.match(quickOrder, /quick-filter-mode/);
   assert.match(quickOrder, /quick-filter-categories/);
-  assert.match(quickOrder, /productTypeOptions\.map/);
+  assert.match(quickOrder, /rootCategories\.map\(\(category\)/);
+  assert.match(quickOrder, /hasGroupFilters/);
   assert.doesNotMatch(quickOrder, /quick-order-summary|quick-order-sticky-search|addSelectedToCart/);
 });
 

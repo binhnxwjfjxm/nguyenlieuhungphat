@@ -20,6 +20,7 @@ export interface Category {
   id: string;
   name: string;
   shortName: string;
+  parentCategoryId?: string | null;
 }
 
 export type ProductAvailability = "available" | "out_of_stock" | "paused";
@@ -64,6 +65,20 @@ export interface ProductSearchInput {
   productType?: string | null;
   flavor?: string | null;
   size?: string | null;
+}
+
+export interface ProductPageInput extends ProductSearchInput {
+  limit?: number;
+  offset?: number;
+  includeCategories?: boolean;
+}
+
+export interface ProductPage {
+  products: Product[];
+  categories: Category[];
+  hasMore: boolean;
+  limit: number;
+  offset: number;
 }
 
 export interface CartLine {
@@ -174,6 +189,7 @@ export interface CustomerOrderingAdapter {
   signOut(): Promise<void>;
   listCategories(): Promise<Category[]>;
   listProducts(input?: ProductSearchInput): Promise<Product[]>;
+  listProductPage(input?: ProductPageInput): Promise<ProductPage>;
   getProductBySku(sku: string): Promise<Product | null>;
   getCart(): Promise<Cart>;
   saveCart(cart: Cart): Promise<void>;

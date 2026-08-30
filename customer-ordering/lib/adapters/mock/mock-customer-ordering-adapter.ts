@@ -12,6 +12,8 @@ import type {
   NotificationPreference,
   OrderStatus,
   Product,
+  ProductPage,
+  ProductPageInput,
   ProductSearchInput,
   ReorderOrderResult,
   SignInInput,
@@ -127,6 +129,19 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
   async signOut(): Promise<void> { this.storage.remove(SESSION_KEY); }
   async listCategories(): Promise<Category[]> { return MOCK_CATEGORIES.map((category) => ({ ...category })); }
   async listProducts(input: ProductSearchInput = {}): Promise<Product[]> { return filterProducts(input); }
+  async listProductPage(input: ProductPageInput = {}): Promise<ProductPage> {
+    const limit = Math.max(1, Math.min(50, Math.trunc(Number(input.limit) || 50)));
+    const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));
+    const allProducts = filterProducts(input);
+    const products = allProducts.slice(offset, offset + limit);
+    return {
+      products,
+      categories: input.includeCategories === true ? MOCK_CATEGORIES.map((category) => ({ ...category })) : [],
+      hasMore: offset + products.length < allProducts.length,
+      limit,
+      offset,
+    };
+  }
   async getProductBySku(sku: string): Promise<Product | null> { return findProductBySku(sku); }
   async getCart(): Promise<Cart> { return sanitizeCart(this.storage.get<LegacyCart>(CART_KEY) ?? { lines: [] }); }
   async saveCart(cart: Cart): Promise<void> { this.storage.set(CART_KEY, sanitizeCart(cart)); }
