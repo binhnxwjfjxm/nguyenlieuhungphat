@@ -18,7 +18,6 @@ export function ProductVisual({ product, compact = false }: Readonly<{ product: 
           fill
           sizes={compact ? "(max-width: 520px) 42vw, 180px" : "(max-width: 520px) 50vw, 320px"}
           src={imageUrl}
-          unoptimized
         />
       ) : (
         <span className="catalog-product-pack">

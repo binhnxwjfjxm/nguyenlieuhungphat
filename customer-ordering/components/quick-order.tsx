@@ -1,17 +1,18 @@
 "use client";
 
 import { Grid3X3, Layers3, Package, PackageSearch, Plus, RotateCcw, Search, ShoppingBag, Tag } from "lucide-react";
-import { memo, useCallback, useDeferredValue, useMemo, useRef, useState, useEffect } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { announceCartUpdated } from "@/lib/cart-events";
-import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
 import { createCustomerOrderingService } from "@/lib/customer-ordering-service";
 import type { Category, Product, PurchaseMode } from "@/lib/contracts";
-import { distinctProductValues, productSizeLabel } from "@/lib/product-grouping";
+import { productSizeLabel } from "@/lib/product-grouping";
 import { ProductVisual } from "@/components/product-visual";
 
 type PurchaseModeFilter = "all" | PurchaseMode;
 
+const PAGE_SIZE = 50;
+const SEARCH_DEBOUNCE_MS = 250;
 const PURCHASE_FILTERS = [
   { mode: "all", label: "Tất cả", icon: Grid3X3 },
   { mode: "retail", label: "Mua lẻ", icon: ShoppingBag },
@@ -39,6 +40,12 @@ function formatPrice(product: Product): string {
 
 function filterIndexStyle(index: number): CSSProperties {
   return { "--quick-filter-index": index } as CSSProperties;
+}
+
+function mergeProducts(current: Product[], incoming: Product[]): Product[] {
+  const merged = new Map(current.map((product) => [product.sku, product] as const));
+  for (const product of incoming) merged.set(product.sku, product);
+  return [...merged.values()];
 }
 
 type QuickOrderProductListProps = {
@@ -80,55 +87,93 @@ export function QuickOrder() {
   const service = useMemo(() => createCustomerOrderingService(), []);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const addInFlightRef = useRef(false);
+  const requestVersionRef = useRef(0);
+  const categoriesLoadedRef = useRef(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [activeProductType, setActiveProductType] = useState<string | null>(null);
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [purchaseMode, setPurchaseMode] = useState<PurchaseModeFilter>("all");
   const [query, setQuery] = useState("");
-  const deferredQuery = useDeferredValue(query);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [addError, setAddError] = useState("");
   const [addingSku, setAddingSku] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    void Promise.all([service.listCategories(), service.listProducts()])
-      .then(([categoryItems, productItems]) => {
-        if (cancelled) return;
-        setCategories(categoryItems);
-        setProducts(productItems);
-        setError("");
-        setLoaded(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setError("Không tải được danh sách đặt nhanh.");
-        setLoaded(true);
-      });
-    return () => { cancelled = true; };
-  }, [service]);
+    const timer = window.setTimeout(() => setSearchQuery(query.trim()), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
-  const categoryScope = useMemo(() => products
-    .filter((product) => !activeCategory || product.categoryId === activeCategory)
-    .filter((product) => purchaseMode === "all" || product.purchaseMode === purchaseMode),
-  [activeCategory, products, purchaseMode]);
+  const rootCategories = useMemo(() => {
+    const categoryIds = new Set(categories.map((category) => category.id));
+    return categories.filter((category) => !category.parentCategoryId || !categoryIds.has(category.parentCategoryId));
+  }, [categories]);
 
-  const productTypeOptions = useMemo(
-    () => distinctProductValues(categoryScope, (product) => product.productType.trim()).filter(Boolean),
-    [categoryScope],
+  const subcategories = useMemo(
+    () => activeCategory ? categories.filter((category) => category.parentCategoryId === activeCategory) : [],
+    [activeCategory, categories],
   );
 
-  const filteredProducts = useMemo(() => categoryScope
-    .filter((product) => !activeProductType || product.productType === activeProductType)
-    .filter((product) => productMatchesQuery(product, deferredQuery))
-    .sort((left, right) => productSearchRank(left, deferredQuery) - productSearchRank(right, deferredQuery)
-      || left.productType.localeCompare(right.productType, "vi")
-      || left.name.localeCompare(right.name, "vi")
-      || (left.purchaseMode === right.purchaseMode ? 0 : left.purchaseMode === "retail" ? -1 : 1)
-      || left.sku.localeCompare(right.sku, "vi")),
-  [activeProductType, categoryScope, deferredQuery]);
+  const selectedCategoryId = activeSubcategory ?? activeCategory;
+  const selectedPurchaseMode = purchaseMode === "all" ? null : purchaseMode;
+
+  useEffect(() => {
+    const requestVersion = requestVersionRef.current + 1;
+    requestVersionRef.current = requestVersion;
+    setLoaded(false);
+    setLoadingMore(false);
+    setError("");
+    void service.listProductPage({
+      query: searchQuery,
+      categoryId: selectedCategoryId,
+      purchaseMode: selectedPurchaseMode,
+      limit: PAGE_SIZE,
+      offset: 0,
+      includeCategories: !categoriesLoadedRef.current,
+    }).then((page) => {
+      if (requestVersionRef.current !== requestVersion) return;
+      setProducts(page.products);
+      setHasMore(page.hasMore);
+      if (page.categories.length > 0) {
+        categoriesLoadedRef.current = true;
+        setCategories(page.categories);
+      }
+      setLoaded(true);
+    }).catch(() => {
+      if (requestVersionRef.current !== requestVersion) return;
+      setProducts([]);
+      setHasMore(false);
+      setError("Không tải được danh sách đặt nhanh.");
+      setLoaded(true);
+    });
+  }, [searchQuery, selectedCategoryId, selectedPurchaseMode, service]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore || !loaded) return;
+    const requestVersion = requestVersionRef.current;
+    setLoadingMore(true);
+    try {
+      const page = await service.listProductPage({
+        query: searchQuery,
+        categoryId: selectedCategoryId,
+        purchaseMode: selectedPurchaseMode,
+        limit: PAGE_SIZE,
+        offset: products.length,
+        includeCategories: false,
+      });
+      if (requestVersionRef.current !== requestVersion) return;
+      setProducts((current) => mergeProducts(current, page.products));
+      setHasMore(page.hasMore);
+    } catch {
+      if (requestVersionRef.current === requestVersion) setError("Chưa tải thêm được sản phẩm. Vui lòng thử lại.");
+    } finally {
+      if (requestVersionRef.current === requestVersion) setLoadingMore(false);
+    }
+  }, [hasMore, loaded, loadingMore, products.length, searchQuery, selectedCategoryId, selectedPurchaseMode, service]);
 
   const addProductToCart = useCallback(async (product: Product) => {
     if (product.availability !== "available" || addInFlightRef.current) return;
@@ -156,18 +201,19 @@ export function QuickOrder() {
 
   function selectCategory(categoryId: string | null) {
     setActiveCategory(categoryId);
-    setActiveProductType(null);
+    setActiveSubcategory(null);
   }
 
   const modeIndex = purchaseMode === "all" ? 0 : purchaseMode === "retail" ? 1 : 2;
-  const categoryIndex = activeCategory ? categories.findIndex((category) => category.id === activeCategory) : -1;
-  const productTypeIndex = activeProductType ? productTypeOptions.indexOf(activeProductType) + 1 : 0;
+  const categoryIndex = activeCategory ? rootCategories.findIndex((category) => category.id === activeCategory) : -1;
+  const subcategoryIndex = activeSubcategory ? subcategories.findIndex((category) => category.id === activeSubcategory) + 1 : 0;
+  const searchPending = query.trim() !== searchQuery;
 
   return <section className="quick-order-screen quick-order-screen-compact">
-    <label className={`catalog-search quick-order-search quick-order-search-top ${query !== deferredQuery ? "is-filtering" : ""}`}>
+    <label className={`catalog-search quick-order-search quick-order-search-top ${searchPending ? "is-filtering" : ""}`}>
       <Search aria-hidden="true" size={18} />
       <span className="sr-only">Tìm sản phẩm đặt nhanh</span>
-      <input ref={searchInputRef} autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Lọc nhanh tên, nhãn, vị, quy cách" type="search" value={query} />
+      <input ref={searchInputRef} autoComplete="off" onChange={(event) => setQuery(event.target.value)} placeholder="Tìm tên, mã SKU, nhãn hàng, nhóm hàng" type="search" value={query} />
       {query ? <button aria-label="Xóa nội dung tìm kiếm" onClick={() => setQuery("")} type="button"><RotateCcw aria-hidden="true" size={16} /></button> : null}
     </label>
 
@@ -186,38 +232,44 @@ export function QuickOrder() {
           ><Icon aria-hidden="true" size={15} /><span>{label}</span></button>)}
         </div>
 
-        <div className="quick-filter-divider" />
-        <span className="quick-filter-heading">Nhóm sản phẩm</span>
-        <div className="quick-filter-block quick-filter-categories">
-          {categoryIndex >= 0 ? <span aria-hidden="true" className="quick-filter-slider" style={filterIndexStyle(categoryIndex)} /> : null}
-          {categories.map((category) => <button
-            aria-selected={activeCategory === category.id}
-            className={`quick-filter-button quick-category-button ${activeCategory === category.id ? "is-active" : ""}`}
-            key={category.id}
-            onClick={() => selectCategory(activeCategory === category.id ? null : category.id)}
-            role="tab"
-            title={category.name}
-            type="button"
-          ><Tag aria-hidden="true" size={14} /><span>{category.shortName}</span></button>)}
-        </div>
+        {rootCategories.length > 0 ? <>
+          <div className="quick-filter-divider" />
+          <span className="quick-filter-heading">Nhóm sản phẩm</span>
+          <div className="quick-filter-block quick-filter-categories">
+            {categoryIndex >= 0 ? <span aria-hidden="true" className="quick-filter-slider" style={filterIndexStyle(categoryIndex)} /> : null}
+            {rootCategories.map((category) => <button
+              aria-selected={activeCategory === category.id}
+              className={`quick-filter-button quick-category-button ${activeCategory === category.id ? "is-active" : ""}`}
+              key={category.id}
+              onClick={() => selectCategory(activeCategory === category.id ? null : category.id)}
+              role="tab"
+              title={category.name}
+              type="button"
+            ><Tag aria-hidden="true" size={14} /><span>{category.shortName}</span></button>)}
+          </div>
+        </> : null}
 
-        {activeCategory && productTypeOptions.length > 0 ? <>
+        {activeCategory && subcategories.length > 0 ? <>
           <div className="quick-filter-divider" />
           <span className="quick-filter-heading">Nhóm hàng</span>
           <div className="quick-filter-block quick-filter-types">
-            <span aria-hidden="true" className="quick-filter-slider" style={filterIndexStyle(productTypeIndex)} />
-            <button aria-pressed={activeProductType === null} className={`quick-filter-button ${activeProductType === null ? "is-active" : ""}`} onClick={() => setActiveProductType(null)} type="button"><Layers3 aria-hidden="true" size={14} /><span>Tất cả</span></button>
-            {productTypeOptions.map((productType) => <button aria-pressed={activeProductType === productType} className={`quick-filter-button ${activeProductType === productType ? "is-active" : ""}`} key={productType} onClick={() => setActiveProductType(productType)} title={productType} type="button"><Tag aria-hidden="true" size={13} /><span>{productType}</span></button>)}
+            <span aria-hidden="true" className="quick-filter-slider" style={filterIndexStyle(subcategoryIndex)} />
+            <button aria-pressed={activeSubcategory === null} className={`quick-filter-button ${activeSubcategory === null ? "is-active" : ""}`} onClick={() => setActiveSubcategory(null)} type="button"><Layers3 aria-hidden="true" size={14} /><span>Tất cả</span></button>
+            {subcategories.map((category) => <button aria-pressed={activeSubcategory === category.id} className={`quick-filter-button ${activeSubcategory === category.id ? "is-active" : ""}`} key={category.id} onClick={() => setActiveSubcategory(category.id)} title={category.name} type="button"><Tag aria-hidden="true" size={13} /><span>{category.shortName}</span></button>)}
           </div>
         </> : null}
       </aside>
 
       <div className="quick-order-results">
         {addError ? <p className="quick-order-inline-error" role="alert">{addError}</p> : null}
-        {error ? <div className="catalog-state-card is-error" role="alert"><PackageSearch aria-hidden="true" size={28} /><strong>Chưa tải được sản phẩm</strong><span>{error}</span></div>
+        {error && products.length > 0 ? <p className="quick-order-inline-error" role="alert">{error}</p> : null}
+        {error && products.length === 0 ? <div className="catalog-state-card is-error" role="alert"><PackageSearch aria-hidden="true" size={28} /><strong>Chưa tải được sản phẩm</strong><span>{error}</span></div>
           : !loaded ? <div aria-label="Đang tải danh sách đặt nhanh" className="quick-order-list quick-order-direct-list">{Array.from({ length: 5 }, (_, index) => <div className="quick-order-row quick-order-direct-row is-skeleton" key={index} />)}</div>
-          : filteredProducts.length === 0 ? <div className="catalog-state-card"><PackageSearch aria-hidden="true" size={30} /><strong>Không tìm thấy sản phẩm</strong></div>
-          : <QuickOrderProductList addingSku={addingSku} onAddProduct={(product) => void addProductToCart(product)} products={filteredProducts} />}
+          : products.length === 0 ? <div className="catalog-state-card"><PackageSearch aria-hidden="true" size={30} /><strong>Không tìm thấy sản phẩm</strong></div>
+          : <>
+            <QuickOrderProductList addingSku={addingSku} onAddProduct={(product) => void addProductToCart(product)} products={products} />
+            {hasMore ? <button className="primary-button catalog-load-more" disabled={loadingMore} onClick={() => void loadMore()} type="button">{loadingMore ? "Đang tải thêm..." : "Xem thêm sản phẩm"}</button> : null}
+          </>}
       </div>
     </div>
   </section>;

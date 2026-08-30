@@ -9,6 +9,8 @@ import type {
   DeliveryAddress,
   NotificationPreference,
   Product,
+  ProductPage,
+  ProductPageInput,
   ProductSearchInput,
   ReorderOrderResult,
   SignInInput,
@@ -25,6 +27,7 @@ export class CustomerOrderingService {
   signOut(): Promise<void> { return this.adapter.signOut(); }
   listCategories(): Promise<Category[]> { return this.adapter.listCategories(); }
   listProducts(input?: ProductSearchInput): Promise<Product[]> { return this.adapter.listProducts(input); }
+  listProductPage(input?: ProductPageInput): Promise<ProductPage> { return this.adapter.listProductPage(input); }
   getProductBySku(sku: string): Promise<Product | null> { return this.adapter.getProductBySku(sku); }
   getCart(): Promise<Cart> { return this.adapter.getCart(); }
   saveCart(cart: Cart): Promise<void> { return this.adapter.saveCart(cart); }
