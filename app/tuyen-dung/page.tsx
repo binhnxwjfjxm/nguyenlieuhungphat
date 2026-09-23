@@ -5,49 +5,38 @@ import { getAbsoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Tuyển dụng nhân viên kinh doanh miền Tây",
-  description:
-    "Hưng Phát tuyển nhân viên kinh doanh thị trường miền Tây, phụ trách chăm sóc khách hàng, phát triển đại lý và theo dõi đơn hàng.",
+  description: "Hưng Phát tuyển nhân viên kinh doanh thị trường miền Tây, phụ trách chăm sóc khách hàng và phát triển thị trường.",
   alternates: { canonical: "/tuyen-dung" },
   openGraph: {
-    title: "Tuyển dụng nhân viên kinh doanh miền Tây | Hưng Phát",
-    description:
-      "Cơ hội nhân viên kinh doanh thị trường miền Tây tại Hưng Phát, với hai khu vực phụ trách và chính sách thu nhập theo hiệu quả.",
+    title: "Tuyển dụng | Hưng Phát",
+    description: "Thông tin cơ hội nghề nghiệp và vị trí nhân viên kinh doanh thị trường miền Tây tại Hưng Phát.",
     url: getAbsoluteUrl("/tuyen-dung"),
   },
 };
 
 export default function TuyenDungPage() {
   return (
-    <main className="content-page">
+    <main className="content-page content-page-v2 recruitment-page-v2">
       <section className="page-hero">
         <div className="container page-hero-inner">
           <div>
             <p className="eyebrow">TUYỂN DỤNG</p>
-            <h1 className="gradient-heading">Tuyển nhân viên kinh doanh thị trường miền Tây</h1>
-            <p>Chọn khu vực phù hợp, xem mô tả công việc và gửi CV trực tiếp cho Hưng Phát.</p>
+            <h1 className="gradient-heading">Cơ hội nghề nghiệp tại Hưng Phát</h1>
+            <p>Xem khu vực phụ trách, mô tả công việc và gửi hồ sơ trực tiếp cho bộ phận tuyển dụng.</p>
           </div>
         </div>
       </section>
 
       <section className="section">
-        <div className="container recruitment-board-wrap">
-          <RecruitmentBoard />
-        </div>
+        <div className="container recruitment-board-wrap"><RecruitmentBoard /></div>
       </section>
 
       <section className="section" id="recruitment-form">
         <div className="container recruitment-form-wrap">
-          <div className="contact-card contact-form-card">
+          <div className="contact-card contact-form-card recruitment-form-card-v2">
             <p className="eyebrow">GỬI HỒ SƠ</p>
-            <h2 className="gradient-heading">Gửi CV cho HR</h2>
-
-            <RecruitmentForm
-              inline
-              initialValues={{
-                source: "tuyen-dung",
-                pathname: "/tuyen-dung",
-              }}
-            />
+            <h2 className="gradient-heading">Ứng tuyển cùng Hưng Phát</h2>
+            <RecruitmentForm inline initialValues={{ source: "tuyen-dung", pathname: "/tuyen-dung" }} />
           </div>
         </div>
       </section>

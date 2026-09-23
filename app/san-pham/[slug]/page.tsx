@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, MapPin, MessageCircle, Package } from "lucide-react";
+import { ArrowLeft, Check, Layers3, Package, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
+import { CompanyContactCta } from "@/components/company-contact-cta";
 import { ProductCard } from "@/components/product-card";
 import familyStyles from "@/components/product-family.module.css";
-import { QuoteCta } from "@/components/quote-cta";
-import { QuoteForm } from "@/components/quote-form";
-import { QuoteButton } from "@/components/quote-trigger";
 import {
   getProductBySlug,
   getProductFamily,
@@ -15,7 +13,6 @@ import {
   productVariantLabel,
   products,
 } from "@/data/products";
-import { ZALO_URL } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -60,16 +57,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   };
 
   return (
-    <main className="product-detail-page">
+    <main className="product-detail-page presentation-product-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
 
       <section className="product-detail-hero">
         <div className="container">
           <nav className="breadcrumbs" aria-label="Đường dẫn">
-            <Link href="/">Trang chủ</Link>
-            <span>/</span>
-            <Link href="/san-pham">Danh mục sản phẩm</Link>
-            <span>/</span>
+            <Link href="/">Trang chủ</Link><span>/</span>
+            <Link href="/san-pham">Danh mục giới thiệu</Link><span>/</span>
             <span>{product.name}</span>
           </nav>
 
@@ -89,7 +84,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     <strong>{family.name}</strong>
                     <span>{familyVariants.length} lựa chọn vị / quy cách</span>
                   </div>
-                  <div className={familyStyles.detailVariants} aria-label="Chọn vị hoặc quy cách">
+                  <div className={familyStyles.detailVariants} aria-label="Các lựa chọn vị hoặc quy cách">
                     {familyVariants.map((variant) => (
                       <Link
                         className={`${familyStyles.detailVariant}${variant.slug === product.slug ? ` ${familyStyles.active}` : ""}`}
@@ -105,32 +100,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               ) : null}
 
               <div className="product-meta-grid">
-                <div>
-                  <MapPin size={20} />
-                  <span>Ngành hàng<strong>{product.origin}</strong></span>
-                </div>
-                <div>
-                  <Package size={20} />
-                  <span>Nhóm hàng<strong>{product.category}</strong></span>
-                </div>
-                {product.brand ? (
-                  <div>
-                    <MapPin size={20} />
-                    <span>Thương hiệu<strong>{product.brand}</strong></span>
-                  </div>
-                ) : null}
+                <div><Layers3 size={19} /><span>Ngành hàng<strong>{product.origin}</strong></span></div>
+                <div><Package size={19} /><span>Nhóm hàng<strong>{product.category}</strong></span></div>
+                {product.brand ? <div><Tag size={19} /><span>Nhãn hàng<strong>{product.brand}</strong></span></div> : null}
               </div>
 
               <div className="product-detail-actions">
-                <QuoteButton
-                  className="button button-primary button-large"
-                  seed={{ product: product.name, source: "product-detail", pathname: `/san-pham/${product.slug}` }}
-                >
-                  Nhận báo giá
-                </QuoteButton>
-                <a className="button button-ghost button-large" href={ZALO_URL}>
-                  <MessageCircle size={18} /> Zalo tư vấn
-                </a>
+                <Link className="button button-primary" href="/lien-he">Liên hệ Công Ty</Link>
+                <Link className="button button-secondary" href={`/nganh-hang/${product.categorySlug}`}>Xem ngành hàng</Link>
               </div>
             </div>
           </div>
@@ -144,14 +121,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <h2 className="gradient-heading">Đặc điểm &amp; ứng dụng</h2>
             <p>{product.description}</p>
             <div className="feature-grid">
-              {product.features.map((feature) => (
-                <div key={feature}><Check size={17} />{feature}</div>
-              ))}
+              {product.features.map((feature) => <div key={feature}><Check size={17} />{feature}</div>)}
             </div>
           </article>
 
           <aside className="specification-card">
-            <h2 className="gradient-heading">Thông số tham khảo</h2>
+            <h2 className="gradient-heading">Thông tin tham khảo</h2>
             <dl>
               {product.specifications.map((specification) => (
                 <div key={specification.label}>
@@ -160,7 +135,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </div>
               ))}
             </dl>
-            <small>Thông số cụ thể được xác nhận theo lô hàng và nhu cầu sử dụng.</small>
+            <small>Thông tin được trình bày theo dữ liệu danh mục hiện có và có thể được cập nhật khi nguồn dữ liệu thay đổi.</small>
           </aside>
         </div>
       </section>
@@ -169,7 +144,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="container">
           <div className="section-heading">
             <p className="eyebrow">ỨNG DỤNG</p>
-            <h2 className="gradient-heading">Phù hợp nhiều nhu cầu</h2>
+            <h2 className="gradient-heading">Phạm vi tham khảo</h2>
           </div>
           <div className="application-list">
             {product.applications.map((application) => <span key={application}>{application}</span>)}
@@ -177,36 +152,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      <section className="section product-inline-quote">
-        <div className="container">
-          <div className="section-heading split-heading">
-            <div>
-              <p className="eyebrow">BÁO GIÁ NHANH</p>
-              <h2 className="gradient-heading">Điền sẵn thông tin</h2>
-            </div>
-            <QuoteButton className="button button-secondary" seed={{ product: product.name, source: "product-inline" }}>
-              Mở form báo giá
-            </QuoteButton>
-          </div>
-
-          <QuoteForm
-            inline
-            initialValues={{ product: product.name, source: "product-inline", pathname: `/san-pham/${product.slug}` }}
-          />
-        </div>
-      </section>
-
       {relatedProducts.length ? (
         <section className="section related-products-section">
           <div className="container">
             <div className="section-heading split-heading">
-              <div>
-                <p className="eyebrow">GỢI Ý THÊM</p>
-                <h2 className="gradient-heading">Sản phẩm cùng nhóm</h2>
-              </div>
-              <Link className="text-link" href="/san-pham">
-                <ArrowLeft size={17} /> Xem toàn bộ
-              </Link>
+              <div><p className="eyebrow">GỢI Ý THÊM</p><h2 className="gradient-heading">Sản phẩm cùng nhóm</h2></div>
+              <Link className="text-link" href="/san-pham"><ArrowLeft size={16} /> Xem toàn bộ danh mục</Link>
             </div>
             <div className="product-grid">
               {relatedProducts.map((item) => <ProductCard product={item} compact key={item.slug} />)}
@@ -215,9 +166,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </section>
       ) : null}
 
-      <section className="section product-quote-section">
-        <div className="container"><QuoteCta productName={product.name} /></div>
-      </section>
+      <CompanyContactCta />
     </main>
   );
 }

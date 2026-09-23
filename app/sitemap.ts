@@ -9,6 +9,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: baseUrl, changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/gioi-thieu`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/nganh-hang`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/nhan-hang`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/nang-luc`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/cam-nang`, changeFrequency: "weekly", priority: 0.8 },
     ...categories.map((category) => ({
       url: `${baseUrl}/nganh-hang/${category.slug}`,
       changeFrequency: "monthly" as const,

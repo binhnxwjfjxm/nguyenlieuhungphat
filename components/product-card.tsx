@@ -1,20 +1,12 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Heart, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import type { KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent } from "react";
 import type { Product } from "@/data/products";
 import { HapticLink } from "./haptic-link";
 import familyStyles from "./product-family.module.css";
-import { QuoteButton } from "./quote-trigger";
-
-function vibrate() {
-  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-    navigator.vibrate(12);
-  }
-}
 
 type ProductCardProps = {
   product: Product;
@@ -33,22 +25,9 @@ export function ProductCard({
   variantLabels = [],
   variantCount = 1,
 }: ProductCardProps) {
-  const [saved, setSaved] = useState(false);
   const reduceMotion = useReducedMotion();
   const clickable = Boolean(onOpen);
   const visibleVariantLabels = [...new Set(variantLabels.filter(Boolean))].slice(0, 3);
-
-  function toggleSaved(event: MouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-    const savedProducts = JSON.parse(localStorage.getItem("hungphat-saved-products") ?? "[]") as string[];
-    const nextSaved = savedProducts.includes(product.slug)
-      ? savedProducts.filter((slug) => slug !== product.slug)
-      : [...savedProducts, product.slug];
-
-    localStorage.setItem("hungphat-saved-products", JSON.stringify(nextSaved));
-    setSaved(nextSaved.includes(product.slug));
-    vibrate();
-  }
 
   function handleOpen() {
     onOpen?.(product);
@@ -63,13 +42,13 @@ export function ProductCard({
 
   return (
     <motion.article
-      className={`product-card${compact ? " product-card-compact" : ""}${clickable ? " is-clickable" : ""}`}
+      className={`product-card presentation-product-card${compact ? " product-card-compact" : ""}${clickable ? " is-clickable" : ""}`}
       role={clickable ? "button" : undefined}
       tabIndex={clickable ? 0 : undefined}
       aria-label={clickable ? `Xem ${displayName} và các lựa chọn` : undefined}
-      whileHover={reduceMotion ? undefined : { y: -6 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.985 }}
-      transition={{ duration: 0.2 }}
+      whileHover={reduceMotion ? undefined : { y: -2 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.992 }}
+      transition={{ duration: 0.18 }}
       onClick={clickable ? handleOpen : undefined}
       onKeyDown={clickable ? handleKeyDown : undefined}
     >
@@ -97,31 +76,13 @@ export function ProductCard({
         </HapticLink>
       )}
 
-      {compact ? null : (
-        <button
-          className={`save-button${saved ? " is-saved" : ""}`}
-          type="button"
-          aria-label={saved ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-          aria-pressed={saved}
-          onClick={toggleSaved}
-        >
-          <Heart size={18} fill={saved ? "currentColor" : "none"} />
-        </button>
-      )}
-
       <div className="product-card-body">
         <div className="product-card-topline">
-          <p className="product-origin">
-            <MapPin size={13} /> {product.origin}
-          </p>
+          <p className="product-origin">{product.origin}</p>
           {product.brand ? <span className="product-brand">{product.brand}</span> : null}
         </div>
         <h3>
-          {clickable ? (
-            <span className="product-card-title">{displayName}</span>
-          ) : (
-            <HapticLink href={`/san-pham/${product.slug}`}>{displayName}</HapticLink>
-          )}
+          {clickable ? <span className="product-card-title">{displayName}</span> : <HapticLink href={`/san-pham/${product.slug}`}>{displayName}</HapticLink>}
         </h3>
         <p className={`product-summary${compact ? " product-summary-compact" : ""}`}>{product.shortDescription}</p>
 
@@ -137,24 +98,14 @@ export function ProductCard({
           </div>
         ) : null}
 
-        <div className="product-card-metadata">
-          <span>{product.origin}</span>
-          <span>{product.category}</span>
-        </div>
-
-        <div className="product-card-actions">
-          {clickable ? null : (
+        <div className="product-card-actions presentation-card-actions">
+          {clickable ? (
+            <span className="product-card-hint">{variantCount > 1 ? "Xem các lựa chọn" : "Xem nhanh"}</span>
+          ) : (
             <HapticLink href={`/san-pham/${product.slug}`} className="product-link">
-              {variantCount > 1 ? "Xem các lựa chọn" : "Xem chi tiết"} <ArrowUpRight size={16} />
+              Xem chi tiết <ArrowUpRight size={15} />
             </HapticLink>
           )}
-          <QuoteButton
-            className="product-quote-button"
-            seed={{ product: displayName, source: "product-card", pathname: `/san-pham/${product.slug}` }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            Nhận báo giá
-          </QuoteButton>
         </div>
       </div>
     </motion.article>

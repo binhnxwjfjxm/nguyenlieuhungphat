@@ -14,7 +14,6 @@ import { normalizeSearchText } from "@/lib/search";
 import familyStyles from "./product-family.module.css";
 import { HapticLink } from "./haptic-link";
 import { ProductCard } from "./product-card";
-import { QuoteButton } from "./quote-trigger";
 
 export function ProductCatalog({
   products,
@@ -242,7 +241,7 @@ export function ProductCatalog({
             <div className="catalog-empty">
               <Search size={34} />
               <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
-              <p>Gửi nhu cầu để nhận tư vấn đúng nhóm hàng.</p>
+              <p>Hưng Phát đang tiếp tục bổ sung nội dung cho danh mục này.</p>
             </div>
           ) : filteredFamilies.length ? (
             <>
@@ -344,12 +343,9 @@ export function ProductCatalog({
                   <HapticLink className="button button-ghost" href={`/san-pham/${selectedPreview.primary.slug}`}>
                     Mở trang chi tiết
                   </HapticLink>
-                  <QuoteButton
-                    className="button button-primary"
-                    seed={{ product: selectedPreview.name, source: "product-modal", pathname: `/san-pham/${selectedPreview.primary.slug}` }}
-                  >
-                    Nhận báo giá
-                  </QuoteButton>
+                  <HapticLink className="button button-primary" href="/lien-he">
+                    Liên hệ Công Ty
+                  </HapticLink>
                 </div>
               </div>
             </div>

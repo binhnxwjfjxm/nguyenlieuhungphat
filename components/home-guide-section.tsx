@@ -17,7 +17,7 @@ export function HomeGuideSection() {
               <h2 className="gradient-heading">Thông tin hữu ích cho hoạt động F&amp;B</h2>
               <p>Các hướng dẫn ngắn về chọn nguyên liệu, bảo quản và quản lý nhập hàng.</p>
             </div>
-            <HapticLink className="text-link desktop-only-link" href="/nganh-hang">
+            <HapticLink className="text-link desktop-only-link" href="/cam-nang">
               Xem toàn bộ cẩm nang <ArrowUpRight size={16} />
             </HapticLink>
           </div>
@@ -26,7 +26,7 @@ export function HomeGuideSection() {
         <div className="home-guide-grid">
           {homeGuides.map((guide, index) => (
             <Reveal key={guide.title} delay={index * 0.04}>
-              <HapticLink className="home-guide-card" href="/nganh-hang">
+              <HapticLink className="home-guide-card" href="/cam-nang">
                 <div className="home-guide-image">
                   <Image
                     src={guide.image}
@@ -49,7 +49,7 @@ export function HomeGuideSection() {
         </div>
 
         <div className="company-section-footer mobile-only-footer">
-          <HapticLink className="text-link" href="/nganh-hang">
+          <HapticLink className="text-link" href="/cam-nang">
             Xem toàn bộ cẩm nang <ArrowUpRight size={16} />
           </HapticLink>
         </div>
