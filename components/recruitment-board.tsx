@@ -1,10 +1,12 @@
 "use client";
 
 import { Building2, CalendarDays, Coins, MapPin, PhoneCall, Send, ShieldCheck, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import { COMPANY_ADDRESS_DISPLAY, ZALO_PHONE_DISPLAY } from "@/lib/contact";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
+import { useAccessibleDialog } from "./use-accessible-dialog";
 
 type AreaKey = "mien-tay-1" | "mien-tay-2";
 
@@ -69,25 +71,9 @@ const applicationNotes = [
 export function RecruitmentBoard() {
   const [selectedRole, setSelectedRole] = useState<RecruitmentRole | null>(null);
   const selectedDetail = useMemo(() => selectedRole ?? roles[0], [selectedRole]);
-
-  useEffect(() => {
-    if (!selectedRole) return undefined;
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSelectedRole(null);
-      }
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [selectedRole]);
+  const reduceMotion = useReducedMotion();
+  const closeSelectedRole = useCallback(() => setSelectedRole(null), []);
+  const dialogRef = useAccessibleDialog({ open: Boolean(selectedRole), onClose: closeSelectedRole });
 
   return (
     <>
@@ -97,6 +83,8 @@ export function RecruitmentBoard() {
             key={role.key}
             className="recruitment-strip-card"
             type="button"
+            aria-haspopup="dialog"
+            aria-controls="recruitment-role-dialog"
             onClick={() => setSelectedRole(role)}
           >
             <div className="recruitment-strip-main">
@@ -135,19 +123,22 @@ export function RecruitmentBoard() {
       </div>
 
       {selectedRole ? (
-        <div className="recruitment-modal-overlay" role="presentation" onMouseDown={() => setSelectedRole(null)}>
+        <div className="recruitment-modal-overlay" role="presentation" onMouseDown={closeSelectedRole}>
           <div
+            ref={dialogRef}
+            id="recruitment-role-dialog"
             className="recruitment-modal-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="recruitment-preview-title"
+            tabIndex={-1}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <button
               className="icon-button recruitment-modal-close"
               type="button"
               aria-label="Đóng chi tiết tuyển dụng"
-              onClick={() => setSelectedRole(null)}
+              onClick={closeSelectedRole}
             >
               <X size={18} />
             </button>
@@ -247,8 +238,11 @@ export function RecruitmentBoard() {
                   className="button button-primary recruitment-modal-cta"
                   type="button"
                   onClick={() => {
-                    document.getElementById("recruitment-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    setSelectedRole(null);
+                    document.getElementById("recruitment-form")?.scrollIntoView({
+                      behavior: reduceMotion ? "auto" : "smooth",
+                      block: "start",
+                    });
+                    closeSelectedRole();
                   }}
                 >
                   Gửi hồ sơ ngay

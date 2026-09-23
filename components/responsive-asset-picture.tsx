@@ -16,6 +16,8 @@ type ResponsiveAssetPictureProps = {
   mobileMedia?: string;
   priority?: boolean;
   loading?: "eager" | "lazy";
+  intrinsicWidth?: number;
+  intrinsicHeight?: number;
 };
 
 function getFallbackForSource(
@@ -49,6 +51,8 @@ export function ResponsiveAssetPicture({
   mobileMedia = "(max-width: 820px)",
   priority = false,
   loading,
+  intrinsicWidth = 1600,
+  intrinsicHeight = 1000,
 }: ResponsiveAssetPictureProps) {
   return (
     <picture className={className} style={style}>
@@ -56,6 +60,8 @@ export function ResponsiveAssetPicture({
       <source media="(min-width: 821px)" srcSet={desktopSrc} />
       <img
         alt={alt}
+        width={intrinsicWidth}
+        height={intrinsicHeight}
         className={imgClassName}
         loading={loading ?? (priority ? "eager" : "lazy")}
         decoding="async"

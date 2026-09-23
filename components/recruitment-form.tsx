@@ -162,7 +162,11 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
   }
 
   return (
-    <form className={`quote-form${inline ? " quote-form-inline" : ""}`} onSubmit={handleSubmit}>
+    <form
+      className={`quote-form${inline ? " quote-form-inline" : ""}`}
+      aria-busy={isSubmitting}
+      onSubmit={handleSubmit}
+    >
       {status ? (
         <div className={`quote-form-status quote-form-status-${status.tone}`} aria-live="polite">
           {status.text}
