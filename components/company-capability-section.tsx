@@ -1,4 +1,4 @@
-import { Building2, PackageCheck, Route, Warehouse } from "lucide-react";
+import { PackageCheck, Route, Warehouse } from "lucide-react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
 import { Reveal } from "./reveal";

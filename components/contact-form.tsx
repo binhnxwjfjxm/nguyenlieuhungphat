@@ -24,7 +24,7 @@ export function ContactForm() {
   const pathname = usePathname();
   const toast = useToast();
   const [form, setForm] = useState<ContactState>(EMPTY);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   function update<K extends keyof ContactState>(key: K, value: ContactState[K]) {
