@@ -3,9 +3,9 @@ type RateLimitBucket = {
   fingerprint?: string;
 };
 
-const quoteByIp = new Map<string, RateLimitBucket>();
-const quoteByPhone = new Map<string, RateLimitBucket>();
-const quoteByFingerprint = new Map<string, RateLimitBucket>();
+const contactByIp = new Map<string, RateLimitBucket>();
+const contactByPhone = new Map<string, RateLimitBucket>();
+const contactByFingerprint = new Map<string, RateLimitBucket>();
 const chatByIp = new Map<string, RateLimitBucket>();
 const chatByPhone = new Map<string, RateLimitBucket>();
 const chatByFingerprint = new Map<string, RateLimitBucket>();
@@ -44,7 +44,7 @@ function checkDuplicate(map: Map<string, RateLimitBucket>, key: string, fingerpr
   return 0;
 }
 
-export function checkQuoteRateLimit({
+export function checkContactRateLimit({
   ip,
   phone,
   fingerprint,
@@ -55,17 +55,17 @@ export function checkQuoteRateLimit({
   fingerprint: string;
   now?: number;
 }) {
-  const ipRetryAfter = checkWindow(quoteByIp, ip, now, REQUEST_INTERVAL_MS);
+  const ipRetryAfter = checkWindow(contactByIp, ip, now, REQUEST_INTERVAL_MS);
   if (ipRetryAfter) {
     return { ok: false as const, retryAfter: ipRetryAfter, code: "RATE_LIMITED", error: "Bạn đang gửi quá nhanh." };
   }
 
-  const phoneRetryAfter = checkWindow(quoteByPhone, phone, now, REQUEST_INTERVAL_MS);
+  const phoneRetryAfter = checkWindow(contactByPhone, phone, now, REQUEST_INTERVAL_MS);
   if (phoneRetryAfter) {
     return { ok: false as const, retryAfter: phoneRetryAfter, code: "RATE_LIMITED", error: "Bạn đang gửi quá nhanh." };
   }
 
-  const duplicateRetryAfter = checkDuplicate(quoteByFingerprint, `${ip}:${phone}`, fingerprint, now, DUPLICATE_WINDOW_MS);
+  const duplicateRetryAfter = checkDuplicate(contactByFingerprint, `${ip}:${phone}`, fingerprint, now, DUPLICATE_WINDOW_MS);
   if (duplicateRetryAfter) {
     return {
       ok: false as const,

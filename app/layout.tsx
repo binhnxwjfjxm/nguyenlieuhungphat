@@ -3,7 +3,6 @@ import { Be_Vietnam_Pro } from "next/font/google";
 import { Chatbot } from "@/components/chatbot";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { QuoteProvider } from "@/components/quote-provider";
 import { ToastProvider } from "@/components/toast-provider";
 import { getSiteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
@@ -80,12 +79,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="vi" className={beVietnamPro.variable}>
       <body>
         <ToastProvider>
-          <QuoteProvider>
-            <Header />
-            {children}
-            <Footer />
-            <Chatbot />
-          </QuoteProvider>
+          <Header />
+          {children}
+          <Footer />
+          <Chatbot />
         </ToastProvider>
       </body>
     </html>

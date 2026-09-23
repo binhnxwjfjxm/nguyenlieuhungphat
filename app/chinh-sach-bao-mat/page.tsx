@@ -6,11 +6,11 @@ import { getAbsoluteUrl } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Chính sách bảo mật",
   description:
-    "Chính sách bảo mật thông tin khách hàng, yêu cầu báo giá, hội thoại hỗ trợ và hồ sơ tuyển dụng tại Hưng Phát.",
+    "Chính sách bảo mật thông tin liên hệ, hội thoại hỗ trợ và hồ sơ tuyển dụng tại Hưng Phát.",
   alternates: { canonical: "/chinh-sach-bao-mat" },
   openGraph: {
     title: "Chính sách bảo mật | Hưng Phát",
-    description: "Cách Hưng Phát tiếp nhận và sử dụng thông tin phục vụ tư vấn, báo giá, hỗ trợ và tuyển dụng.",
+    description: "Cách Hưng Phát tiếp nhận và sử dụng thông tin phục vụ liên hệ, hỗ trợ và tuyển dụng.",
     url: getAbsoluteUrl("/chinh-sach-bao-mat"),
   },
 };
@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
           <div>
             <p className="eyebrow">QUYỀN RIÊNG TƯ</p>
             <h1 className="gradient-heading">Chính sách bảo mật</h1>
-            <p>Thông tin được tiếp nhận để xử lý đúng nhu cầu tư vấn, báo giá, hỗ trợ hoặc tuyển dụng.</p>
+            <p>Thông tin được tiếp nhận để phản hồi liên hệ, hỗ trợ hội thoại hoặc xử lý hồ sơ tuyển dụng.</p>
           </div>
         </div>
       </section>
@@ -33,8 +33,7 @@ export default function PrivacyPolicyPage() {
           <article className="contact-card">
             <h2>1. Thông tin Hưng Phát tiếp nhận</h2>
             <p>
-              Với yêu cầu tư vấn hoặc báo giá, thông tin có thể gồm họ tên, số điện thoại, email, công ty/cửa hàng, sản phẩm cần tìm,
-              số lượng, khu vực giao hàng và nội dung ghi chú.
+              Với biểu mẫu liên hệ, thông tin có thể gồm họ tên, số điện thoại, email, Công Ty/cửa hàng và nội dung người dùng chủ động gửi.
             </p>
             <p>
               Với hội thoại hỗ trợ trực tuyến, thông tin có thể gồm nội dung trao đổi, mã phiên, trang đang xem và số điện thoại nếu người dùng
@@ -47,8 +46,8 @@ export default function PrivacyPolicyPage() {
 
             <h2>2. Mục đích sử dụng</h2>
             <p>
-              Hưng Phát sử dụng thông tin để liên hệ lại, hỗ trợ hội thoại, tư vấn sản phẩm, xử lý yêu cầu báo giá, phối hợp giao nhận khi cần và
-              tiếp nhận, đánh giá hồ sơ tuyển dụng. Thông tin không được dùng cho mục đích khác ngoài phạm vi cần thiết nếu chưa có sự đồng ý phù hợp.
+              Hưng Phát sử dụng thông tin để phản hồi nội dung liên hệ, hỗ trợ hội thoại và tiếp nhận, đánh giá hồ sơ tuyển dụng.
+              Thông tin không được dùng cho mục đích khác ngoài phạm vi cần thiết nếu chưa có sự đồng ý phù hợp.
             </p>
 
             <h2>3. Hệ thống xử lý thông tin</h2>
@@ -77,7 +76,7 @@ export default function PrivacyPolicyPage() {
             </p>
 
             <p>
-              <strong>Ngày áp dụng:</strong> 07/08/2026.
+              <strong>Ngày cập nhật:</strong> 24/09/2026.
             </p>
           </article>
         </div>

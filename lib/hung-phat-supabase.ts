@@ -18,23 +18,6 @@ type ChatRecordInput = TelegramRecord & {
   playbookKey?: string;
 };
 
-type QuoteRecordInput = TelegramRecord & {
-  leadId: string;
-  name: string;
-  phone: string;
-  company: string;
-  email: string;
-  product: string;
-  quantity: string;
-  area: string;
-  usage: string;
-  note: string;
-  source: string;
-  pathname: string;
-  website: string;
-  status?: string;
-};
-
 type IntegrationSettingsInput = {
   key: string;
   provider: string;
@@ -148,73 +131,6 @@ export async function recordChatConversation(input: ChatRecordInput) {
       values ($1, 'user', $2, $3, $4)
     `,
     [sessionId, transcript, normalizeTelegramId(input.telegramChatId), input.telegramMessageId ?? null],
-  );
-
-  return { ok: true as const };
-}
-
-export async function recordQuoteLead(input: QuoteRecordInput) {
-  const pool = getPool();
-  if (!pool) return { ok: false as const, skipped: true as const };
-
-  await pool.query(
-    `
-      insert into public.hung_phat_quote_leads (
-        lead_id,
-        name,
-        phone,
-        company,
-        email,
-        product,
-        quantity,
-        area,
-        usage,
-        note,
-        source,
-        pathname,
-        website,
-        status,
-        telegram_chat_id,
-        telegram_message_id,
-        updated_at
-      )
-      values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, now())
-      on conflict (lead_id) do update set
-        name = excluded.name,
-        phone = excluded.phone,
-        company = excluded.company,
-        email = excluded.email,
-        product = excluded.product,
-        quantity = excluded.quantity,
-        area = excluded.area,
-        usage = excluded.usage,
-        note = excluded.note,
-        source = excluded.source,
-        pathname = excluded.pathname,
-        website = excluded.website,
-        status = excluded.status,
-        telegram_chat_id = excluded.telegram_chat_id,
-        telegram_message_id = excluded.telegram_message_id,
-        updated_at = now()
-    `,
-    [
-      normalizeValue(input.leadId),
-      normalizeValue(input.name),
-      normalizeValue(input.phone),
-      normalizeValue(input.company || ""),
-      normalizeValue(input.email || ""),
-      normalizeValue(input.product || ""),
-      normalizeValue(input.quantity || ""),
-      normalizeValue(input.area || ""),
-      normalizeValue(input.usage || ""),
-      normalizeValue(input.note || ""),
-      normalizeValue(input.source || "quote-form"),
-      normalizeValue(input.pathname || "/") || "/",
-      normalizeValue(input.website || ""),
-      normalizeValue(input.status || "new") || "new",
-      normalizeTelegramId(input.telegramChatId),
-      input.telegramMessageId ?? null,
-    ],
   );
 
   return { ok: true as const };
