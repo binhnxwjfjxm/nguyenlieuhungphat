@@ -21,7 +21,7 @@ export default function TuyenDungPage() {
         <div className="container page-hero-inner">
           <div>
             <p className="eyebrow">TUYỂN DỤNG</p>
-            <h1 className="gradient-heading">Cơ hội nghề nghiệp tại Hưng Phát</h1>
+            <h1 className="gradient-heading">Tuyển nhân viên kinh doanh thị trường miền Tây</h1>
             <p>Xem khu vực phụ trách, mô tả công việc và gửi hồ sơ trực tiếp cho bộ phận tuyển dụng.</p>
           </div>
         </div>
