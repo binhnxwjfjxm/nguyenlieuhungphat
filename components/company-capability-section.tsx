@@ -1,105 +1,97 @@
-import { ArrowUpRight, Building2, Route, Warehouse } from "lucide-react";
+import { Building2, PackageCheck, Route, Warehouse } from "lucide-react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
+import { HapticLink } from "./haptic-link";
 import { Reveal } from "./reveal";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
-import { QuoteButton } from "./quote-trigger";
+
+const capabilityItems = [
+  {
+    icon: Warehouse,
+    title: "Kho và nguồn hàng",
+    description: "Tổ chức danh mục theo nhóm ngành hàng để đối tác dễ tìm và đối chiếu.",
+  },
+  {
+    icon: PackageCheck,
+    title: "Danh mục phù hợp vận hành",
+    description: "Tập trung nguyên liệu, thực phẩm, bao bì và gia vị phục vụ mô hình F&B.",
+  },
+  {
+    icon: Route,
+    title: "Phối hợp giao nhận",
+    description: "Trao đổi phương án giao nhận theo nhu cầu thực tế của từng đối tác.",
+  },
+] as const;
 
 export function CompanyCapabilitySection() {
   return (
-    <section className="section company-capability-section" id="nang-luc">
-      <div className="container">
+    <section className="section company-capability-v2" id="nang-luc">
+      <div className="container company-capability-layout">
         <Reveal>
-          <div className="section-heading split-heading">
-            <div>
-              <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
-              <h2 className="gradient-heading">Kho, trưng bày &amp; giao nhận</h2>
+          <div className="company-capability-visual">
+            <ResponsiveAssetPicture
+              className="company-capability-picture"
+              imgClassName="company-capability-picture-img"
+              alt="Không gian kho và năng lực phân phối Hưng Phát"
+              desktopSrc={siteAssets.warehouse.capability}
+              desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
+              imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+            />
+            <div className="company-capability-stats" aria-label="Thông tin Hưng Phát">
+              <span>
+                <strong>2016</strong>
+                <small>Thành lập từ năm</small>
+              </span>
+              <span>
+                <strong>6</strong>
+                <small>Ngành hàng ưu tiên</small>
+              </span>
+              <span>
+                <strong>B2B</strong>
+                <small>Đối tác kinh doanh</small>
+              </span>
             </div>
-            <QuoteButton className="text-link desktop-only-link capability-quote-link" seed={{ source: "capability-section" }}>
-              Nhận báo giá <ArrowUpRight size={17} />
-            </QuoteButton>
           </div>
         </Reveal>
 
-        <div className="capability-grid">
+        <div className="company-capability-copy">
           <Reveal>
-            <article className="capability-card capability-card-large">
-              <div className="capability-image-wrap capability-image-wrap-large">
-                <ResponsiveAssetPicture
-                  className="capability-picture"
-                  imgClassName="capability-picture-img"
-                  alt="Hình ảnh giới thiệu năng lực kho trưng bày của Hưng Phát"
-                  desktopSrc={siteAssets.warehouse.capability}
-                  desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
-                  priority={false}
-                  imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                />
-                <span className="capability-image-label">Kho trưng bày</span>
-              </div>
-              <div className="capability-copy">
-                <span className="capability-icon">
-                  <Building2 size={18} />
-                </span>
-                <h3>Kết nối nguồn hàng</h3>
-              </div>
-            </article>
+            <div className="section-heading company-section-heading">
+              <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
+              <h2 className="gradient-heading">Hưng Phát đồng hành cùng hoạt động kinh doanh F&amp;B</h2>
+              <p>
+                Từ danh mục ngành hàng đến kho và giao nhận, thông tin trên Website Công Ty được trình bày
+                theo năng lực thực tế đang có, không dùng số liệu minh họa.
+              </p>
+            </div>
           </Reveal>
 
-          <div className="capability-stack">
-            <Reveal delay={0.02}>
-              <div className="capability-highlights">
-                <span>
-                  <strong>2016</strong>
-                  <small>Kinh nghiệm thực tế</small>
-                </span>
-                <span>
-                  <strong>6</strong>
-                  <small>Ngành hàng ưu tiên</small>
-                </span>
-                <span>
-                  <strong>B2B</strong>
-                  <small>Phân phối linh hoạt</small>
-                </span>
-              </div>
-            </Reveal>
-            <Reveal delay={0.04}>
-              <article className="capability-card capability-card-small">
-                <div className="capability-image-wrap">
-                  <ResponsiveAssetPicture
-                    className="capability-picture"
-                    imgClassName="capability-picture-img"
-                    alt="Kho hàng và khu vực lưu trữ phục vụ giao nhận"
-                    desktopSrc={siteAssets.warehouse.one}
-                    desktopFallbackSrc={siteAssetFallbacks.warehouse.one}
-                    imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                  />
-                  <span className="capability-image-label">Kho hàng</span>
-                </div>
-                <div className="capability-mini-copy">
-                  <Warehouse size={17} />
-                  <span>Tiếp nhận số lượng và khu vực</span>
-                </div>
-              </article>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <article className="capability-card capability-card-small">
-                <div className="capability-image-wrap">
-                  <ResponsiveAssetPicture
-                    className="capability-picture"
-                    imgClassName="capability-picture-img"
-                    alt="Hình ảnh phối hợp đơn hàng và luồng giao nhận"
-                    desktopSrc={siteAssets.warehouse.two}
-                    desktopFallbackSrc={siteAssetFallbacks.warehouse.two}
-                    imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                  />
-                  <span className="capability-image-label">Giao nhận</span>
-                </div>
-                <div className="capability-mini-copy">
-                  <Route size={17} />
-                  <span>Phối hợp báo giá và giao nhận</span>
-                </div>
-              </article>
-            </Reveal>
+          <div className="company-capability-list">
+            {capabilityItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Reveal key={item.title} delay={index * 0.04}>
+                  <div className="company-capability-item">
+                    <span className="company-capability-icon"><Icon size={18} /></span>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.description}</p>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
+
+          <Reveal delay={0.08}>
+            <div className="company-capability-actions">
+              <HapticLink className="button button-primary" href="/gioi-thieu">
+                Giới thiệu về Hưng Phát
+              </HapticLink>
+              <HapticLink className="button button-secondary" href="/lien-he">
+                Liên hệ Công Ty
+              </HapticLink>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>

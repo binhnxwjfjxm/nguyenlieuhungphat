@@ -21,12 +21,12 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "Giới thiệu", href: "/gioi-thieu" },
       { label: "Cẩm nang", href: "/nganh-hang" },
-      { label: "Danh mục sản phẩm", href: "/san-pham" },
+      { label: "Danh mục giới thiệu", href: "/san-pham" },
       { label: "Tuyển dụng", href: "/tuyen-dung" },
     ],
   },
   {
-    title: "Danh mục nổi bật",
+    title: "Ngành hàng",
     links: categories.map((category) => ({
       label: category.title,
       href: `/nganh-hang/${category.slug}`,
@@ -45,25 +45,20 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
 function FooterLinkItem({ link, className }: { link: FooterLink; className?: string }) {
   if (!link.href) return null;
   if (link.href.startsWith("/")) {
-    return (
-      <HapticLink className={className} href={link.href}>
-        {link.label}
-      </HapticLink>
-    );
+    return <HapticLink className={className} href={link.href}>{link.label}</HapticLink>;
   }
-  return (
-    <a className={className} href={link.href}>
-      {link.label}
-    </a>
-  );
+  return <a className={className} href={link.href}>{link.label}</a>;
 }
 
 export function Footer() {
   return (
-    <footer className="site-footer" id="lien-he">
+    <footer className="site-footer company-footer" id="lien-he">
       <div className="container footer-grid">
         <div className="footer-brand-column">
           <Logo />
+          <p className="footer-brand-copy">
+            Hưng Phát giới thiệu ngành hàng, nhãn hàng và năng lực phân phối phục vụ đối tác kinh doanh F&amp;B.
+          </p>
           <div className="social-row">
             <a href={ZALO_URL} aria-label={`Zalo Hưng Phát ${ZALO_PHONE_DISPLAY}`}>
               <MessageCircle size={18} />
@@ -81,16 +76,10 @@ export function Footer() {
         ))}
 
         <div className="footer-contact">
-          <h3>Liên hệ với chúng tôi</h3>
-          <a href={ZALO_URL}>
-            <MessageCircle size={17} /> Zalo {ZALO_PHONE_DISPLAY}
-          </a>
-          <a href={`mailto:${COMPANY_EMAIL}`}>
-            <Mail size={17} /> {COMPANY_EMAIL}
-          </a>
-          <p>
-            <MapPin size={17} /> {COMPANY_ADDRESS_DISPLAY}
-          </p>
+          <h3>Liên hệ Công Ty</h3>
+          <a href={ZALO_URL}><MessageCircle size={17} /> Zalo {ZALO_PHONE_DISPLAY}</a>
+          <a href={`mailto:${COMPANY_EMAIL}`}><Mail size={17} /> {COMPANY_EMAIL}</a>
+          <p><MapPin size={17} /> {COMPANY_ADDRESS_DISPLAY}</p>
         </div>
 
         <div className="mobile-footer-groups">
@@ -98,9 +87,7 @@ export function Footer() {
             <details key={group.title}>
               <summary>{group.title}</summary>
               <div>
-                {group.links.map((link) => (
-                  <FooterLinkItem key={link.label} link={link} />
-                ))}
+                {group.links.map((link) => <FooterLinkItem key={link.label} link={link} />)}
               </div>
             </details>
           ))}
@@ -108,7 +95,7 @@ export function Footer() {
       </div>
       <div className="container footer-bottom">
         <span>© 2026 Hưng Phát. All rights reserved.</span>
-        <span>Nguồn hàng đúng nhu cầu · Phân phối linh hoạt</span>
+        <span>Ngành hàng · Nhãn hàng · Năng lực phân phối</span>
       </div>
     </footer>
   );
