@@ -11,11 +11,13 @@ const header = read("components/header.tsx");
 const footer = read("components/footer.tsx");
 const contact = read("lib/contact.ts");
 const envExample = read(".env.example");
+const categorySection = read("components/category-section.tsx");
+const capabilitySection = read("components/company-capability-section.tsx");
 
-const primaryRoutes = ["/", "/gioi-thieu", "/nganh-hang", "/san-pham", "/lien-he", "/tuyen-dung"];
+const primaryRoutes = ["/", "/gioi-thieu", "/#danh-muc", "/#nang-luc", "/nganh-hang", "/tuyen-dung"];
 const footerPrimaryRoutes = ["/gioi-thieu", "/nganh-hang", "/san-pham", "/tuyen-dung", "/lien-he"];
 
-test("Phase 9.7 website primary navigation resolves to real App Router pages", () => {
+test("Phase 9.7 website primary navigation resolves to real App Router pages or real homepage anchors", () => {
   const navigationBlock = site.match(/export const navigation\s*=\s*\[([\s\S]*?)\];/);
   assert.ok(navigationBlock, "website navigation declaration missing");
   assert.deepEqual(literalHrefs(navigationBlock[1]), primaryRoutes);
@@ -23,6 +25,12 @@ test("Phase 9.7 website primary navigation resolves to real App Router pages", (
   assert.match(header, /\{navigation\.map\(/);
 
   for (const href of primaryRoutes) {
+    if (href.startsWith("/#")) {
+      const id = href.slice(2);
+      const source = id === "danh-muc" ? categorySection : capabilitySection;
+      assert.match(source, new RegExp(`id=["']${id}["']`), `website anchor ${href} is missing`);
+      continue;
+    }
     assert.ok(existsSync(page(href)), `website route ${href} has no page.tsx`);
   }
 
@@ -38,7 +46,7 @@ test("Phase 9.7 website primary navigation resolves to real App Router pages", (
 test("Phase 9.7 website dynamic pages remain intentional drill-down routes", () => {
   assert.ok(existsSync("app/nganh-hang/[slug]/page.tsx"));
   assert.ok(existsSync("app/san-pham/[slug]/page.tsx"));
-  assert.match(footer, /`\/nganh-hang\/\$\{category\.slug\}`/);
+  assert.match(footer, /`\/nganh-hang\/$\{category\.slug\}`/);
 });
 
 test("Phase 9.7 website source declares production-facing env names and keeps sensitive examples empty", () => {
