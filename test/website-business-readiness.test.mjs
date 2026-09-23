@@ -17,23 +17,27 @@ function collectText(path) {
     .join("\n");
 }
 
-test("website uses the confirmed Zalo contact and customer ordering entry point", () => {
+test("website uses confirmed contact data without Customer Ordering navigation", () => {
   const contact = read("lib/contact.ts");
   const header = read("components/header.tsx");
   const footer = read("components/footer.tsx");
+  const productsPage = read("app/san-pham/page.tsx");
+  const categoryDetail = read("app/nganh-hang/[slug]/page.tsx");
   const websiteSource = `${collectText("app")}\n${collectText("components")}`;
 
   assert.match(contact, /0396980168/);
-  assert.match(contact, /https:\/\/sales\.nguyenlieuhungphat\.com/);
-  assert.match(header, /CUSTOMER_ORDERING_URL/);
-  assert.match(header, /Đặt hàng/);
+  assert.match(header, /Liên hệ/);
+  assert.doesNotMatch(header, /CUSTOMER_ORDERING_URL|AppInstallGuide|Đặt hàng|Cài app/);
+  assert.doesNotMatch(footer, /CUSTOMER_ORDERING_URL|Đặt hàng khách hàng/);
+  assert.doesNotMatch(productsPage, /CUSTOMER_ORDERING_URL|sales\.nguyenlieuhungphat\.com|đặt hàng/i);
+  assert.doesNotMatch(categoryDetail, /getCustomerOrderingCategoryUrl|sales\.nguyenlieuhungphat\.com|đặt hàng/i);
   assert.match(footer, /ZALO_URL/);
   assert.match(footer, /PRIVACY_POLICY_PATH/);
   assert.doesNotMatch(footer, /href="#"/);
   assert.doesNotMatch(websiteSource, /0900123456|0900 123 456/);
 });
 
-test("website taxonomy exposes the six customer ordering industries", () => {
+test("website taxonomy exposes the six company industries", () => {
   const site = read("data/site.ts");
   const products = read("data/products.ts");
   const categorySection = read("components/category-section.tsx");
@@ -97,26 +101,14 @@ test("website uses one company address and the six-industry capability", () => {
   assert.doesNotMatch(capability, /<strong>3<\/strong>[\s\S]*?<small>Nhóm hàng chính<\/small>/);
 });
 
-test("website categories hand off to the correctly filtered customer ordering catalog", () => {
-  const site = read("data/site.ts");
+test("industry pages stay inside the Website Company content surface", () => {
   const detail = read("app/nganh-hang/[slug]/page.tsx");
   const productsPage = read("app/san-pham/page.tsx");
-  const contact = read("lib/contact.ts");
 
-  const categoryIds = [...site.matchAll(/orderingCategoryId:\s*"([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(categoryIds, [
-    "milk-tea",
-    "spicy-noodle",
-    "frozen",
-    "snacks",
-    "packaging",
-    "sauce-seasoning",
-  ]);
-  assert.match(contact, /products\?category=/);
-  assert.match(detail, /getCustomerOrderingCategoryUrl/);
-  assert.match(detail, /Xem catalog đầy đủ/);
-  assert.match(productsPage, /CUSTOMER_ORDERING_URL/);
-  assert.match(productsPage, /Xem catalog đầy đủ/);
+  assert.match(detail, /\/san-pham\?category=/);
+  assert.match(detail, /Liên hệ Công Ty/);
+  assert.doesNotMatch(detail, /getCustomerOrderingCategoryUrl|CUSTOMER_ORDERING_URL|Xem catalog đầy đủ/);
+  assert.doesNotMatch(productsPage, /CUSTOMER_ORDERING_URL|Xem catalog đầy đủ/);
 });
 
 test("chatbot uses the canonical endpoint and discloses privacy handling", () => {

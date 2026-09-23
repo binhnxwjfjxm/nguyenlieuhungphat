@@ -12,6 +12,7 @@ import "./sprint2.css";
 import "./sprint3.css";
 import "./hung-phat-warm-gold.css";
 import "./chatbot.css";
+import "./company-site-v2.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],

@@ -8,7 +8,6 @@ import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
 import { products } from "@/data/products";
-import { getCustomerOrderingCategoryUrl } from "@/lib/contact";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -39,8 +38,6 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
   if (!category) notFound();
 
   const categoryProducts = products.filter((product) => product.categorySlug === category.slug);
-  const orderingUrl = getCustomerOrderingCategoryUrl(category.orderingCategoryId);
-
   return (
     <main className="content-page">
       <section className="page-hero">
@@ -50,12 +47,12 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             <h1 className="gradient-heading">{category.title}</h1>
             <p>{category.description}</p>
             <div className="hero-actions">
-              <Link className="button button-secondary" href="/nganh-hang">
-                <ArrowLeft size={17} /> Quay lại cẩm nang
+              <Link className="button button-secondary" href="/#danh-muc">
+                <ArrowLeft size={17} /> Xem các ngành hàng
               </Link>
-              <a className="button button-primary" href={orderingUrl}>
-                Xem catalog &amp; đặt hàng
-              </a>
+              <Link className="button button-primary" href={`/san-pham?category=${category.slug}`}>
+                Xem nhóm sản phẩm
+              </Link>
             </div>
           </div>
           <div className="page-hero-image">
@@ -88,10 +85,10 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
               <div className="catalog-empty">
                 <PackageSearch size={34} />
                 <h2 className="gradient-heading">Danh mục website đang cập nhật</h2>
-                <p>Catalog đặt hàng đầy đủ vẫn có thể được xem theo đúng ngành hàng này.</p>
-                <a className="button button-primary" href={orderingUrl}>
-                  Xem catalog đầy đủ &amp; đặt hàng
-                </a>
+                <p>Hưng Phát đang tiếp tục bổ sung nội dung giới thiệu cho ngành hàng này.</p>
+                <Link className="button button-primary" href="/lien-he">
+                  Liên hệ Công Ty
+                </Link>
               </div>
             </Reveal>
           )}
