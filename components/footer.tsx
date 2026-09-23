@@ -3,19 +3,16 @@ import { categories } from "@/data/site";
 import {
   COMPANY_ADDRESS_DISPLAY,
   COMPANY_EMAIL,
-  CUSTOMER_ORDERING_URL,
   PRIVACY_POLICY_PATH,
   ZALO_PHONE_DISPLAY,
   ZALO_URL,
 } from "@/lib/contact";
 import { Logo } from "./logo";
 import { HapticLink } from "./haptic-link";
-import { QuoteButton } from "./quote-trigger";
 
 type FooterLink = {
   label: string;
   href?: string;
-  action?: "quote";
 };
 
 const footerGroups: { title: string; links: FooterLink[] }[] = [
@@ -38,9 +35,7 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
   {
     title: "Hỗ trợ",
     links: [
-      { label: "Yêu cầu báo giá", action: "quote" },
-      { label: "Đặt hàng khách hàng", href: CUSTOMER_ORDERING_URL },
-      { label: "Liên hệ tư vấn", href: "/lien-he" },
+      { label: "Liên hệ Công Ty", href: "/lien-he" },
       { label: "Chính sách bảo mật", href: PRIVACY_POLICY_PATH },
       { label: "Chat Zalo", href: ZALO_URL },
     ],
@@ -48,9 +43,6 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
 ];
 
 function FooterLinkItem({ link, className }: { link: FooterLink; className?: string }) {
-  if (link.action === "quote") {
-    return <QuoteButton className={className}>{link.label}</QuoteButton>;
-  }
   if (!link.href) return null;
   if (link.href.startsWith("/")) {
     return (

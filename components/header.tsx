@@ -4,11 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { navigation } from "@/data/site";
-import { CUSTOMER_ORDERING_URL } from "@/lib/contact";
-import { AppInstallGuide } from "./app-install-guide";
 import { HapticLink } from "./haptic-link";
 import { Logo } from "./logo";
-import { QuoteButton } from "./quote-trigger";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -27,19 +24,17 @@ export function Header() {
         </nav>
 
         <div className="desktop-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm sản phẩm">
-            <Search size={19} />
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm trong danh mục">
+            <Search size={18} />
           </HapticLink>
-          <AppInstallGuide className="button button-surface" label="Cài app" />
-          <QuoteButton className="button button-surface">Nhận báo giá</QuoteButton>
-          <a className="button button-primary" href={CUSTOMER_ORDERING_URL}>
-            Đặt hàng
-          </a>
+          <HapticLink className="button button-primary header-contact-button" href="/lien-he">
+            Liên hệ
+          </HapticLink>
         </div>
 
         <div className="mobile-actions">
-          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm sản phẩm">
-            <Search size={20} />
+          <HapticLink className="icon-button" href="/san-pham" aria-label="Tìm trong danh mục">
+            <Search size={19} />
           </HapticLink>
           <button
             className="icon-button"
@@ -48,7 +43,7 @@ export function Header() {
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
           >
-            {open ? <X size={22} /> : <Menu size={22} />}
+            {open ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
       </div>
@@ -57,24 +52,29 @@ export function Header() {
         {open ? (
           <motion.div
             className="mobile-menu"
-            initial={{ opacity: 1, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
           >
             <nav className="container mobile-menu-nav" aria-label="Điều hướng di động">
               {navigation.map((item) => (
-                <HapticLink key={item.href} className="mobile-menu-link" href={item.href} onClick={() => setOpen(false)}>
+                <HapticLink
+                  key={item.href}
+                  className="mobile-menu-link"
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                >
                   {item.label}
                 </HapticLink>
               ))}
-              <AppInstallGuide className="button button-surface mobile-quote" label="Cài app đặt hàng" />
-              <QuoteButton className="button button-surface mobile-quote" onClick={() => setOpen(false)}>
-                Nhận báo giá
-              </QuoteButton>
-              <a className="button button-primary mobile-quote" href={CUSTOMER_ORDERING_URL} onClick={() => setOpen(false)}>
-                Đặt hàng khách hàng
-              </a>
+              <HapticLink
+                className="button button-primary mobile-contact-button"
+                href="/lien-he"
+                onClick={() => setOpen(false)}
+              >
+                Liên hệ Công Ty
+              </HapticLink>
             </nav>
           </motion.div>
         ) : null}

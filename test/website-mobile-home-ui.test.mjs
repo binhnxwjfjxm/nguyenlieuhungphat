@@ -3,22 +3,25 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const page = await readFile("app/page.tsx", "utf8");
-const theme = await readFile("app/hung-phat-warm-gold.css", "utf8");
+const design = await readFile("app/company-site-v2.css", "utf8");
+const header = await readFile("components/header.tsx", "utf8");
 
-test("homepage mobile refinements stay scoped to the homepage", () => {
+test("homepage mobile refinements stay scoped to the company presentation surface", () => {
   assert.match(page, /<main className="home-page">/);
-  assert.match(theme, /\.home-page \.section \{/);
-  assert.match(theme, /\.home-page \.hero-stack \{\s*display: none;/);
+  assert.match(design, /@media \(max-width: 760px\)/);
+  assert.match(design, /\.hero-stack \{\s*display: none !important;/);
 });
 
-test("mobile category cards use a horizontal snap strip", () => {
-  assert.match(theme, /\.home-page \.category-layout \{[\s\S]*display: flex;[\s\S]*overflow-x: auto;[\s\S]*scroll-snap-type: x mandatory;/);
-  assert.match(theme, /\.home-page \.category-stack \{\s*display: contents;/);
+test("compact density contract applies to buttons and cards", () => {
+  assert.match(design, /\.button \{[\s\S]*min-height: 40px !important;/);
+  assert.match(design, /\.button-large \{[\s\S]*min-height: 44px !important;/);
+  assert.match(design, /\.product-card-body \{[\s\S]*padding: 15px 15px 17px !important;/);
+  assert.match(design, /\.process-step \{[\s\S]*min-height: 0 !important;/);
 });
 
-test("mobile navigation inherits the warm header tone and normalized CTAs", () => {
-  assert.match(theme, /\.mobile-menu \{[\s\S]*rgba\(90, 59, 32, 0\.99\)/);
-  assert.match(theme, /\.mobile-menu \.mobile-quote \{[\s\S]*min-height: 42px;[\s\S]*border-radius: 12px;/);
-  assert.match(theme, /\.mobile-menu \.button-surface \{/);
-  assert.match(theme, /\.mobile-menu \.button-primary \{/);
+test("mobile navigation uses the clean company tone and contact-only CTA", () => {
+  assert.match(design, /\.mobile-menu \{[\s\S]*rgba\(255, 255, 255, 0\.985\)/);
+  assert.match(design, /\.mobile-contact-button \{[\s\S]*width: 100%;/);
+  assert.match(header, /mobile-contact-button/);
+  assert.doesNotMatch(header, /mobile-quote|Cài app|Đặt hàng/);
 });

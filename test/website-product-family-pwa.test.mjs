@@ -33,17 +33,11 @@ test("website gom biến thể theo dòng sản phẩm thay vì mỗi vị một
   assert.match(detail, /familyVariants\.map/);
 });
 
-test("website có hướng dẫn cài PWA đúng origin và đúng iPhone", () => {
+test("Website Công Ty header no longer exposes Customer Ordering or PWA install navigation", () => {
   const header = read("components/header.tsx");
-  const guide = read("components/app-install-guide.tsx");
 
-  assert.match(header, /AppInstallGuide/);
-  assert.match(header, /label="Cài app"/);
-  assert.match(header, /label="Cài app đặt hàng"/);
-  assert.match(guide, /CUSTOMER_ORDERING_URL/);
-  assert.match(guide, /iPhone \/ iPad/);
-  assert.match(guide, /Safari/);
-  assert.match(guide, /Chia sẻ/);
-  assert.match(guide, /Thêm vào Màn hình chính/);
-  assert.doesNotMatch(guide, /beforeinstallprompt/i);
+  assert.doesNotMatch(header, /AppInstallGuide/);
+  assert.doesNotMatch(header, /CUSTOMER_ORDERING_URL/);
+  assert.doesNotMatch(header, /Cài app|Đặt hàng/);
+  assert.match(header, /Liên hệ Công Ty|Liên hệ/);
 });
