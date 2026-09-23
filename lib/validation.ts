@@ -2,15 +2,11 @@ import { randomBytes } from "node:crypto";
 
 export type FieldErrors<T extends string = string> = Partial<Record<T, string>>;
 
-export type QuoteRequestInput = {
+export type ContactRequestInput = {
   name: string;
   phone: string;
   company: string;
   email: string;
-  product: string;
-  quantity: string;
-  area: string;
-  usage: string;
   note: string;
   source: string;
   pathname: string;
@@ -18,7 +14,7 @@ export type QuoteRequestInput = {
   honeypot: string;
 };
 
-export type QuoteRequestData = QuoteRequestInput & {
+export type ContactRequestData = ContactRequestInput & {
   phoneNormalized: string;
 };
 
@@ -70,28 +66,6 @@ export type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; code: string; error: string; fieldErrors?: FieldErrors };
 
-export const quoteNeedOptions = [
-  { value: "tra-sua", label: "Trà sữa" },
-  { value: "mi-cay", label: "Mì cay" },
-  { value: "khac", label: "Khác" },
-] as const;
-
-export const quoteDeliveryAreaOptions = [
-  { value: "tp-hcm", label: "TP. Hồ Chí Minh" },
-  { value: "ha-noi", label: "Hà Nội" },
-  { value: "binh-duong", label: "Bình Dương" },
-  { value: "dong-nai", label: "Đồng Nai" },
-  { value: "long-an", label: "Long An" },
-  { value: "can-tho", label: "Cần Thơ" },
-  { value: "tay-ninh", label: "Tây Ninh" },
-  { value: "ba-ria-vung-tau", label: "Bà Rịa - Vũng Tàu" },
-  { value: "mien-nam", label: "Khu vực miền Nam" },
-  { value: "mien-trung", label: "Khu vực miền Trung" },
-  { value: "mien-bac", label: "Khu vực miền Bắc" },
-  { value: "toan-quoc", label: "Toàn quốc" },
-  { value: "khac", label: "Khác" },
-] as const;
-
 const VN_PHONE_PATTERN = /^(?:0\d{9,10}|84\d{9,10})$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SESSION_PATTERN = /^(?:CHAT-\d{8}-[A-Z0-9]{4})$/;
@@ -139,17 +113,15 @@ function normalizeSelectValue(value: unknown, allowedValues: readonly string[]) 
   return allowedValues.includes(normalized) ? normalized : "";
 }
 
-export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationResult<QuoteRequestData> {
-  const data: QuoteRequestData = {
+export function validateContactInput(
+  raw: Partial<ContactRequestInput>,
+): ValidationResult<ContactRequestData> {
+  const data: ContactRequestData = {
     name: normalizeOptionalText(raw.name, 80),
     phone: normalizeOptionalText(raw.phone, 40),
     company: normalizeOptionalText(raw.company, 120),
     email: normalizeOptionalText(raw.email, 160),
-    product: normalizeOptionalText(raw.product, 500),
-    quantity: normalizeOptionalText(raw.quantity, 60),
-    area: normalizeSelectValue(raw.area, quoteDeliveryAreaOptions.map((option) => option.value)),
-    usage: normalizeSelectValue(raw.usage, quoteNeedOptions.map((option) => option.value)),
-    note: normalizeOptionalText(raw.note, 500),
+    note: normalizeOptionalText(raw.note, 1000),
     source: normalizeOptionalText(raw.source, 80),
     pathname: normalizeOptionalText(raw.pathname, 160),
     website: normalizeOptionalText(raw.website, 160),
@@ -157,7 +129,7 @@ export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationR
     phoneNormalized: "",
   };
 
-  const fieldErrors: FieldErrors<keyof QuoteRequestInput> = {};
+  const fieldErrors: FieldErrors<keyof ContactRequestInput> = {};
 
   if (data.honeypot) {
     return { ok: false, code: "BOT_DETECTED", error: "Yêu cầu không hợp lệ." };
@@ -172,36 +144,12 @@ export function validateQuoteInput(raw: Partial<QuoteRequestInput>): ValidationR
     fieldErrors.phone = "Số điện thoại phải đúng định dạng Việt Nam.";
   }
 
-  if (data.company.length > 120) {
-    fieldErrors.company = "Tên công ty tối đa 120 ký tự.";
-  }
-
   if (data.email && !isValidEmail(data.email)) {
     fieldErrors.email = "Email chưa đúng định dạng.";
   }
 
-  if (!data.usage) {
-    fieldErrors.usage = "Vui lòng chọn nhu cầu chính.";
-  }
-
-  if (!data.area) {
-    fieldErrors.area = "Vui lòng chọn khu vực giao hàng.";
-  }
-
-  if (data.product.length > 500) {
-    fieldErrors.product = "Nội dung cần tư vấn tối đa 500 ký tự.";
-  }
-
-  if (data.quantity.length > 60) {
-    fieldErrors.quantity = "Số lượng tối đa 60 ký tự.";
-  }
-
-  if (data.usage.length > 120) {
-    fieldErrors.usage = "Nhu cầu tối đa 120 ký tự.";
-  }
-
-  if (data.note.length > 500) {
-    fieldErrors.note = "Ghi chú tối đa 500 ký tự.";
+  if (data.note.length < 2 || data.note.length > 1000) {
+    fieldErrors.note = "Nội dung liên hệ phải từ 2 đến 1000 ký tự.";
   }
 
   if (Object.keys(fieldErrors).length) {

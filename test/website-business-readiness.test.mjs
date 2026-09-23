@@ -68,18 +68,18 @@ test("catalog labels industry data correctly instead of calling it origin", () =
   assert.doesNotMatch(catalog, /<span>Xuất xứ<\/span>/);
 });
 
-test("quote and recruitment forms disclose privacy handling", () => {
-  const quote = read("components/quote-form.tsx");
+test("contact and recruitment forms disclose privacy handling", () => {
+  const contact = read("components/contact-form.tsx");
   const recruitment = read("components/recruitment-form.tsx");
   const privacy = read("app/chinh-sach-bao-mat/page.tsx");
   const sitemap = read("app/sitemap.ts");
 
-  assert.match(quote, /PRIVACY_POLICY_PATH/);
-  assert.match(quote, /Chính sách bảo mật/);
+  assert.match(contact, /PRIVACY_POLICY_PATH/);
+  assert.match(contact, /Chính sách bảo mật/);
   assert.match(recruitment, /PRIVACY_POLICY_PATH/);
   assert.match(recruitment, /Chính sách bảo mật/);
   assert.match(privacy, /0396 980 168|ZALO_PHONE_DISPLAY/);
-  assert.match(privacy, /Ngày áp dụng/);
+  assert.match(privacy, /Ngày cập nhật/);
   assert.match(sitemap, /chinh-sach-bao-mat/);
 });
 
