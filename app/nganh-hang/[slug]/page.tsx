@@ -3,11 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, PackageSearch } from "lucide-react";
+import { CompanyContactCta } from "@/components/company-contact-cta";
 import { ProductCard } from "@/components/product-card";
-import { QuoteCta } from "@/components/quote-cta";
 import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
-import { products } from "@/data/products";
+import { groupProductFamilies, productVariantLabel, products } from "@/data/products";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -38,8 +38,10 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
   if (!category) notFound();
 
   const categoryProducts = products.filter((product) => product.categorySlug === category.slug);
+  const families = groupProductFamilies(categoryProducts);
+
   return (
-    <main className="content-page">
+    <main className="content-page content-page-v2">
       <section className="page-hero">
         <div className="container page-hero-inner page-hero-with-image">
           <div>
@@ -47,12 +49,8 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             <h1 className="gradient-heading">{category.title}</h1>
             <p>{category.description}</p>
             <div className="hero-actions">
-              <Link className="button button-secondary" href="/#danh-muc">
-                <ArrowLeft size={17} /> Xem các ngành hàng
-              </Link>
-              <Link className="button button-primary" href={`/san-pham?category=${category.slug}`}>
-                Xem nhóm sản phẩm
-              </Link>
+              <Link className="button button-secondary" href="/nganh-hang"><ArrowLeft size={16} /> Tất cả ngành hàng</Link>
+              <Link className="button button-primary" href={`/san-pham?category=${category.slug}`}>Xem danh mục giới thiệu</Link>
             </div>
           </div>
           <div className="page-hero-image">
@@ -63,19 +61,26 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
 
       <section className="section">
         <div className="container">
-          {categoryProducts.length ? (
+          {families.length ? (
             <div className="section-spaced">
-              <div className="section-heading split-heading">
+              <div className="section-heading split-heading company-section-heading">
                 <div>
-                  <p className="eyebrow">SẢN PHẨM CÙNG NHÓM</p>
-                  <h2 className="gradient-heading">Danh sách phù hợp</h2>
+                  <p className="eyebrow">DÒNG SẢN PHẨM</p>
+                  <h2 className="gradient-heading">Nội dung đang có trong ngành hàng</h2>
+                  <p>Các biến thể cùng dòng được gom lại để danh mục gọn và dễ tham khảo hơn.</p>
                 </div>
-                <span className="section-kicker">{categoryProducts.length} sản phẩm</span>
+                <span className="section-kicker">{families.length} dòng sản phẩm</span>
               </div>
               <div className="product-grid product-grid-tight">
-                {categoryProducts.map((product, index) => (
-                  <Reveal key={product.slug} delay={index * 0.04}>
-                    <ProductCard compact product={product} />
+                {families.map((family, index) => (
+                  <Reveal key={family.key} delay={index * 0.025}>
+                    <ProductCard
+                      compact
+                      product={family.primary}
+                      displayName={family.name}
+                      variantCount={family.variants.length}
+                      variantLabels={family.variants.map((product) => productVariantLabel(product, family))}
+                    />
                   </Reveal>
                 ))}
               </div>
@@ -83,23 +88,17 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
           ) : (
             <Reveal>
               <div className="catalog-empty">
-                <PackageSearch size={34} />
-                <h2 className="gradient-heading">Danh mục website đang cập nhật</h2>
-                <p>Hưng Phát đang tiếp tục bổ sung nội dung giới thiệu cho ngành hàng này.</p>
-                <Link className="button button-primary" href="/lien-he">
-                  Liên hệ Công Ty
-                </Link>
+                <PackageSearch size={32} />
+                <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
+                <p>Hưng Phát đang tiếp tục bổ sung thông tin cho ngành hàng này.</p>
+                <Link className="button button-primary" href="/lien-he">Liên hệ Công Ty</Link>
               </div>
             </Reveal>
           )}
         </div>
       </section>
 
-      <section className="section section-tight">
-        <div className="container">
-          <QuoteCta />
-        </div>
-      </section>
+      <CompanyContactCta />
     </main>
   );
 }

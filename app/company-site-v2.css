@@ -929,3 +929,296 @@ body {
     grid-template-columns: 104px 1fr;
   }
 }
+
+
+/* Issue #109 / Lô 3 — dedicated content pages */
+.content-page-v2 .page-hero,
+.presentation-catalog-page .catalog-hero {
+  padding: 52px 0;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(225, 239, 232, .72), transparent 34%),
+    #fbfcfb;
+}
+
+.content-page-v2 .page-hero-inner,
+.presentation-catalog-page .catalog-hero-inner {
+  gap: clamp(28px, 5vw, 62px);
+}
+
+.content-page-v2 .page-hero h1,
+.presentation-catalog-page .catalog-hero h1 {
+  max-width: 760px;
+  font-size: clamp(2.35rem, 4.2vw, 4rem);
+  line-height: 1.06;
+  letter-spacing: -.04em;
+}
+
+.content-page-v2 .page-hero p:not(.eyebrow),
+.presentation-catalog-page .catalog-hero p:not(.eyebrow) {
+  max-width: 670px;
+  color: var(--company-muted);
+  line-height: 1.72;
+}
+
+.content-page-v2 .page-hero-image,
+.presentation-catalog-page .page-hero-image {
+  overflow: hidden;
+  min-height: 350px;
+  border: 1px solid var(--company-border);
+  border-radius: 22px;
+  box-shadow: var(--company-shadow);
+}
+
+.company-story-grid,
+.capability-page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+}
+
+.company-story-card,
+.capability-page-card {
+  padding: 20px;
+  border: 1px solid var(--company-border);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(26,58,48,.04);
+}
+
+.company-story-card > span,
+.capability-page-card > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--company-green-soft);
+  color: var(--company-green);
+}
+
+.company-story-card h2,
+.capability-page-card h2 {
+  margin: 14px 0 0;
+  font-size: 1rem;
+}
+
+.company-story-card p,
+.capability-page-card p {
+  margin: 8px 0 0;
+  color: var(--company-muted);
+  font-size: .85rem;
+  line-height: 1.6;
+}
+
+.brand-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.brand-directory-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 78px;
+  padding: 11px 13px;
+  border: 1px solid var(--company-border);
+  border-radius: 14px;
+  background: #fff;
+  color: inherit;
+  box-shadow: 0 5px 18px rgba(26,58,48,.035);
+}
+
+.brand-directory-card:hover {
+  border-color: rgba(24,73,58,.24);
+  box-shadow: 0 9px 22px rgba(26,58,48,.065);
+}
+
+.brand-directory-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--company-green-soft);
+  color: var(--company-green-strong);
+  font-size: .74rem;
+  font-weight: 800;
+}
+
+.brand-directory-copy {
+  min-width: 0;
+}
+
+.brand-directory-copy h3 {
+  margin: 0;
+  font-size: .92rem;
+}
+
+.brand-directory-copy p {
+  margin: 4px 0 0;
+  color: var(--company-muted);
+  font-size: .76rem;
+}
+
+.brand-directory-copy small {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #84908b;
+  font-size: .69rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presentation-product-card {
+  border-color: var(--company-border) !important;
+  box-shadow: 0 6px 20px rgba(26,58,48,.045) !important;
+}
+
+.presentation-product-card:hover {
+  box-shadow: 0 10px 24px rgba(26,58,48,.07) !important;
+}
+
+.presentation-card-actions {
+  min-height: 25px;
+  margin-top: 11px;
+}
+
+.product-card-hint {
+  color: var(--company-green);
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.presentation-product-page .product-detail-actions {
+  gap: 8px;
+}
+
+.presentation-catalog-page .catalog-sidebar {
+  border: 1px solid var(--company-border);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.presentation-catalog-page .catalog-search,
+.presentation-catalog-page .filter-field select,
+.presentation-catalog-page .filter-chip {
+  box-shadow: none !important;
+}
+
+.contact-v2-grid {
+  display: grid;
+  grid-template-columns: minmax(0,.78fr) minmax(0,1.22fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.contact-info-v2,
+.contact-form-v2-card,
+.recruitment-form-card-v2 {
+  padding: 22px !important;
+}
+
+.contact-form-intro {
+  margin: 8px 0 18px;
+  color: var(--company-muted);
+  font-size: .86rem;
+  line-height: 1.6;
+}
+
+.contact-form-v2 .form-grid {
+  gap: 12px;
+}
+
+.contact-form-v2 .field input,
+.contact-form-v2 .field textarea {
+  min-height: 42px;
+  border-radius: 10px;
+}
+
+.contact-form-v2 .field textarea {
+  min-height: 118px;
+  resize: vertical;
+}
+
+.contact-form-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--company-border);
+  border-radius: 10px;
+  background: var(--company-green-soft);
+  color: var(--company-green-strong);
+  font-size: .82rem;
+}
+
+.contact-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.recruitment-page-v2 .recruitment-strip-card {
+  border: 1px solid var(--company-border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 6px 20px rgba(26,58,48,.045) !important;
+}
+
+@media (max-width: 920px) {
+  .company-story-grid,
+  .capability-page-grid,
+  .brand-directory-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .contact-v2-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .content-page-v2 .page-hero,
+  .presentation-catalog-page .catalog-hero {
+    padding: 34px 0 40px;
+  }
+
+  .content-page-v2 .page-hero-image,
+  .presentation-catalog-page .page-hero-image {
+    min-height: 260px;
+    border-radius: 17px;
+  }
+
+  .company-story-grid,
+  .capability-page-grid,
+  .brand-directory-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .company-story-card,
+  .capability-page-card {
+    padding: 16px;
+  }
+
+  .brand-directory-card {
+    min-height: 70px;
+    padding: 9px 11px;
+  }
+
+  .contact-info-v2,
+  .contact-form-v2-card,
+  .recruitment-form-card-v2 {
+    padding: 17px !important;
+  }
+
+  .presentation-catalog-page .catalog-sidebar {
+    border-radius: 12px;
+  }
+}

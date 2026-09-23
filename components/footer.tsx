@@ -20,7 +20,10 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
     title: "Khám phá",
     links: [
       { label: "Giới thiệu", href: "/gioi-thieu" },
-      { label: "Cẩm nang", href: "/nganh-hang" },
+      { label: "Ngành hàng", href: "/nganh-hang" },
+      { label: "Nhãn hàng", href: "/nhan-hang" },
+      { label: "Năng lực", href: "/nang-luc" },
+      { label: "Cẩm nang", href: "/cam-nang" },
       { label: "Danh mục giới thiệu", href: "/san-pham" },
       { label: "Tuyển dụng", href: "/tuyen-dung" },
     ],

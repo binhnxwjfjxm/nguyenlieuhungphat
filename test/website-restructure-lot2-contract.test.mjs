@@ -27,9 +27,10 @@ test("lot 2 homepage follows the company presentation sequence", () => {
 
 test("lot 2 brand section is derived from real product family data", () => {
   const brand = read("components/brand-section.tsx");
+  const brandData = read("data/brands.ts");
 
-  assert.match(brand, /productFamilies/);
-  assert.match(brand, /family\.brand/);
+  assert.match(brandData, /productFamilies/);
+  assert.match(brandData, /family\.brand/);
   assert.doesNotMatch(brand, /Torani|DingFong|Carisa/);
   assert.match(brand, /id="nhan-hang"/);
 });

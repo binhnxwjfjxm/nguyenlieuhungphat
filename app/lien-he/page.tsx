@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
-import { QuoteForm } from "@/components/quote-form";
-import { QuoteCta } from "@/components/quote-cta";
+import { ContactForm } from "@/components/contact-form";
 import {
   COMPANY_ADDRESS_DISPLAY,
   COMPANY_EMAIL,
@@ -15,66 +14,47 @@ import { siteAssets } from "@/lib/site-assets";
 
 export const metadata: Metadata = {
   title: "Liên hệ",
-  description:
-    "Liên hệ Hưng Phát để nhận tư vấn ngành hàng, báo giá và hỗ trợ nhập hàng cho cửa hàng, đại lý và đối tác kinh doanh.",
+  description: "Liên hệ Hưng Phát để trao đổi về ngành hàng, nhãn hàng, năng lực phân phối hoặc các nội dung hợp tác.",
   alternates: { canonical: "/lien-he" },
   openGraph: {
     title: "Liên hệ | Hưng Phát",
-    description:
-      "Liên hệ Hưng Phát để nhận tư vấn ngành hàng, báo giá và hỗ trợ nhập hàng cho cửa hàng, đại lý và đối tác kinh doanh.",
+    description: "Thông tin liên hệ và biểu mẫu trao đổi với Công Ty Hưng Phát.",
     url: getAbsoluteUrl("/lien-he"),
   },
 };
 
 export default function LienHePage() {
   return (
-    <main className="content-page">
+    <main className="content-page content-page-v2">
       <section className="page-hero">
         <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">LIÊN HỆ</p>
-            <h1 className="gradient-heading">Gửi nhu cầu để nhận tư vấn</h1>
-            <p>Để lại ngành hàng, sản phẩm, số lượng và khu vực giao hàng.</p>
+            <h1 className="gradient-heading">Trao đổi trực tiếp với Hưng Phát</h1>
+            <p>Để lại thông tin và nội dung cần trao đổi. Bộ phận phù hợp của Công Ty sẽ tiếp nhận và phản hồi.</p>
           </div>
           <div className="page-hero-image">
-            <Image
-              src={siteAssets.pageHero.lienHe}
-              alt="Hưng Phát - gửi nhu cầu và nhận tư vấn"
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 40vw"
-            />
+            <Image src={siteAssets.pageHero.lienHe} alt="Liên hệ Công Ty Hưng Phát" fill priority sizes="(max-width: 900px) 100vw, 40vw" />
           </div>
         </div>
       </section>
 
       <section className="section">
-        <div className="container contact-grid">
-          <div className="contact-card">
-            <p className="eyebrow">THÔNG TIN LIÊN HỆ</p>
+        <div className="container contact-v2-grid">
+          <aside className="contact-card contact-info-v2">
+            <p className="eyebrow">THÔNG TIN CÔNG TY</p>
             <h2 className="gradient-heading">{COMPANY_NAME}</h2>
-            <a href={ZALO_URL}>
-              <MessageCircle size={18} /> Zalo {ZALO_PHONE_DISPLAY}
-            </a>
-            <a href={`mailto:${COMPANY_EMAIL}`}>
-              <Mail size={18} /> {COMPANY_EMAIL}
-            </a>
-            <p>
-              <MapPin size={18} /> {COMPANY_ADDRESS_DISPLAY}
-            </p>
-          </div>
+            <a href={ZALO_URL}><MessageCircle size={17} /> Zalo {ZALO_PHONE_DISPLAY}</a>
+            <a href={`mailto:${COMPANY_EMAIL}`}><Mail size={17} /> {COMPANY_EMAIL}</a>
+            <p><MapPin size={17} /> {COMPANY_ADDRESS_DISPLAY}</p>
+          </aside>
 
-          <div className="contact-card contact-form-card">
-            <p className="eyebrow">BÁO GIÁ</p>
-            <h2 className="gradient-heading">Điền form để gửi yêu cầu</h2>
-            <QuoteForm inline initialValues={{ source: "lien-he", pathname: "/lien-he" }} />
+          <div className="contact-card contact-form-card contact-form-v2-card">
+            <p className="eyebrow">NỘI DUNG LIÊN HỆ</p>
+            <h2 className="gradient-heading">Gửi thông tin cho Hưng Phát</h2>
+            <p className="contact-form-intro">Biểu mẫu chỉ thu thông tin cần thiết để Công Ty phản hồi nội dung trao đổi.</p>
+            <ContactForm />
           </div>
-        </div>
-      </section>
-
-      <section className="section section-tight">
-        <div className="container">
-          <QuoteCta />
         </div>
       </section>
     </main>

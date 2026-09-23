@@ -12,10 +12,10 @@ import { siteAssets } from "@/lib/site-assets";
 export const navigation = [
   { label: "Trang chủ", href: "/" },
   { label: "Giới thiệu", href: "/gioi-thieu" },
-  { label: "Ngành hàng", href: "/#danh-muc" },
-  { label: "Nhãn hàng", href: "/#nhan-hang" },
-  { label: "Năng lực", href: "/#nang-luc" },
-  { label: "Cẩm nang", href: "/#cam-nang" },
+  { label: "Ngành hàng", href: "/nganh-hang" },
+  { label: "Nhãn hàng", href: "/nhan-hang" },
+  { label: "Năng lực", href: "/nang-luc" },
+  { label: "Cẩm nang", href: "/cam-nang" },
   { label: "Tuyển dụng", href: "/tuyen-dung" },
 ];
 
@@ -23,7 +23,7 @@ export const stats = [
   { value: "2016", label: "Thành lập từ năm" },
   { value: "6", label: "Ngành hàng ưu tiên" },
   { value: "B2B", label: "Phục vụ đối tác kinh doanh" },
-  { value: "Linh hoạt", label: "Báo giá nhanh" },
+  { value: "Linh hoạt", label: "Phối hợp theo nhu cầu" },
 ];
 
 export const trustItems = [
@@ -38,8 +38,8 @@ export const trustItems = [
     icon: PackageCheck,
   },
   {
-    title: "Báo giá nhanh chóng",
-    description: "Tiếp nhận nhu cầu, số lượng và khu vực để tư vấn nhanh.",
+    title: "Trao đổi rõ nhu cầu",
+    description: "Tiếp nhận nội dung và kết nối bộ phận phù hợp để trao đổi.",
     icon: Truck,
   },
   {
