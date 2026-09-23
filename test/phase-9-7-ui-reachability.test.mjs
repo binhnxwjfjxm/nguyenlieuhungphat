@@ -46,7 +46,7 @@ test("Phase 9.7 website primary navigation resolves to real App Router pages or 
 test("Phase 9.7 website dynamic pages remain intentional drill-down routes", () => {
   assert.ok(existsSync("app/nganh-hang/[slug]/page.tsx"));
   assert.ok(existsSync("app/san-pham/[slug]/page.tsx"));
-  assert.match(footer, /`\/nganh-hang\/$\{category\.slug\}`/);
+  assert.ok(footer.includes('href: `/nganh-hang/${category.slug}`'));
 });
 
 test("Phase 9.7 website source declares production-facing env names and keeps sensitive examples empty", () => {
