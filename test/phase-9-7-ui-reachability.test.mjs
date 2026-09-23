@@ -14,7 +14,7 @@ const envExample = read(".env.example");
 const categorySection = read("components/category-section.tsx");
 const capabilitySection = read("components/company-capability-section.tsx");
 
-const primaryRoutes = ["/", "/gioi-thieu", "/#danh-muc", "/#nang-luc", "/nganh-hang", "/tuyen-dung"];
+const primaryRoutes = ["/", "/gioi-thieu", "/#danh-muc", "/#nhan-hang", "/#nang-luc", "/#cam-nang", "/tuyen-dung"];
 const footerPrimaryRoutes = ["/gioi-thieu", "/nganh-hang", "/san-pham", "/tuyen-dung", "/lien-he"];
 
 test("Phase 9.7 website primary navigation resolves to real App Router pages or real homepage anchors", () => {
@@ -27,7 +27,13 @@ test("Phase 9.7 website primary navigation resolves to real App Router pages or 
   for (const href of primaryRoutes) {
     if (href.startsWith("/#")) {
       const id = href.slice(2);
-      const source = id === "danh-muc" ? categorySection : capabilitySection;
+      const source = id === "danh-muc"
+        ? categorySection
+        : id === "nang-luc"
+          ? capabilitySection
+          : id === "nhan-hang"
+            ? read("components/brand-section.tsx")
+            : read("components/home-guide-section.tsx");
       assert.match(source, new RegExp(`id=["']${id}["']`), `website anchor ${href} is missing`);
       continue;
     }

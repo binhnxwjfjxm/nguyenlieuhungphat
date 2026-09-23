@@ -13,8 +13,9 @@ export const navigation = [
   { label: "Trang chủ", href: "/" },
   { label: "Giới thiệu", href: "/gioi-thieu" },
   { label: "Ngành hàng", href: "/#danh-muc" },
+  { label: "Nhãn hàng", href: "/#nhan-hang" },
   { label: "Năng lực", href: "/#nang-luc" },
-  { label: "Cẩm nang", href: "/nganh-hang" },
+  { label: "Cẩm nang", href: "/#cam-nang" },
   { label: "Tuyển dụng", href: "/tuyen-dung" },
 ];
 
