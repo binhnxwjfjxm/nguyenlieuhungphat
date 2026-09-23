@@ -1222,3 +1222,85 @@ body {
     border-radius: 12px;
   }
 }
+
+
+/* Issue #109 / Lô 5 — responsive, accessibility, performance and regression */
+.mobile-menu {
+  max-height: calc(100dvh - 68px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mobile-menu-nav {
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+
+.catalog-category-row {
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: 4px;
+}
+
+.catalog-category-row .filter-chip {
+  scroll-snap-align: start;
+}
+
+.product-modal-panel,
+.recruitment-modal-panel {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.button:disabled,
+.icon-button:disabled {
+  cursor: wait;
+  opacity: .62;
+  transform: none !important;
+}
+
+[aria-busy="true"] {
+  cursor: progress;
+}
+
+.company-category-card,
+.brand-directory-card,
+.recruitment-strip-card,
+.presentation-product-card {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .recruitment-modal-overlay {
+    align-items: end;
+    padding: 0;
+    background: rgba(32, 20, 12, .34);
+  }
+
+  .recruitment-modal-panel {
+    width: 100%;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 430px) {
+  .product-modal-panel,
+  .recruitment-modal-panel {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .product-modal-media {
+    min-height: 240px;
+  }
+
+  .product-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .product-modal-actions .button {
+    width: 100%;
+  }
+}

@@ -110,7 +110,7 @@ export function ContactForm() {
   }
 
   return (
-    <form className="contact-form-v2" onSubmit={handleSubmit}>
+    <form className="contact-form-v2" aria-busy={status === "submitting"} onSubmit={handleSubmit}>
       {status === "success" ? (
         <div className="contact-form-status is-success" aria-live="polite">
           <Check size={17} /> Hưng Phát đã nhận thông tin liên hệ.

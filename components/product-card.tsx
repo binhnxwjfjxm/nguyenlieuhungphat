@@ -46,6 +46,7 @@ export function ProductCard({
       role={clickable ? "button" : undefined}
       tabIndex={clickable ? 0 : undefined}
       aria-label={clickable ? `Xem ${displayName} và các lựa chọn` : undefined}
+      aria-haspopup={clickable ? "dialog" : undefined}
       whileHover={reduceMotion ? undefined : { y: -2 }}
       whileTap={reduceMotion ? undefined : { scale: 0.992 }}
       transition={{ duration: 0.18 }}

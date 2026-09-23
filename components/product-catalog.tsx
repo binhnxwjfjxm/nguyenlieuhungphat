@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   groupProductFamilies,
   productVariantLabel,
@@ -14,6 +14,7 @@ import { normalizeSearchText } from "@/lib/search";
 import familyStyles from "./product-family.module.css";
 import { HapticLink } from "./haptic-link";
 import { ProductCard } from "./product-card";
+import { useAccessibleDialog } from "./use-accessible-dialog";
 
 export function ProductCatalog({
   products,
@@ -95,6 +96,8 @@ export function ProductCatalog({
     if (!selectedFamily) return null;
     return filteredFamilies.some((family) => family.key === selectedFamily.key) ? selectedFamily : null;
   }, [filteredFamilies, selectedFamily]);
+  const closePreview = useCallback(() => setSelectedFamily(null), []);
+  const dialogRef = useAccessibleDialog({ open: Boolean(selectedPreview), onClose: closePreview });
   const hasFilters = Boolean(query || category || origin || application || sort !== "featured");
   const isEmptyCatalog = products.length === 0;
 
@@ -132,27 +135,6 @@ export function ProductCatalog({
     setVisibleCount(24);
   }
 
-  function closePreview() {
-    setSelectedFamily(null);
-  }
-
-  useEffect(() => {
-    if (!selectedPreview) return undefined;
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") closePreview();
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [selectedPreview]);
-
   return (
     <div className="catalog-layout">
       <div className="catalog-toolbar">
@@ -170,19 +152,31 @@ export function ProductCatalog({
             </button>
           ) : null}
         </label>
-        <button className="button button-ghost catalog-filter-toggle" type="button" onClick={() => setMobileFiltersOpen((value) => !value)}>
+        <button
+          className="button button-ghost catalog-filter-toggle"
+          type="button"
+          aria-expanded={mobileFiltersOpen}
+          aria-controls="catalog-filter-panel"
+          onClick={() => setMobileFiltersOpen((value) => !value)}
+        >
           <SlidersHorizontal size={17} /> Bộ lọc
         </button>
       </div>
 
       <div className="catalog-category-row" aria-label="Lọc theo danh mục">
-        <button className={`filter-chip${category === "" ? " active" : ""}`} type="button" onClick={() => updateCategory("")}>
+        <button
+          className={`filter-chip${category === "" ? " active" : ""}`}
+          type="button"
+          aria-pressed={category === ""}
+          onClick={() => updateCategory("")}
+        >
           Tất cả
         </button>
         {categories.map((item) => (
           <button
             className={`filter-chip${category === item.slug ? " active" : ""}`}
             type="button"
+            aria-pressed={category === item.slug}
             onClick={() => updateCategory(item.slug)}
             key={item.slug}
           >
@@ -192,7 +186,7 @@ export function ProductCatalog({
       </div>
 
       <div className={`catalog-body${mobileFiltersOpen ? " filters-open" : ""}`}>
-        <aside className="catalog-sidebar" aria-label="Bộ lọc sản phẩm">
+        <aside id="catalog-filter-panel" className="catalog-sidebar" aria-label="Bộ lọc sản phẩm">
           <div className="catalog-sidebar-header">
             <strong>Bộ lọc</strong>
             {hasFilters ? <button type="button" onClick={resetFilters}>Đặt lại</button> : null}
@@ -282,10 +276,12 @@ export function ProductCatalog({
       {selectedPreview ? (
         <div className="product-modal-overlay" role="presentation" onMouseDown={closePreview}>
           <div
+            ref={dialogRef}
             className="product-modal-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-preview-title"
+            tabIndex={-1}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <button className="icon-button product-modal-close" type="button" aria-label="Đóng xem nhanh" onClick={closePreview}>
