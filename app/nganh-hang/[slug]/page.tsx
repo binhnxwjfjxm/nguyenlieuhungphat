@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, PackageSearch } from "lucide-react";
+import { ArrowLeft, Boxes, Building2, Route } from "lucide-react";
 import { CompanyContactCta } from "@/components/company-contact-cta";
-import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
-import { groupProductFamilies, productVariantLabel, products } from "@/data/products";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -37,9 +35,6 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const categoryProducts = products.filter((product) => product.categorySlug === category.slug);
-  const families = groupProductFamilies(categoryProducts);
-
   return (
     <main className="content-page content-page-v2">
       <section className="page-hero">
@@ -50,7 +45,7 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
             <p>{category.description}</p>
             <div className="hero-actions">
               <Link className="button button-secondary" href="/nganh-hang"><ArrowLeft size={16} /> Tất cả ngành hàng</Link>
-              <Link className="button button-primary" href={`/san-pham?category=${category.slug}`}>Xem danh mục giới thiệu</Link>
+              <Link className="button button-primary" href="/lien-he">Liên hệ Công Ty</Link>
             </div>
           </div>
           <div className="page-hero-image">
@@ -61,40 +56,48 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
 
       <section className="section">
         <div className="container">
-          {families.length ? (
-            <div className="section-spaced">
-              <div className="section-heading split-heading company-section-heading">
-                <div>
-                  <p className="eyebrow">DÒNG SẢN PHẨM</p>
-                  <h2 className="gradient-heading">Nội dung đang có trong ngành hàng</h2>
-                  <p>Các biến thể cùng dòng được gom lại để danh mục gọn và dễ tham khảo hơn.</p>
-                </div>
-                <span className="section-kicker">{families.length} dòng sản phẩm</span>
-              </div>
-              <div className="product-grid product-grid-tight">
-                {families.map((family, index) => (
-                  <Reveal key={family.key} delay={index * 0.025}>
-                    <ProductCard
-                      compact
-                      product={family.primary}
-                      displayName={family.name}
-                      variantCount={family.variants.length}
-                      variantLabels={family.variants.map((product) => productVariantLabel(product, family))}
-                    />
-                  </Reveal>
-                ))}
-              </div>
+          <Reveal>
+            <div className="section-heading company-section-heading">
+              <p className="eyebrow">TỔNG QUAN NGÀNH HÀNG</p>
+              <h2 className="gradient-heading">Giới thiệu chung về {category.title}</h2>
+              <p>
+                Hưng Phát trình bày ngành hàng này theo hướng giới thiệu tổng quan, tập trung vào phạm vi nhóm hàng
+                và nhu cầu sử dụng thay vì dẫn sang từng sản phẩm chi tiết.
+              </p>
+              <p>Nội dung chuyên sâu sẽ tiếp tục được hoàn thiện riêng theo từng ngành hàng.</p>
             </div>
-          ) : (
-            <Reveal>
-              <div className="catalog-empty">
-                <PackageSearch size={32} />
-                <h2 className="gradient-heading">Danh mục đang cập nhật</h2>
-                <p>Hưng Phát đang tiếp tục bổ sung thông tin cho ngành hàng này.</p>
-                <Link className="button button-primary" href="/lien-he">Liên hệ Công Ty</Link>
-              </div>
-            </Reveal>
-          )}
+          </Reveal>
+      
+          <div className="company-story-grid">
+            {([
+              {
+                title: "Phạm vi ngành hàng",
+                description: category.description,
+                icon: Boxes,
+              },
+              {
+                title: "Thông tin để tham khảo",
+                description: "Trang ngành hàng trình bày nội dung tổng quan để cửa hàng, đại lý và đối tác F&B dễ hình dung phạm vi nhóm hàng trước khi trao đổi nhu cầu.",
+                icon: Building2,
+              },
+              {
+                title: "Trao đổi theo nhu cầu",
+                description: "Khi cần làm rõ nhóm hàng phù hợp, đối tác có thể gửi nội dung qua trang Liên hệ để Công Ty tiếp nhận và trao đổi.",
+                icon: Route,
+              },
+            ] as const).map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Reveal key={item.title} delay={index * 0.035}>
+                  <article className="company-story-card">
+                    <span><Icon size={18} /></span>
+                    <h2>{item.title}</h2>
+                    <p>{item.description}</p>
+                  </article>
+                </Reveal>
+              );
+            })}
+          </div>
         </div>
       </section>
 

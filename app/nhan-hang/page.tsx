@@ -3,7 +3,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CompanyContactCta } from "@/components/company-contact-cta";
-import { HapticLink } from "@/components/haptic-link";
 import { Reveal } from "@/components/reveal";
 import { brands } from "@/data/brands";
 import { getAbsoluteUrl } from "@/lib/site";
@@ -47,17 +46,13 @@ export default function NhanHangPage() {
           <div className="section-heading company-section-heading">
             <p className="eyebrow">NHÃN HÀNG TIÊU BIỂU</p>
             <h2 className="gradient-heading">Nhận diện theo logo chính thức</h2>
+            <p>Logo dùng để nhận diện nhãn hàng, không dẫn sang sản phẩm chi tiết.</p>
           </div>
 
           <div className="brand-logo-grid brand-logo-directory" aria-label="Danh sách logo nhãn hàng">
             {brands.map((brand, index) => (
               <Reveal key={brand.name} delay={index * 0.02}>
-                <HapticLink
-                  className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}
-                  href={`/san-pham?q=${encodeURIComponent(brand.name)}`}
-                  aria-label={`Xem sản phẩm nhãn hàng ${brand.name}`}
-                  title={brand.name}
-                >
+                <div className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}>
                   <img
                     className="brand-logo-image"
                     src={brand.logoSrc}
@@ -66,7 +61,7 @@ export default function NhanHangPage() {
                     decoding="async"
                     referrerPolicy="no-referrer"
                   />
-                </HapticLink>
+                </div>
               </Reveal>
             ))}
           </div>

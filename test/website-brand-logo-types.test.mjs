@@ -35,5 +35,21 @@ test("brand surfaces render verified logo images only", () => {
   for (const source of [section, page]) {
     assert.match(source, /brand-logo-image/);
     assert.doesNotMatch(source, /brand-mark|brand-name|\{brands\.length\}|familyCount|categoryCount/);
+    assert.doesNotMatch(source, /HapticLink|\/san-pham\?q=/);
   }
+
+  assert.match(data, /name: \"Berrino\"/);
+  assert.match(data, /name: \"DINGFONG\"/);
+});
+
+test("industry pages stay editorial and do not route into product detail", () => {
+  const section = read("components/category-section.tsx");
+  const landing = read("app/nganh-hang/page.tsx");
+  const detail = read("app/nganh-hang/[slug]/page.tsx");
+
+  assert.doesNotMatch(section, /href=\"\/san-pham\"|\/san-pham\?/);
+  assert.doesNotMatch(landing, /Sáu ngành hàng|sáu nhóm ngành hàng/i);
+  assert.match(detail, /TỔNG QUAN NGÀNH HÀNG/);
+  assert.match(detail, /Nội dung chuyên sâu sẽ tiếp tục được hoàn thiện riêng theo từng ngành hàng/);
+  assert.doesNotMatch(detail, /ProductCard|groupProductFamilies|productVariantLabel|\/san-pham/);
 });

@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { brands } from "@/data/brands";
-import { HapticLink } from "./haptic-link";
 import { Reveal } from "./reveal";
 
 export function BrandSection() {
@@ -20,12 +19,7 @@ export function BrandSection() {
         <div className="brand-logo-grid" aria-label="Nhãn hàng tiêu biểu trong danh mục Hưng Phát">
           {brands.map((brand, index) => (
             <Reveal key={brand.name} delay={index * 0.025}>
-              <HapticLink
-                className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}
-                href={`/san-pham?q=${encodeURIComponent(brand.name)}`}
-                aria-label={`Xem sản phẩm nhãn hàng ${brand.name}`}
-                title={brand.name}
-              >
+              <div className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}>
                 <img
                   className="brand-logo-image"
                   src={brand.logoSrc}
@@ -34,7 +28,7 @@ export function BrandSection() {
                   decoding="async"
                   referrerPolicy="no-referrer"
                 />
-              </HapticLink>
+              </div>
             </Reveal>
           ))}
         </div>

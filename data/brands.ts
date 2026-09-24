@@ -15,6 +15,18 @@ const currentBrandNames = new Set(
 
 const officialBrandLogos: BrandLogo[] = [
   {
+    name: "Berrino",
+    logoSrc: "https://www.berrino.vn/wp-content/uploads/2024/11/Group-13.png",
+    logoTone: "light",
+    sourceUrl: "https://www.berrino.vn/",
+  },
+  {
+    name: "DINGFONG",
+    logoSrc: "https://dingfongfood.com/wp-content/themes/dingfong-wp/assets/logo/logo.svg",
+    logoTone: "light",
+    sourceUrl: "https://dingfongfood.com/",
+  },
+  {
     name: "Cozy",
     logoSrc: "https://cozy.vn/wp-content/uploads/2023/06/logo.png",
     logoTone: "light",
