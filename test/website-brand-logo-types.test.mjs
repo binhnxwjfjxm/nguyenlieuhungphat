@@ -42,6 +42,16 @@ test("brand surfaces render verified logo images only", () => {
   assert.match(data, /name: \"DINGFONG\"/);
   assert.match(data, /name: \"GTP\"/);
   assert.match(data, /gtp\.com\.vn\/assets2\/images\/logo\/logo\.png/);
+  for (const brand of ["Gold", "Torani", "Luave", "Hùng Chương", "BKB", "Lộc Phát", "Douxian"]) {
+    assert.match(data, new RegExp(`name: "${brand}"`));
+  }
+  assert.match(data, /goldenfarm\.com\.vn/);
+  assert.match(data, /torani\.com/);
+  assert.match(data, /luave\.com/);
+  assert.match(data, /hungchuong\.com/);
+  assert.match(data, /nguyenlieuphachebkb\.com/);
+  assert.match(data, /tralocphat\.com/);
+  assert.match(data, /dautien\.vn/);
 
   const css = read("app/company-site-v2.css");
   assert.match(section, /reference-brand-strip/);
