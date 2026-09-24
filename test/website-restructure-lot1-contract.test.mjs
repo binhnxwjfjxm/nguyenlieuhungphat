@@ -27,7 +27,7 @@ test("lot 1 hero uses company-introduction language and internal links only", ()
   const hero = read("components/hero.tsx");
 
   assert.match(hero, /Nguyên liệu chất lượng/);
-  assert.match(hero, /Kiến tạo thành công/);
+  assert.match(hero, /Đồng hành cùng tăng trưởng/);
   assert.match(hero, /reference-home-hero/);
   assert.match(hero, /Khám phá ngành hàng/);
   assert.match(hero, /Giới thiệu về Hưng Phát/);

@@ -11,8 +11,8 @@ export function HomeGuideSection() {
       <div className="container">
         <div className="reference-section-heading-row">
           <div>
-            <p className="eyebrow">CẨM NANG &amp; TIN TỨC</p>
-            <h2>Cập nhật thông tin — Đồng hành cùng phát triển</h2>
+            <p className="eyebrow">CẨM NANG</p>
+            <h2>Thông tin hữu ích cho hoạt động F&amp;B</h2>\n            <p>Các hướng dẫn ngắn về chọn nguyên liệu, bảo quản và quản lý nhập hàng.</p>
           </div>
           <HapticLink className="reference-view-all" href="/cam-nang">
             Xem tất cả <ArrowRight size={15} />

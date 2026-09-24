@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
@@ -33,11 +33,11 @@ export function Hero() {
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="reference-home-hero-badge">ĐỒNG HÀNH CÙNG F&amp;B VIỆT NAM</p>
-          <h1>Nguyên liệu chất lượng<br />Kiến tạo thành công</h1>
+          <p className="reference-home-hero-badge">PHÂN PHỐI NGUYÊN LIỆU F&amp;B</p>
+          <h1>Nguyên liệu chất lượng<br />Đồng hành cùng tăng trưởng</h1>
           <p>
-            Hưng Phát giới thiệu các ngành hàng nguyên liệu, thực phẩm, bao bì và gia vị
-            phục vụ cửa hàng, đại lý và đối tác F&amp;B.
+            Hưng Phát giới thiệu hệ thống ngành hàng, nhãn hàng và năng lực phân phối phục vụ cửa hàng,
+            đại lý và đối tác kinh doanh F&amp;B.
           </p>
           <div className="reference-home-hero-actions">
             <HapticLink className="button reference-home-primary" href="/#danh-muc">
@@ -49,11 +49,6 @@ export function Hero() {
           </div>
         </motion.div>
 
-        <div className="reference-home-hero-pager" aria-hidden="true">
-          <span><strong>01</strong> / 03</span>
-          <ChevronLeft size={18} />
-          <ChevronRight size={18} />
-        </div>
       </div>
     </section>
   );

@@ -12,8 +12,8 @@ export function BrandSection() {
       <div className="container">
         <div className="reference-section-heading-row">
           <div>
-            <p className="eyebrow">NHÃN HÀNG TIÊU BIỂU</p>
-            <h2>Đối tác uy tín — Sản phẩm chất lượng</h2>
+            <p className="eyebrow">NHÃN HÀNG</p>
+            <h2>Nhãn hàng tiêu biểu</h2>
           </div>
           <HapticLink className="reference-view-all" href="/nhan-hang">
             Xem tất cả <ArrowRight size={15} />

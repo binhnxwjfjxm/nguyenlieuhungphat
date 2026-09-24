@@ -1,13 +1,12 @@
-import { MessageCircle, PackageCheck, Route, Warehouse } from "lucide-react";
+import { PackageCheck, Route, Warehouse } from "lucide-react";
 import { siteAssets, siteAssetFallbacks } from "@/lib/site-assets";
 import { HapticLink } from "./haptic-link";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 const capabilityItems = [
-  { icon: PackageCheck, title: "Sản phẩm đa dạng" },
-  { icon: Warehouse, title: "Nguồn hàng ổn định" },
+  { icon: Warehouse, title: "Kho và nguồn hàng" },
+  { icon: PackageCheck, title: "Danh mục phù hợp vận hành" },
   { icon: Route, title: "Phối hợp giao nhận" },
-  { icon: MessageCircle, title: "Tư vấn tận tâm" },
 ] as const;
 
 export function CompanyCapabilitySection() {
@@ -31,10 +30,10 @@ export function CompanyCapabilitySection() {
         </div>
 
         <div className="reference-about-copy">
-          <p className="eyebrow">VỀ HƯNG PHÁT</p>
-          <h2>Đồng hành cùng hoạt động kinh doanh F&amp;B</h2>
+          <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
+          <h2>Hưng Phát đồng hành cùng hoạt động kinh doanh F&amp;B</h2>
           <p className="reference-about-description">
-            Hưng Phát tập trung xây dựng danh mục rõ ràng, nguồn hàng ổn định và khả năng phối hợp phục vụ phù hợp với nhu cầu thực tế của cửa hàng, đại lý và đối tác.
+            Từ danh mục ngành hàng đến kho và giao nhận, thông tin trên Website Công Ty được trình bày theo các nhóm hàng và năng lực vận hành thực tế.
           </p>
           <div className="reference-about-features">
             {capabilityItems.map((item) => {
