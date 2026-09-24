@@ -15,12 +15,12 @@ const capabilityPoints = [
   {
     icon: Warehouse,
     title: "Kho và nguồn hàng",
-    description: "Website sử dụng hình ảnh kho và danh mục hiện có để giới thiệu năng lực Công Ty.",
+    description: "Thông tin về kho phục vụ hoạt động lưu trữ và phân phối.",
   },
   {
     icon: Route,
     title: "Phối hợp giao nhận",
-    description: "Hưng Phát trao đổi phương án giao nhận theo nhu cầu thực tế của từng đối tác.",
+    description: "Trao đổi phương án giao nhận theo từng nhu cầu cụ thể.",
   },
 ] as const;
 
@@ -43,7 +43,7 @@ export default function NangLucPage() {
           <div>
             <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
             <h1 className="gradient-heading">Danh mục, kho và phối hợp giao nhận</h1>
-            <p>Hưng Phát trình bày năng lực theo các nhóm hàng và hoạt động vận hành thực tế.</p>
+            <p>Thông tin về danh mục ngành hàng, kho và phối hợp giao nhận.</p>
             <div className="page-hero-points">
               <span>Nguyên liệu pha chế</span>
               <span>Thực phẩm &amp; gia vị</span>

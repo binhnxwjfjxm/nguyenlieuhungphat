@@ -27,7 +27,7 @@ export default function NhanHangPage() {
           <div>
             <p className="eyebrow">NHÃN HÀNG</p>
             <h1 className="gradient-heading">Nhãn hàng trong danh mục Hưng Phát</h1>
-            <p>Logo nhãn hàng được hiển thị theo bộ nhận diện chính thức đã xác minh.</p>
+            <p>Danh sách nhãn hàng hiện có trong danh mục Hưng Phát.</p>
           </div>
           <div className="page-hero-image">
             <Image
@@ -44,9 +44,8 @@ export default function NhanHangPage() {
       <section className="section">
         <div className="container">
           <div className="section-heading company-section-heading">
-            <p className="eyebrow">NHÃN HÀNG TIÊU BIỂU</p>
-            <h2 className="gradient-heading">Nhận diện theo logo chính thức</h2>
-            <p>Logo dùng để nhận diện nhãn hàng, không dẫn sang sản phẩm chi tiết.</p>
+            <p className="eyebrow">NHÃN HÀNG</p>
+            <h2 className="gradient-heading">Danh sách nhãn hàng</h2>
           </div>
 
           <div className="brand-logo-grid brand-logo-directory" aria-label="Danh sách logo nhãn hàng">

@@ -27,7 +27,7 @@ export default function GioiThieuPage() {
         <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">GIỚI THIỆU</p>
-            <h1 className="gradient-heading">Hưng Phát và hệ thống ngành hàng F&amp;B</h1>
+            <h1 className="gradient-heading">Giới thiệu Hưng Phát</h1>
             <p>
               Hưng Phát tập trung giới thiệu và phân phối các nhóm nguyên liệu, thực phẩm,
               bao bì và vật tư phục vụ cửa hàng, đại lý và đối tác kinh doanh.

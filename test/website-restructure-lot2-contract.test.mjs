@@ -50,7 +50,7 @@ test("lot 2 homepage keeps transactional language out of key presentation sectio
 
   assert.doesNotMatch(files, /CUSTOMER_ORDERING_URL|sales\.nguyenlieuhungphat\.com|Đặt hàng khách hàng|Cài app/);
   assert.doesNotMatch(files, /Nhận báo giá|Gửi báo giá|Chốt đơn/);
-  assert.match(files, /Liên hệ Công Ty|Liên hệ ngay/);
+  assert.match(files, /Liên hệ Công Ty|Gửi thông tin/);
 });
 
 test("lot 2 homepage follows the locked visual reference structure", () => {
@@ -68,8 +68,8 @@ test("lot 2 homepage follows the locked visual reference structure", () => {
   assert.match(category, /reference-category-image/);
   assert.match(brand, /reference-brand-strip/);
   assert.match(capability, /reference-about-layout/);
-  assert.match(guide, /slice\(0, 4\)/);
-  assert.match(guide, /reference-guide-grid/);
+  assert.match(guide, /return null/);
+  assert.doesNotMatch(guide, /guideItems|reference-guide-grid/);
   assert.match(cta, /reference-contact-banner/);
 
   assert.match(css, /\.reference-home-hero\{[\s\S]*min-height:560px/);
