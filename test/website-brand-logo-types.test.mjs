@@ -40,6 +40,13 @@ test("brand surfaces render verified logo images only", () => {
 
   assert.match(data, /name: \"Berrino\"/);
   assert.match(data, /name: \"DINGFONG\"/);
+  assert.match(data, /name: \"GTP\"/);
+  assert.match(data, /gtp\.com\.vn\/assets2\/images\/logo\/logo\.png/);
+
+  const css = read("app/company-site-v2.css");
+  assert.match(css, /\.brand-logo-grid \{[\s\S]*repeat\(auto-fit, minmax\(118px, 148px\)\)/);
+  assert.match(css, /\.brand-logo-tile \{[\s\S]*min-height: 82px/);
+  assert.match(css, /\.brand-logo-image \{[\s\S]*max-width: min\(86%, 124px\)/);
 });
 
 test("industry pages stay editorial and do not route into product detail", () => {

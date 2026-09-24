@@ -72,3 +72,18 @@ test("lot 3 keeps content cards compact and responsive", () => {
   assert.match(css, /\.contact-v2-grid/);
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.brand-directory-grid/);
 });
+
+
+test("tab heroes use the shared image-led reference composition", () => {
+  const css = read("app/company-site-v2.css");
+  const recruitment = read("app/tuyen-dung/page.tsx");
+
+  assert.match(css, /\.content-page-v2 \.page-hero-inner\.page-hero-with-image \{[\s\S]*grid-template-columns: minmax\(0, \.82fr\) minmax\(420px, 1\.18fr\)/);
+  assert.match(css, /\.content-page-v2 \.page-hero-image::before/);
+  assert.match(css, /\.content-page-v2 \.page-hero-image::after/);
+  assert.match(css, /min-height: 420px/);
+
+  assert.match(recruitment, /page-hero-inner page-hero-with-image/);
+  assert.match(recruitment, /className="page-hero-image"/);
+  assert.match(recruitment, /siteAssets\.pageHero\.gioiThieu/);
+});

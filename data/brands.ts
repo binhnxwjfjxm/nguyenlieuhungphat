@@ -27,6 +27,12 @@ const officialBrandLogos: BrandLogo[] = [
     sourceUrl: "https://dingfongfood.com/",
   },
   {
+    name: "GTP",
+    logoSrc: "https://gtp.com.vn/assets2/images/logo/logo.png",
+    logoTone: "light",
+    sourceUrl: "https://gtp.com.vn/",
+  },
+  {
     name: "Cozy",
     logoSrc: "https://cozy.vn/wp-content/uploads/2023/06/logo.png",
     logoTone: "light",
