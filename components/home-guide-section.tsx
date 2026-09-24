@@ -1,57 +1,37 @@
 import Image from "next/image";
-import { ArrowUpRight, Clock3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { guideItems } from "@/data/guides";
 import { HapticLink } from "./haptic-link";
-import { Reveal } from "./reveal";
 
-const homeGuides = guideItems.slice(0, 3);
+const homeGuides = guideItems.slice(0, 4);
 
 export function HomeGuideSection() {
   return (
-    <section className="section home-guide-section" id="cam-nang">
+    <section className="reference-guide-section" id="cam-nang">
       <div className="container">
-        <Reveal>
-          <div className="section-heading split-heading company-section-heading">
-            <div>
-              <p className="eyebrow">CẨM NANG</p>
-              <h2 className="gradient-heading">Thông tin hữu ích cho hoạt động F&amp;B</h2>
-              <p>Các hướng dẫn ngắn về chọn nguyên liệu, bảo quản và quản lý nhập hàng.</p>
-            </div>
-            <HapticLink className="text-link desktop-only-link" href="/cam-nang">
-              Xem toàn bộ cẩm nang <ArrowUpRight size={16} />
-            </HapticLink>
+        <div className="reference-section-heading-row">
+          <div>
+            <p className="eyebrow">CẨM NANG &amp; TIN TỨC</p>
+            <h2>Cập nhật thông tin — Đồng hành cùng phát triển</h2>
           </div>
-        </Reveal>
-
-        <div className="home-guide-grid">
-          {homeGuides.map((guide, index) => (
-            <Reveal key={guide.title} delay={index * 0.04}>
-              <HapticLink className="home-guide-card" href="/cam-nang">
-                <div className="home-guide-image">
-                  <Image
-                    src={guide.image}
-                    alt={guide.title}
-                    fill
-                    sizes="(max-width: 760px) 100vw, 33vw"
-                  />
-                </div>
-                <div className="home-guide-copy">
-                  <div className="home-guide-meta">
-                    <span>{guide.badge}</span>
-                    <small><Clock3 size={13} /> {guide.readingTime}</small>
-                  </div>
-                  <h3>{guide.title}</h3>
-                  <p>{guide.summary}</p>
-                </div>
-              </HapticLink>
-            </Reveal>
-          ))}
-        </div>
-
-        <div className="company-section-footer mobile-only-footer">
-          <HapticLink className="text-link" href="/cam-nang">
-            Xem toàn bộ cẩm nang <ArrowUpRight size={16} />
+          <HapticLink className="reference-view-all" href="/cam-nang">
+            Xem tất cả <ArrowRight size={15} />
           </HapticLink>
+        </div>
+        <div className="reference-guide-grid">
+          {homeGuides.map((guide) => (
+            <HapticLink className="reference-guide-card" href="/cam-nang" key={guide.title}>
+              <div className="reference-guide-image">
+                <Image src={guide.image} alt={guide.title} fill sizes="(max-width: 760px) 86vw, 25vw" />
+                <span>{guide.badge}</span>
+              </div>
+              <div className="reference-guide-copy">
+                <h3>{guide.title}</h3>
+                <p>{guide.summary}</p>
+                <small>{guide.readingTime}</small>
+              </div>
+            </HapticLink>
+          ))}
         </div>
       </div>
     </section>

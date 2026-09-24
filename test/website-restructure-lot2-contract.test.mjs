@@ -53,12 +53,27 @@ test("lot 2 homepage keeps transactional language out of key presentation sectio
   assert.match(files, /Liên hệ Công Ty|Liên hệ ngay/);
 });
 
-test("lot 2 compact homepage system includes responsive grids and light cards", () => {
+test("lot 2 homepage follows the locked visual reference structure", () => {
   const css = read("app/company-site-v2.css");
+  const hero = read("components/hero.tsx");
+  const category = read("components/category-section.tsx");
+  const brand = read("components/brand-section.tsx");
+  const capability = read("components/company-capability-section.tsx");
+  const guide = read("components/home-guide-section.tsx");
+  const cta = read("components/company-contact-cta.tsx");
 
-  assert.match(css, /\.company-category-grid \{[\s\S]*repeat\(3/);
-  assert.match(css, /\.brand-logo-grid \{[\s\S]*repeat\(auto-fit, minmax\(118px, 148px\)\)/);
-  assert.match(css, /\.home-guide-grid \{[\s\S]*repeat\(3/);
-  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.brand-logo-grid \{[\s\S]*repeat\(auto-fit, minmax\(112px, 138px\)\)/);
-  assert.match(css, /box-shadow: 0 7px 24px rgba\(26, 58, 48, 0\.045\)/);
+  assert.match(hero, /reference-home-hero/);
+  assert.match(hero, /reference-home-hero-shade/);
+  assert.match(category, /reference-category-strip/);
+  assert.match(category, /reference-category-image/);
+  assert.match(brand, /reference-brand-strip/);
+  assert.match(capability, /reference-about-layout/);
+  assert.match(guide, /slice\(0, 4\)/);
+  assert.match(guide, /reference-guide-grid/);
+  assert.match(cta, /reference-contact-banner/);
+
+  assert.match(css, /\.reference-home-hero\{[\s\S]*min-height:560px/);
+  assert.match(css, /\.reference-category-strip\{[\s\S]*repeat\(7/);
+  assert.match(css, /\.reference-guide-grid\{[\s\S]*repeat\(4/);
+  assert.match(css, /\.content-page-v2 \.page-hero-inner\.page-hero-with-image\{[\s\S]*min-height:420px/);
 });

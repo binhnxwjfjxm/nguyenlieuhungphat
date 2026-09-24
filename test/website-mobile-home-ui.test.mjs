@@ -9,7 +9,8 @@ const header = await readFile("components/header.tsx", "utf8");
 test("homepage mobile refinements stay scoped to the company presentation surface", () => {
   assert.match(page, /<main className="home-page">/);
   assert.match(design, /@media \(max-width: 760px\)/);
-  assert.match(design, /\.hero-stack \{\s*display: none !important;/);
+  assert.match(design, /\.reference-home-hero-actions\{[\s\S]*grid-template-columns:1fr/);
+  assert.match(design, /\.reference-guide-grid\{[\s\S]*overflow-x:auto/);
 });
 
 test("compact density contract applies to buttons and cards", () => {

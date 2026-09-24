@@ -35,7 +35,7 @@ test("brand surfaces render verified logo images only", () => {
   for (const source of [section, page]) {
     assert.match(source, /brand-logo-image/);
     assert.doesNotMatch(source, /brand-mark|brand-name|\{brands\.length\}|familyCount|categoryCount/);
-    assert.doesNotMatch(source, /HapticLink|\/san-pham\?q=/);
+    assert.doesNotMatch(source, /\/san-pham\?q=/);
   }
 
   assert.match(data, /name: \"Berrino\"/);
@@ -44,9 +44,10 @@ test("brand surfaces render verified logo images only", () => {
   assert.match(data, /gtp\.com\.vn\/assets2\/images\/logo\/logo\.png/);
 
   const css = read("app/company-site-v2.css");
-  assert.match(css, /\.brand-logo-grid \{[\s\S]*repeat\(auto-fit, minmax\(118px, 148px\)\)/);
-  assert.match(css, /\.brand-logo-tile \{[\s\S]*min-height: 82px/);
-  assert.match(css, /\.brand-logo-image \{[\s\S]*max-width: min\(86%, 124px\)/);
+  assert.match(section, /reference-brand-strip/);
+  assert.match(css, /\.reference-brand-strip\{[\s\S]*repeat\(auto-fit,minmax\(118px,1fr\)\)/);
+  assert.match(css, /\.reference-brand-tile\{[\s\S]*min-height:88px/);
+  assert.match(css, /\.reference-brand-tile \.brand-logo-image\{[\s\S]*132px/);
 });
 
 test("industry pages stay editorial and do not route into product detail", () => {
