@@ -44,14 +44,6 @@ export function CategorySection() {
             </Reveal>
           ))}
         </div>
-
-        <Reveal delay={0.05}>
-          <div className="company-section-footer">
-            <HapticLink className="text-link" href="/san-pham">
-              Xem danh mục giới thiệu <ArrowUpRight size={16} />
-            </HapticLink>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

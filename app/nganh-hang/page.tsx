@@ -8,11 +8,11 @@ import { siteAssets } from "@/lib/site-assets";
 export const metadata: Metadata = {
   title: "Ngành hàng",
   description:
-    "Sáu ngành hàng Hưng Phát đang giới thiệu: trà sữa & pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị & sốt.",
+    "Các ngành hàng Hưng Phát đang giới thiệu gồm nguyên liệu pha chế, thực phẩm, gia vị, bao bì và vật tư phục vụ F&B.",
   alternates: { canonical: "/nganh-hang" },
   openGraph: {
     title: "Ngành hàng | Hưng Phát",
-    description: "Khám phá sáu ngành hàng nguyên liệu và vật tư F&B trong danh mục Hưng Phát.",
+    description: "Khám phá các ngành hàng nguyên liệu, thực phẩm và vật tư trong danh mục Hưng Phát.",
     url: getAbsoluteUrl("/nganh-hang"),
   },
 };
@@ -26,7 +26,7 @@ export default function NganhHangPage() {
             <p className="eyebrow">NGÀNH HÀNG</p>
             <h1 className="gradient-heading">Danh mục được tổ chức theo nhu cầu F&amp;B</h1>
             <p>
-              Hưng Phát tập trung sáu nhóm ngành hàng để đối tác dễ tìm đúng nhóm nguyên liệu và vật tư cần tham khảo.
+              Hưng Phát tổ chức các ngành hàng theo nhu cầu để đối tác dễ tìm hiểu phạm vi nguyên liệu, thực phẩm và vật tư cần tham khảo.
             </p>
           </div>
           <div className="page-hero-image">
