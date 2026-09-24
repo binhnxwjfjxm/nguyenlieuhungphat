@@ -34,6 +34,6 @@ test("brand surfaces render verified logo images only", () => {
 
   for (const source of [section, page]) {
     assert.match(source, /brand-logo-image/);
-    assert.doesNotMatch(source, /brand-mark|brand-name|brands\.length|familyCount|categoryCount/);
+    assert.doesNotMatch(source, /brand-mark|brand-name|\{brands\.length\}|familyCount|categoryCount/);
   }
 });

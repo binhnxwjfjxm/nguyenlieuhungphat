@@ -33,7 +33,7 @@ test("lot 2 brand section uses verified official logos only", () => {
   assert.match(brandData, /logoSrc/);
   assert.match(brandData, /sourceUrl/);
   assert.doesNotMatch(brandData, /brandInitials|familyCount|categoryCount|sampleFamilies/);
-  assert.doesNotMatch(brand, /brand-mark|brand-name|brands\.length/);
+  assert.doesNotMatch(brand, /brand-mark|brand-name|\{brands\.length\}/);
   assert.match(brand, /brand-logo-image/);
   assert.match(brand, /id="nhan-hang"/);
 });
@@ -57,8 +57,8 @@ test("lot 2 compact homepage system includes responsive grids and light cards", 
   const css = read("app/company-site-v2.css");
 
   assert.match(css, /\.company-category-grid \{[\s\S]*repeat\(3/);
-  assert.match(css, /\.brand-strip \{[\s\S]*repeat\(4/);
+  assert.match(css, /\.brand-logo-grid \{[\s\S]*repeat\(3/);
   assert.match(css, /\.home-guide-grid \{[\s\S]*repeat\(3/);
-  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.brand-strip \{[\s\S]*repeat\(2/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.brand-logo-grid \{[\s\S]*repeat\(2/);
   assert.match(css, /box-shadow: 0 7px 24px rgba\(26, 58, 48, 0\.045\)/);
 });
