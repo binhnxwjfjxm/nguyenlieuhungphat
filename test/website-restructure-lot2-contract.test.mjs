@@ -68,7 +68,7 @@ test("lot 2 homepage follows the locked visual reference structure", () => {
   assert.match(category, /reference-category-image/);
   assert.match(brand, /reference-brand-strip/);
   assert.match(capability, /reference-about-layout/);
-  assert.match(guide, /slice\(0, 4\)/);
+  assert.match(guide, /return null/);
   assert.doesNotMatch(guide, /guideItems|reference-guide-grid/);
   assert.match(cta, /reference-contact-banner/);
 
