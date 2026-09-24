@@ -1,49 +1,31 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, MoreHorizontal } from "lucide-react";
 import { categories } from "@/data/site";
 import { HapticLink } from "./haptic-link";
-import { Reveal } from "./reveal";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 export function CategorySection() {
   return (
-    <section className="section company-category-section" id="danh-muc">
-      <div className="container">
-        <Reveal>
-          <div className="section-heading company-section-heading">
-            <p className="eyebrow">NGÀNH HÀNG</p>
-            <h2 className="gradient-heading">Các ngành hàng trọng tâm của Hưng Phát</h2>
-            <p>
-              Khám phá các nhóm nguyên liệu, thực phẩm và vật tư Hưng Phát đang giới thiệu cho cửa hàng,
-              đại lý và đối tác F&amp;B.
-            </p>
-          </div>
-        </Reveal>
-
-        <div className="company-category-grid">
-          {categories.map((category, index) => (
-            <Reveal key={category.slug} delay={index * 0.035}>
-              <HapticLink className="company-category-card" href={`/nganh-hang/${category.slug}`}>
-                <div className="company-category-image">
-                  <ResponsiveAssetPicture
-                    className="company-category-picture"
-                    imgClassName="company-category-picture-img"
-                    alt={`Ngành hàng ${category.title}`}
-                    desktopSrc={category.image}
-                    desktopFallbackSrc={category.fallback}
-                    imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
-                  />
-                </div>
-                <div className="company-category-copy">
-                  <h3>{category.title}</h3>
-                  <p>{category.description}</p>
-                  <span>
-                    Xem giới thiệu <ArrowUpRight size={15} />
-                  </span>
-                </div>
-              </HapticLink>
-            </Reveal>
-          ))}
-        </div>
+    <section className="reference-category-section" id="danh-muc">
+      <div className="container reference-category-strip" aria-label="Các ngành hàng Hưng Phát">
+        {categories.map((category) => (
+          <HapticLink className="reference-category-item" href={`/nganh-hang/${category.slug}`} key={category.slug}>
+            <span className="reference-category-image">
+              <ResponsiveAssetPicture
+                className="reference-category-picture"
+                imgClassName="reference-category-picture-img"
+                alt={category.title}
+                desktopSrc={category.image}
+                desktopFallbackSrc={category.fallback}
+                imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+              />
+            </span>
+            <span>{category.title}</span>
+          </HapticLink>
+        ))}
+        <HapticLink className="reference-category-item reference-category-more" href="/nganh-hang">
+          <span className="reference-category-image reference-category-more-icon"><MoreHorizontal size={26} /></span>
+          <span>Xem thêm <ArrowRight size={13} /></span>
+        </HapticLink>
       </div>
     </section>
   );

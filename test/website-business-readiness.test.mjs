@@ -58,7 +58,7 @@ test("website taxonomy exposes the company industries without count-led headings
   assert.match(products, /return "bao-bi"/);
   assert.match(products, /code === "GS"/);
   assert.match(products, /return "gia-vi-sot"/);
-  assert.match(categorySection, /Các ngành hàng trọng tâm/);
+  assert.match(categorySection, /reference-category-strip/);
   assert.doesNotMatch(categorySection, /Sáu ngành hàng|>6</);
 });
 
@@ -98,9 +98,9 @@ test("website uses one company address and type-based capability highlights", ()
   assert.match(recruitment, /COMPANY_ADDRESS_DISPLAY/);
   assert.match(structuredData, /COMPANY_ADDRESS_STREET/);
   assert.match(structuredData, /COMPANY_ADDRESS_REGION/);
-  assert.match(capability, /<strong>Nguyên liệu<\/strong>[\s\S]*?<small>Pha chế &amp; topping<\/small>/);
-  assert.match(capability, /<strong>Thực phẩm<\/strong>[\s\S]*?<small>Đông lạnh &amp; gia vị<\/small>/);
-  assert.match(capability, /<strong>Bao bì<\/strong>[\s\S]*?<small>Vật tư vận hành<\/small>/);
+  assert.match(capability, /Nguyên liệu pha chế/);
+  assert.match(capability, /Thực phẩm &amp; gia vị/);
+  assert.match(capability, /Bao bì &amp; vật tư/);
   assert.doesNotMatch(capability, /<strong>(?:6|2016|B2B)<\/strong>/);
 });
 
