@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Building2, Layers3, Route } from "lucide-react";
+import { Layers3, PackageCheck, Route } from "lucide-react";
 import { CompanyCapabilitySection } from "@/components/company-capability-section";
 import { CompanyContactCta } from "@/components/company-contact-cta";
 import { getAbsoluteUrl } from "@/lib/site";
@@ -29,8 +29,8 @@ export default function GioiThieuPage() {
             <p className="eyebrow">GIỚI THIỆU</p>
             <h1 className="gradient-heading">Hưng Phát và hệ thống ngành hàng F&amp;B</h1>
             <p>
-              Hưng Phát hoạt động từ năm 2016, tập trung giới thiệu và phân phối sáu ngành hàng phục vụ
-              cửa hàng, đại lý và đối tác kinh doanh.
+              Hưng Phát tập trung giới thiệu và phân phối các nhóm nguyên liệu, thực phẩm,
+              bao bì và vật tư phục vụ cửa hàng, đại lý và đối tác kinh doanh.
             </p>
           </div>
           <div className="page-hero-image">
@@ -42,19 +42,19 @@ export default function GioiThieuPage() {
       <section className="section">
         <div className="container company-story-grid">
           <article className="company-story-card">
-            <span><Building2 size={18} /></span>
-            <h2>Từ năm 2016</h2>
-            <p>Mốc thành lập được sử dụng xuyên suốt website như thông tin nền về quá trình hoạt động của Công Ty.</p>
+            <span><Layers3 size={18} /></span>
+            <h2>Nguyên liệu pha chế</h2>
+            <p>Trà, bột, siro, topping và các nhóm nguyên liệu phục vụ đồ uống.</p>
           </article>
           <article className="company-story-card">
-            <span><Layers3 size={18} /></span>
-            <h2>Sáu ngành hàng ưu tiên</h2>
-            <p>Trà sữa &amp; pha chế, mì cay, đông lạnh, ăn vặt, bao bì và gia vị &amp; sốt.</p>
+            <span><PackageCheck size={18} /></span>
+            <h2>Thực phẩm &amp; gia vị</h2>
+            <p>Thực phẩm đông lạnh, ăn vặt, gia vị và sốt phục vụ hoạt động F&amp;B.</p>
           </article>
           <article className="company-story-card">
             <span><Route size={18} /></span>
-            <h2>Phục vụ đối tác B2B</h2>
-            <p>Website tập trung giới thiệu danh mục và năng lực để cửa hàng, đại lý và đối tác dễ tìm hiểu thông tin.</p>
+            <h2>Bao bì &amp; vận hành</h2>
+            <p>Ly, nắp, hộp, túi và vật tư phục vụ đóng gói, bán hàng và giao nhận.</p>
           </article>
         </div>
       </section>

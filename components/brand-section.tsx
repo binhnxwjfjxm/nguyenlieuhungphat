@@ -1,35 +1,39 @@
-import { ArrowUpRight } from "lucide-react";
-import { brands, brandInitials } from "@/data/brands";
+/* eslint-disable @next/next/no-img-element */
+
+import { brands } from "@/data/brands";
 import { HapticLink } from "./haptic-link";
 import { Reveal } from "./reveal";
 
-const featuredBrands = brands.slice(0, 12);
-
 export function BrandSection() {
-  if (!featuredBrands.length) return null;
+  if (!brands.length) return null;
 
   return (
     <section className="section brand-section" id="nhan-hang">
       <div className="container">
         <Reveal>
-          <div className="section-heading split-heading company-section-heading">
-            <div>
-              <p className="eyebrow">NHÃN HÀNG</p>
-              <h2 className="gradient-heading">Nhãn hàng trong danh mục Hưng Phát</h2>
-              <p>Danh sách được tổng hợp trực tiếp từ dữ liệu sản phẩm hiện có của Công Ty.</p>
-            </div>
-            <HapticLink className="text-link desktop-only-link" href="/nhan-hang">
-              Xem toàn bộ nhãn hàng <ArrowUpRight size={16} />
-            </HapticLink>
+          <div className="section-heading company-section-heading">
+            <p className="eyebrow">NHÃN HÀNG</p>
+            <h2 className="gradient-heading">Nhãn hàng tiêu biểu</h2>
           </div>
         </Reveal>
 
-        <div className="brand-strip" aria-label="Nhãn hàng trong danh mục Hưng Phát">
-          {featuredBrands.map((brand, index) => (
+        <div className="brand-logo-grid" aria-label="Nhãn hàng tiêu biểu trong danh mục Hưng Phát">
+          {brands.map((brand, index) => (
             <Reveal key={brand.name} delay={index * 0.025}>
-              <HapticLink className="brand-pill" href={`/san-pham?q=${encodeURIComponent(brand.name)}`}>
-                <span className="brand-mark" aria-hidden="true">{brandInitials(brand.name)}</span>
-                <span className="brand-name">{brand.name}</span>
+              <HapticLink
+                className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}
+                href={`/san-pham?q=${encodeURIComponent(brand.name)}`}
+                aria-label={`Xem sản phẩm nhãn hàng ${brand.name}`}
+                title={brand.name}
+              >
+                <img
+                  className="brand-logo-image"
+                  src={brand.logoSrc}
+                  alt={brand.name}
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                />
               </HapticLink>
             </Reveal>
           ))}

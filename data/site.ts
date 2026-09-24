@@ -20,10 +20,10 @@ export const navigation = [
 ];
 
 export const stats = [
-  { value: "2016", label: "Thành lập từ năm" },
-  { value: "6", label: "Ngành hàng ưu tiên" },
-  { value: "B2B", label: "Phục vụ đối tác kinh doanh" },
-  { value: "Linh hoạt", label: "Phối hợp theo nhu cầu" },
+  { value: "Pha chế", label: "Nguyên liệu & topping" },
+  { value: "Thực phẩm", label: "Đông lạnh & gia vị" },
+  { value: "Bao bì", label: "Vật tư vận hành" },
+  { value: "Giao nhận", label: "Phối hợp theo nhu cầu" },
 ];
 
 export const trustItems = [

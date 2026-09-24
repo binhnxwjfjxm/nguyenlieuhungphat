@@ -37,10 +37,10 @@ export function Hero() {
             </HapticLink>
           </div>
 
-          <div className="hero-meta" aria-label="Thông tin Hưng Phát">
-            <span><strong>2016</strong><small>Thành lập</small></span>
-            <span><strong>6</strong><small>Ngành hàng</small></span>
-            <span><strong>B2B</strong><small>Đối tác kinh doanh</small></span>
+          <div className="hero-meta" aria-label="Các nhóm sản phẩm Hưng Phát">
+            <span><strong>Pha chế</strong><small>Nguyên liệu &amp; topping</small></span>
+            <span><strong>Thực phẩm</strong><small>Đông lạnh &amp; gia vị</small></span>
+            <span><strong>Bao bì</strong><small>Vật tư vận hành</small></span>
           </div>
         </motion.div>
 

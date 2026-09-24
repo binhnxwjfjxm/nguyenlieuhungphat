@@ -1,20 +1,21 @@
+/* eslint-disable @next/next/no-img-element */
+
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
 import { CompanyContactCta } from "@/components/company-contact-cta";
 import { HapticLink } from "@/components/haptic-link";
 import { Reveal } from "@/components/reveal";
-import { brands, brandInitials } from "@/data/brands";
+import { brands } from "@/data/brands";
 import { getAbsoluteUrl } from "@/lib/site";
 import { siteAssets } from "@/lib/site-assets";
 
 export const metadata: Metadata = {
   title: "Nhãn hàng",
-  description: "Danh sách nhãn hàng được tổng hợp từ dữ liệu sản phẩm hiện có trong danh mục Hưng Phát.",
+  description: "Một số nhãn hàng tiêu biểu đang có trong danh mục Hưng Phát.",
   alternates: { canonical: "/nhan-hang" },
   openGraph: {
     title: "Nhãn hàng | Hưng Phát",
-    description: "Khám phá các nhãn hàng đang xuất hiện trong danh mục sản phẩm Hưng Phát.",
+    description: "Khám phá các nhãn hàng tiêu biểu trong danh mục sản phẩm Hưng Phát.",
     url: getAbsoluteUrl("/nhan-hang"),
   },
 };
@@ -26,11 +27,17 @@ export default function NhanHangPage() {
         <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">NHÃN HÀNG</p>
-            <h1 className="gradient-heading">Các nhãn hàng trong danh mục Hưng Phát</h1>
-            <p>Danh sách được sinh từ dữ liệu sản phẩm thực tế trong website và tự cập nhật khi danh mục nguồn thay đổi.</p>
+            <h1 className="gradient-heading">Nhãn hàng trong danh mục Hưng Phát</h1>
+            <p>Logo nhãn hàng được hiển thị theo bộ nhận diện chính thức đã xác minh.</p>
           </div>
           <div className="page-hero-image">
-            <Image src={siteAssets.pageHero.sanPham} alt="Nhãn hàng trong danh mục Hưng Phát" fill priority sizes="(max-width: 900px) 100vw, 40vw" />
+            <Image
+              src={siteAssets.pageHero.sanPham}
+              alt="Nhãn hàng trong danh mục Hưng Phát"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 40vw"
+            />
           </div>
         </div>
       </section>
@@ -38,22 +45,27 @@ export default function NhanHangPage() {
       <section className="section">
         <div className="container">
           <div className="section-heading company-section-heading">
-            <p className="eyebrow">DANH SÁCH NHÃN HÀNG</p>
-            <h2 className="gradient-heading">{brands.length} nhãn hàng đang có dữ liệu</h2>
-            <p>Mỗi nhãn hàng dẫn đến các dòng sản phẩm tương ứng trong danh mục giới thiệu.</p>
+            <p className="eyebrow">NHÃN HÀNG TIÊU BIỂU</p>
+            <h2 className="gradient-heading">Nhận diện theo logo chính thức</h2>
           </div>
 
-          <div className="brand-directory-grid">
+          <div className="brand-logo-grid brand-logo-directory" aria-label="Danh sách logo nhãn hàng">
             {brands.map((brand, index) => (
-              <Reveal key={brand.name} delay={index * 0.015}>
-                <HapticLink className="brand-directory-card" href={`/san-pham?q=${encodeURIComponent(brand.name)}`}>
-                  <span className="brand-directory-mark">{brandInitials(brand.name)}</span>
-                  <div className="brand-directory-copy">
-                    <h3>{brand.name}</h3>
-                    <p>{brand.familyCount} dòng sản phẩm · {brand.categoryCount} ngành hàng</p>
-                    {brand.sampleFamilies.length ? <small>{brand.sampleFamilies.join(" · ")}</small> : null}
-                  </div>
-                  <ArrowUpRight size={16} />
+              <Reveal key={brand.name} delay={index * 0.02}>
+                <HapticLink
+                  className={`brand-logo-tile ${brand.logoTone === "dark" ? "is-dark" : "is-light"}`}
+                  href={`/san-pham?q=${encodeURIComponent(brand.name)}`}
+                  aria-label={`Xem sản phẩm nhãn hàng ${brand.name}`}
+                  title={brand.name}
+                >
+                  <img
+                    className="brand-logo-image"
+                    src={brand.logoSrc}
+                    alt={brand.name}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                  />
                 </HapticLink>
               </Reveal>
             ))}

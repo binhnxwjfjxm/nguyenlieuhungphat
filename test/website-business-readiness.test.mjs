@@ -37,7 +37,7 @@ test("website uses confirmed contact data without Customer Ordering navigation",
   assert.doesNotMatch(websiteSource, /0900123456|0900 123 456/);
 });
 
-test("website taxonomy exposes the six company industries", () => {
+test("website taxonomy exposes the company industries without count-led headings", () => {
   const site = read("data/site.ts");
   const products = read("data/products.ts");
   const categorySection = read("components/category-section.tsx");
@@ -58,7 +58,8 @@ test("website taxonomy exposes the six company industries", () => {
   assert.match(products, /return "bao-bi"/);
   assert.match(products, /code === "GS"/);
   assert.match(products, /return "gia-vi-sot"/);
-  assert.match(categorySection, /Sáu ngành hàng ưu tiên/);
+  assert.match(categorySection, /Các ngành hàng trọng tâm/);
+  assert.doesNotMatch(categorySection, /Sáu ngành hàng|>6</);
 });
 
 test("catalog labels industry data correctly instead of calling it origin", () => {
@@ -83,7 +84,7 @@ test("contact and recruitment forms disclose privacy handling", () => {
   assert.match(sitemap, /chinh-sach-bao-mat/);
 });
 
-test("website uses one company address and the six-industry capability", () => {
+test("website uses one company address and type-based capability highlights", () => {
   const contact = read("lib/contact.ts");
   const contactPage = read("app/lien-he/page.tsx");
   const footer = read("components/footer.tsx");
@@ -97,8 +98,10 @@ test("website uses one company address and the six-industry capability", () => {
   assert.match(recruitment, /COMPANY_ADDRESS_DISPLAY/);
   assert.match(structuredData, /COMPANY_ADDRESS_STREET/);
   assert.match(structuredData, /COMPANY_ADDRESS_REGION/);
-  assert.match(capability, /<strong>6<\/strong>[\s\S]*?<small>Ngành hàng ưu tiên<\/small>/);
-  assert.doesNotMatch(capability, /<strong>3<\/strong>[\s\S]*?<small>Nhóm hàng chính<\/small>/);
+  assert.match(capability, /<strong>Nguyên liệu<\/strong>[\s\S]*?<small>Pha chế &amp; topping<\/small>/);
+  assert.match(capability, /<strong>Thực phẩm<\/strong>[\s\S]*?<small>Đông lạnh &amp; gia vị<\/small>/);
+  assert.match(capability, /<strong>Bao bì<\/strong>[\s\S]*?<small>Vật tư vận hành<\/small>/);
+  assert.doesNotMatch(capability, /<strong>(?:6|2016|B2B)<\/strong>/);
 });
 
 test("industry pages stay inside the Website Company content surface", () => {
