@@ -153,7 +153,7 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
         fileInputRef.current.value = "";
       }
     } catch {
-      const message = "Lỗi mạng hoặc máy chủ bận. Anh thử lại giúp em.";
+      const message = "Kết nối chưa ổn định. Vui lòng thử lại.";
       setStatus({ tone: "error", text: message });
       toast.error(message);
     } finally {
@@ -213,19 +213,19 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
           {errors.position ? <em>{errors.position}</em> : null}
         </label>
         <label className="field field-wide">
-          <span>Kinh nghiệm / điểm mạnh *</span>
+          <span>Kinh nghiệm / kỹ năng *</span>
           <textarea
             required
             value={form.experience}
             onChange={(event) => updateField("experience", event.target.value)}
-            placeholder="Ví dụ: từng làm sales B2B, điều phối kho, chăm sóc khách hàng..."
+            placeholder="Ví dụ: kinh doanh B2B, điều phối kho, chăm sóc khách hàng..."
             rows={inline ? 4 : 5}
           />
           {errors.experience ? <em>{errors.experience}</em> : null}
         </label>
         <label className="field field-wide">
-          <span>Link CV / portfolio</span>
-          <input value={form.cvLink} onChange={(event) => updateField("cvLink", event.target.value)} placeholder="Dán link Drive, Notion, LinkedIn..." />
+          <span>Liên kết CV / hồ sơ năng lực</span>
+          <input value={form.cvLink} onChange={(event) => updateField("cvLink", event.target.value)} placeholder="Dán liên kết Google Drive hoặc hồ sơ trực tuyến..." />
           {errors.cvLink ? <em>{errors.cvLink}</em> : null}
         </label>
         <label className="field field-wide">
@@ -240,7 +240,7 @@ export function RecruitmentForm({ inline = false, initialValues, onClose, onSucc
         </label>
         <label className="field field-wide">
           <span>Ghi chú</span>
-          <textarea value={form.note} onChange={(event) => updateField("note", event.target.value)} placeholder="Ghi thêm mong muốn, mức lương hoặc thời gian bắt đầu..." rows={inline ? 4 : 5} />
+          <textarea value={form.note} onChange={(event) => updateField("note", event.target.value)} placeholder="Ghi thêm mức lương mong muốn hoặc thời gian có thể bắt đầu..." rows={inline ? 4 : 5} />
           {errors.note ? <em>{errors.note}</em> : null}
         </label>
       </div>

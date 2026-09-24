@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Boxes, Building2, Route } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CompanyContactCta } from "@/components/company-contact-cta";
-import { Reveal } from "@/components/reveal";
 import { categories } from "@/data/site";
 import { getAbsoluteUrl } from "@/lib/site";
 
@@ -56,47 +55,10 @@ export default async function NganhHangDetailPage({ params }: { params: Promise<
 
       <section className="section">
         <div className="container">
-          <Reveal>
-            <div className="section-heading company-section-heading">
-              <p className="eyebrow">TỔNG QUAN NGÀNH HÀNG</p>
-              <h2 className="gradient-heading">Giới thiệu chung về {category.title}</h2>
-              <p>
-                Hưng Phát trình bày ngành hàng này theo hướng giới thiệu tổng quan, tập trung vào phạm vi nhóm hàng
-                và nhu cầu sử dụng thay vì dẫn sang từng sản phẩm chi tiết.
-              </p>
-              <p>Nội dung chuyên sâu sẽ tiếp tục được hoàn thiện riêng theo từng ngành hàng.</p>
-            </div>
-          </Reveal>
-      
-          <div className="company-story-grid">
-            {([
-              {
-                title: "Phạm vi ngành hàng",
-                description: category.description,
-                icon: Boxes,
-              },
-              {
-                title: "Thông tin để tham khảo",
-                description: "Trang ngành hàng trình bày nội dung tổng quan để cửa hàng, đại lý và đối tác F&B dễ hình dung phạm vi nhóm hàng trước khi trao đổi nhu cầu.",
-                icon: Building2,
-              },
-              {
-                title: "Trao đổi theo nhu cầu",
-                description: "Khi cần làm rõ nhóm hàng phù hợp, đối tác có thể gửi nội dung qua trang Liên hệ để Công Ty tiếp nhận và trao đổi.",
-                icon: Route,
-              },
-            ] as const).map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <Reveal key={item.title} delay={index * 0.035}>
-                  <article className="company-story-card">
-                    <span><Icon size={18} /></span>
-                    <h2>{item.title}</h2>
-                    <p>{item.description}</p>
-                  </article>
-                </Reveal>
-              );
-            })}
+          <div className="section-heading company-section-heading">
+            <p className="eyebrow">THÔNG TIN NGÀNH HÀNG</p>
+            <h2 className="gradient-heading">{category.title}</h2>
+            <p>{category.description}</p>
           </div>
         </div>
       </section>

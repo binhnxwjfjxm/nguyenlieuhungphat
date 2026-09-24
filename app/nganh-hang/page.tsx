@@ -24,10 +24,8 @@ export default function NganhHangPage() {
         <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">NGÀNH HÀNG</p>
-            <h1 className="gradient-heading">Danh mục được tổ chức theo nhu cầu F&amp;B</h1>
-            <p>
-              Hưng Phát tổ chức các ngành hàng theo nhu cầu để đối tác dễ tìm hiểu phạm vi nguyên liệu, thực phẩm và vật tư cần tham khảo.
-            </p>
+            <h1 className="gradient-heading">Ngành hàng Hưng Phát</h1>
+            <p>Các nhóm nguyên liệu, thực phẩm, bao bì và vật tư phục vụ hoạt động F&amp;B.</p>
           </div>
           <div className="page-hero-image">
             <Image src={siteAssets.pageHero.nganhHang} alt="Ngành hàng Hưng Phát" fill priority sizes="(max-width: 900px) 100vw, 40vw" />

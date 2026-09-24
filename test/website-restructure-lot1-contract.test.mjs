@@ -26,10 +26,10 @@ test("lot 1 header is presentation-only and compact", () => {
 test("lot 1 hero uses company-introduction language and internal links only", () => {
   const hero = read("components/hero.tsx");
 
-  assert.match(hero, /Nguyên liệu chất lượng/);
-  assert.match(hero, /Đồng hành cùng tăng trưởng/);
+  assert.match(hero, /Ngành hàng và nhãn hàng Hưng Phát/);
+  assert.match(hero, /HƯNG PHÁT/);
   assert.match(hero, /reference-home-hero/);
-  assert.match(hero, /Khám phá ngành hàng/);
-  assert.match(hero, /Giới thiệu về Hưng Phát/);
+  assert.match(hero, /Xem ngành hàng/);
+  assert.match(hero, /Giới thiệu Công Ty/);
   assert.doesNotMatch(hero, /Nhận báo giá|Đặt hàng|CUSTOMER_ORDERING_URL|sales\.nguyenlieuhungphat\.com/);
 });

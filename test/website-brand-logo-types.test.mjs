@@ -57,7 +57,7 @@ test("industry pages stay editorial and do not route into product detail", () =>
 
   assert.doesNotMatch(section, /href=\"\/san-pham\"|\/san-pham\?/);
   assert.doesNotMatch(landing, /Sáu ngành hàng|sáu nhóm ngành hàng/i);
-  assert.match(detail, /TỔNG QUAN NGÀNH HÀNG/);
-  assert.match(detail, /Nội dung chuyên sâu sẽ tiếp tục được hoàn thiện riêng theo từng ngành hàng/);
+  assert.match(detail, /THÔNG TIN NGÀNH HÀNG/);
+  assert.doesNotMatch(detail, /Nội dung chuyên sâu|trình bày ngành hàng này theo hướng|Thông tin để tham khảo/);
   assert.doesNotMatch(detail, /ProductCard|groupProductFamilies|productVariantLabel|\/san-pham/);
 });

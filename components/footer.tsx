@@ -24,7 +24,7 @@ const footerGroups: { title: string; links: FooterLink[] }[] = [
       { label: "Nhãn hàng", href: "/nhan-hang" },
       { label: "Năng lực", href: "/nang-luc" },
       { label: "Cẩm nang", href: "/cam-nang" },
-      { label: "Danh mục giới thiệu", href: "/san-pham" },
+      { label: "Sản phẩm", href: "/san-pham" },
       { label: "Tuyển dụng", href: "/tuyen-dung" },
     ],
   },
@@ -98,7 +98,6 @@ export function Footer() {
       </div>
       <div className="container footer-bottom">
         <span>© 2026 Hưng Phát. All rights reserved.</span>
-        <span>Ngành hàng · Nhãn hàng · Năng lực phân phối</span>
       </div>
     </footer>
   );

@@ -33,18 +33,15 @@ export function Hero() {
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="reference-home-hero-badge">PHÂN PHỐI NGUYÊN LIỆU F&amp;B</p>
-          <h1>Nguyên liệu chất lượng<br />Đồng hành cùng tăng trưởng</h1>
-          <p>
-            Hưng Phát giới thiệu hệ thống ngành hàng, nhãn hàng và năng lực phân phối phục vụ cửa hàng,
-            đại lý và đối tác kinh doanh F&amp;B.
-          </p>
+          <p className="reference-home-hero-badge">HƯNG PHÁT</p>
+          <h1>Ngành hàng và nhãn hàng Hưng Phát</h1>
+          <p>Thông tin về ngành hàng, nhãn hàng và năng lực phân phối phục vụ đối tác kinh doanh F&amp;B.</p>
           <div className="reference-home-hero-actions">
             <HapticLink className="button reference-home-primary" href="/#danh-muc">
-              Khám phá ngành hàng <ArrowRight size={17} />
+              Xem ngành hàng <ArrowRight size={17} />
             </HapticLink>
             <HapticLink className="button reference-home-secondary" href="/gioi-thieu">
-              Giới thiệu về Hưng Phát
+              Giới thiệu Công Ty
             </HapticLink>
           </div>
         </motion.div>

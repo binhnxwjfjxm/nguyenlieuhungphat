@@ -4,8 +4,8 @@ import { HapticLink } from "./haptic-link";
 import { ResponsiveAssetPicture } from "./responsive-asset-picture";
 
 const capabilityItems = [
-  { icon: Warehouse, title: "Kho và nguồn hàng" },
-  { icon: PackageCheck, title: "Danh mục phù hợp vận hành" },
+  { icon: Warehouse, title: "Kho" },
+  { icon: PackageCheck, title: "Danh mục ngành hàng" },
   { icon: Route, title: "Phối hợp giao nhận" },
 ] as const;
 
@@ -31,10 +31,8 @@ export function CompanyCapabilitySection() {
 
         <div className="reference-about-copy">
           <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
-          <h2>Hưng Phát đồng hành cùng hoạt động kinh doanh F&amp;B</h2>
-          <p className="reference-about-description">
-            Từ danh mục ngành hàng đến kho và giao nhận, thông tin trên Website Công Ty được trình bày theo các nhóm hàng và năng lực vận hành thực tế.
-          </p>
+          <h2>Năng lực phân phối</h2>
+          <p className="reference-about-description">Thông tin về danh mục ngành hàng, kho và phối hợp giao nhận của Công Ty.</p>
           <div className="reference-about-features">
             {capabilityItems.map((item) => {
               const Icon = item.icon;
@@ -46,8 +44,8 @@ export function CompanyCapabilitySection() {
               );
             })}
           </div>
-          <HapticLink className="button reference-about-button" href="/gioi-thieu">
-            Tìm hiểu thêm về Hưng Phát
+          <HapticLink className="button reference-about-button" href="/nang-luc">
+            Xem năng lực phân phối
           </HapticLink>
         </div>
       </div>

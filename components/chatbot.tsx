@@ -214,7 +214,7 @@ export function Chatbot() {
       }
 
       const nextSessionId = result.sessionId ?? state.sessionId ?? createSessionId();
-      const replyText = result.replyText?.trim() || "Hưng Phát đã nhận nội dung và sẽ phản hồi sớm.";
+      const replyText = result.replyText?.trim() || "Chưa có phản hồi từ trợ lý. Vui lòng gửi lại nội dung.";
       setState((current) => ({
         ...current,
         sessionId: nextSessionId,
@@ -228,7 +228,7 @@ export function Chatbot() {
         ],
       }));
     } catch {
-      const message = "Lỗi mạng hoặc máy chủ bận.";
+      const message = "Kết nối chưa ổn định.";
       toast.error(message);
       setState((current) => ({
         ...current,
@@ -237,7 +237,7 @@ export function Chatbot() {
           {
             id: nextMessageId.current++,
             role: "assistant",
-            text: "Lỗi mạng hoặc máy chủ bận. Vui lòng thử lại.",
+            text: "Kết nối chưa ổn định. Vui lòng thử lại.",
           },
         ],
       }));
@@ -258,7 +258,7 @@ export function Chatbot() {
             exit={reduceMotion ? undefined : { opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.22 }}
             type="button"
-            aria-label="Mở Hưng Phát Assistant"
+            aria-label="Mở Trợ lý Hưng Phát"
             onClick={openChat}
           >
             <span className="chatbot-launcher-avatar" aria-hidden="true">
@@ -283,10 +283,10 @@ export function Chatbot() {
             <header className="chatbot-header">
               <div className="chatbot-title">
                 <span className="chatbot-avatar">
-                  <Image src={chatbotAvatar} alt="Avatar chatbot Hưng Phát" fill sizes="38px" />
+                  <Image src={chatbotAvatar} alt="Trợ lý Hưng Phát" fill sizes="38px" />
                 </span>
                 <div>
-                  <strong>Hưng Phát Assistant</strong>
+                  <strong>Trợ lý Hưng Phát</strong>
                   <span>Hỗ trợ tự động</span>
                 </div>
               </div>

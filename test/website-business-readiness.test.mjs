@@ -108,7 +108,7 @@ test("industry pages stay inside the Website Company content surface", () => {
   const detail = read("app/nganh-hang/[slug]/page.tsx");
   const productsPage = read("app/san-pham/page.tsx");
 
-  assert.match(detail, /TỔNG QUAN NGÀNH HÀNG/);
+  assert.match(detail, /THÔNG TIN NGÀNH HÀNG/);
   assert.match(detail, /Liên hệ Công Ty/);
   assert.doesNotMatch(detail, /\/san-pham|ProductCard|groupProductFamilies/);
   assert.doesNotMatch(detail, /getCustomerOrderingCategoryUrl|CUSTOMER_ORDERING_URL|Xem catalog đầy đủ/);
