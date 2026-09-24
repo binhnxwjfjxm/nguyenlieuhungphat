@@ -25,13 +25,16 @@ test("lot 2 homepage follows the company presentation sequence", () => {
   assert.doesNotMatch(page, /ProductSection|AudienceSection|ProcessSection|QuoteCta|TrustSection/);
 });
 
-test("lot 2 brand section is derived from real product family data", () => {
+test("lot 2 brand section uses verified official logos only", () => {
   const brand = read("components/brand-section.tsx");
   const brandData = read("data/brands.ts");
 
   assert.match(brandData, /productFamilies/);
-  assert.match(brandData, /family\.brand/);
-  assert.doesNotMatch(brand, /Torani|DingFong|Carisa/);
+  assert.match(brandData, /logoSrc/);
+  assert.match(brandData, /sourceUrl/);
+  assert.doesNotMatch(brandData, /brandInitials|familyCount|categoryCount|sampleFamilies/);
+  assert.doesNotMatch(brand, /brand-mark|brand-name|brands\.length/);
+  assert.match(brand, /brand-logo-image/);
   assert.match(brand, /id="nhan-hang"/);
 });
 

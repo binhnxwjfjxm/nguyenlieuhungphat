@@ -9,8 +9,8 @@ import { siteAssets } from "@/lib/site-assets";
 const capabilityPoints = [
   {
     icon: Layers3,
-    title: "Danh mục theo ngành hàng",
-    description: "Sáu ngành hàng được tổ chức rõ để đối tác tìm và đối chiếu thông tin nhanh hơn.",
+    title: "Danh mục theo nhóm hàng",
+    description: "Nguyên liệu, thực phẩm và vật tư được tổ chức rõ để đối tác dễ tìm và đối chiếu thông tin.",
   },
   {
     icon: Warehouse,
@@ -43,11 +43,11 @@ export default function NangLucPage() {
           <div>
             <p className="eyebrow">NĂNG LỰC PHÂN PHỐI</p>
             <h1 className="gradient-heading">Danh mục, kho và phối hợp giao nhận</h1>
-            <p>Hưng Phát trình bày năng lực dựa trên thông tin và hình ảnh đang có, không sử dụng số liệu minh họa không có nguồn.</p>
+            <p>Hưng Phát trình bày năng lực theo các nhóm hàng và hoạt động vận hành thực tế.</p>
             <div className="page-hero-points">
-              <span>2016 · Thành lập</span>
-              <span>6 · Ngành hàng ưu tiên</span>
-              <span>B2B · Đối tác kinh doanh</span>
+              <span>Nguyên liệu pha chế</span>
+              <span>Thực phẩm &amp; gia vị</span>
+              <span>Bao bì &amp; vật tư</span>
             </div>
           </div>
           <div className="page-hero-image">

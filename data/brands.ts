@@ -1,38 +1,37 @@
 import { productFamilies } from "./products";
 
-export type BrandSummary = {
+export type BrandLogo = {
   name: string;
-  familyCount: number;
-  categoryCount: number;
-  sampleFamilies: string[];
+  logoSrc: string;
+  logoTone: "light" | "dark";
+  sourceUrl: string;
 };
 
-const brandMap = new Map<string, { families: Set<string>; categories: Set<string> }>();
+const currentBrandNames = new Set(
+  productFamilies
+    .map((family) => family.brand?.trim())
+    .filter((brand): brand is string => Boolean(brand)),
+);
 
-for (const family of productFamilies) {
-  const brand = family.brand?.trim();
-  if (!brand || brand.toLocaleLowerCase("vi") === "hưng phát") continue;
+const officialBrandLogos: BrandLogo[] = [
+  {
+    name: "Cozy",
+    logoSrc: "https://cozy.vn/wp-content/uploads/2023/06/logo.png",
+    logoTone: "light",
+    sourceUrl: "https://cozy.vn/",
+  },
+  {
+    name: "Phúc Long",
+    logoSrc: "https://cdn.hstatic.net/files/200001075806/file/thi_t_k__ch_a_c__t_n_-_2025-12-16t135848.750.png",
+    logoTone: "dark",
+    sourceUrl: "https://coffee.phuclong.com.vn/",
+  },
+  {
+    name: "Rich",
+    logoSrc: "https://richs.com.vn/wp-content/uploads/2025/05/footer-logo-1.png",
+    logoTone: "dark",
+    sourceUrl: "https://richs.com.vn/",
+  },
+];
 
-  const entry = brandMap.get(brand) ?? { families: new Set<string>(), categories: new Set<string>() };
-  entry.families.add(family.name);
-  entry.categories.add(family.origin);
-  brandMap.set(brand, entry);
-}
-
-export const brands: BrandSummary[] = [...brandMap.entries()]
-  .map(([name, value]) => ({
-    name,
-    familyCount: value.families.size,
-    categoryCount: value.categories.size,
-    sampleFamilies: [...value.families].sort((a, b) => a.localeCompare(b, "vi")).slice(0, 3),
-  }))
-  .sort((left, right) => right.familyCount - left.familyCount || left.name.localeCompare(right.name, "vi"));
-
-export function brandInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toLocaleUpperCase("vi"))
-    .join("");
-}
+export const brands = officialBrandLogos.filter((brand) => currentBrandNames.has(brand.name));

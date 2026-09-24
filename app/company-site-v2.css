@@ -1304,3 +1304,79 @@ body {
     width: 100%;
   }
 }
+
+
+/* Follow-up — brand logos only + type-based highlights */
+.brand-logo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.brand-logo-tile {
+  display: grid;
+  min-height: 108px;
+  place-items: center;
+  padding: 18px;
+  border: 1px solid var(--company-border);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(26, 58, 48, .035);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.brand-logo-tile.is-dark {
+  background: var(--company-green-strong);
+}
+
+.brand-logo-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(24, 73, 58, .24);
+  box-shadow: 0 10px 24px rgba(26, 58, 48, .07);
+}
+
+.brand-logo-image {
+  display: block;
+  width: auto;
+  max-width: min(78%, 180px);
+  height: auto;
+  max-height: 62px;
+  object-fit: contain;
+}
+
+.brand-logo-directory {
+  margin-top: 30px;
+}
+
+.hero-meta span {
+  min-width: 138px;
+}
+
+.company-capability-stats strong {
+  font-size: .9rem;
+}
+
+@media (max-width: 760px) {
+  .brand-logo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 22px;
+  }
+
+  .brand-logo-tile {
+    min-height: 88px;
+    padding: 14px;
+    border-radius: 13px;
+  }
+
+  .brand-logo-image {
+    max-width: min(82%, 150px);
+    max-height: 52px;
+  }
+
+  .hero-meta span {
+    min-width: 0;
+    flex: 1 1 30%;
+  }
+}

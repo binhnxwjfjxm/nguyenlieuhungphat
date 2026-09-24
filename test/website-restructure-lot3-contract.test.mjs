@@ -52,14 +52,15 @@ test("lot 3 contact page uses a neutral company contact form", () => {
   assert.doesNotMatch(form, /Nhận báo giá|Gửi báo giá|Số lượng dự kiến|Khu vực giao hàng/);
 });
 
-test("lot 3 brand directory is derived from current product data", () => {
+test("lot 3 brand directory renders official logo assets without numeric summaries", () => {
   const data = read("data/brands.ts");
   const page = read("app/nhan-hang/page.tsx");
 
   assert.match(data, /productFamilies/);
-  assert.match(data, /familyCount/);
+  assert.match(data, /logoSrc/);
   assert.match(page, /brands\.map/);
-  assert.doesNotMatch(page, /Torani|DingFong|Carisa/);
+  assert.match(page, /brand-logo-image/);
+  assert.doesNotMatch(page, /brands\.length|familyCount|categoryCount|sampleFamilies|brandInitials/);
 });
 
 test("lot 3 keeps content cards compact and responsive", () => {

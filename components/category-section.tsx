@@ -11,9 +11,9 @@ export function CategorySection() {
         <Reveal>
           <div className="section-heading company-section-heading">
             <p className="eyebrow">NGÀNH HÀNG</p>
-            <h2 className="gradient-heading">Sáu ngành hàng ưu tiên của Hưng Phát</h2>
+            <h2 className="gradient-heading">Các ngành hàng trọng tâm của Hưng Phát</h2>
             <p>
-              Khám phá các nhóm nguyên liệu và vật tư Hưng Phát đang giới thiệu cho cửa hàng,
+              Khám phá các nhóm nguyên liệu, thực phẩm và vật tư Hưng Phát đang giới thiệu cho cửa hàng,
               đại lý và đối tác F&amp;B.
             </p>
           </div>

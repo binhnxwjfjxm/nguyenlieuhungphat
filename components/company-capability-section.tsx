@@ -36,18 +36,18 @@ export function CompanyCapabilitySection() {
               desktopFallbackSrc={siteAssetFallbacks.warehouse.capability}
               imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
             />
-            <div className="company-capability-stats" aria-label="Thông tin Hưng Phát">
+            <div className="company-capability-stats" aria-label="Các loại hàng Hưng Phát">
               <span>
-                <strong>2016</strong>
-                <small>Thành lập từ năm</small>
+                <strong>Nguyên liệu</strong>
+                <small>Pha chế &amp; topping</small>
               </span>
               <span>
-                <strong>6</strong>
-                <small>Ngành hàng ưu tiên</small>
+                <strong>Thực phẩm</strong>
+                <small>Đông lạnh &amp; gia vị</small>
               </span>
               <span>
-                <strong>B2B</strong>
-                <small>Đối tác kinh doanh</small>
+                <strong>Bao bì</strong>
+                <small>Vật tư vận hành</small>
               </span>
             </div>
           </div>
@@ -60,7 +60,7 @@ export function CompanyCapabilitySection() {
               <h2 className="gradient-heading">Hưng Phát đồng hành cùng hoạt động kinh doanh F&amp;B</h2>
               <p>
                 Từ danh mục ngành hàng đến kho và giao nhận, thông tin trên Website Công Ty được trình bày
-                theo năng lực thực tế đang có, không dùng số liệu minh họa.
+                theo các nhóm hàng và năng lực vận hành thực tế.
               </p>
             </div>
           </Reveal>
