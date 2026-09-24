@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { RecruitmentBoard } from "@/components/recruitment-board";
 import { RecruitmentForm } from "@/components/recruitment-form";
 import { getAbsoluteUrl } from "@/lib/site";
+import { siteAssets } from "@/lib/site-assets";
 
 export const metadata: Metadata = {
   title: "Tuyển dụng nhân viên kinh doanh miền Tây",
@@ -18,11 +20,20 @@ export default function TuyenDungPage() {
   return (
     <main className="content-page content-page-v2 recruitment-page-v2">
       <section className="page-hero">
-        <div className="container page-hero-inner">
+        <div className="container page-hero-inner page-hero-with-image">
           <div>
             <p className="eyebrow">TUYỂN DỤNG</p>
             <h1 className="gradient-heading">Tuyển nhân viên kinh doanh thị trường miền Tây</h1>
             <p>Xem khu vực phụ trách, mô tả công việc và gửi hồ sơ trực tiếp cho bộ phận tuyển dụng.</p>
+          </div>
+          <div className="page-hero-image">
+            <Image
+              src={siteAssets.pageHero.gioiThieu}
+              alt="Môi trường làm việc tại Hưng Phát"
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
           </div>
         </div>
       </section>
