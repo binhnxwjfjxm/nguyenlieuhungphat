@@ -21,6 +21,12 @@ import { productMatchesQuery, productSearchRank } from "@/lib/catalog-search";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
 import { MockCustomerOrderingAdapter } from "@/lib/adapters/mock/mock-customer-ordering-adapter";
 import { BrowserStorage, type KeyValueStorage } from "@/lib/storage/browser-storage";
+import {
+  applyCatalogSync,
+  clearCatalogForUser,
+  readCatalogSnapshot,
+  updateCatalogPrices,
+} from "@/lib/storage/catalog-indexed-db";
 
 interface PortalEnvelope<T> {
   data?: T;
@@ -43,15 +49,26 @@ interface PortalCatalogItem {
   unitCode: string | null;
   unitName?: string | null;
   conversionToBase?: string | number | null;
+  price?: Product["price"];
+}
+
+interface PortalCatalogSync {
+  cursor: string;
+  full: boolean;
+  upserts: PortalCatalogItem[];
+  removeVariantIds: string[];
+  categories: Category[];
+}
+
+interface PortalCatalogPrice {
+  variantId: string;
+  quantity: string;
   price: Product["price"];
 }
 
-interface PortalCatalogPage {
-  items: PortalCatalogItem[];
-  categories?: Category[];
-  hasMore: boolean;
-  limit: number;
-  offset: number;
+interface CatalogView {
+  products: Product[];
+  categories: Category[];
 }
 
 type ClerkRuntime = Awaited<ReturnType<typeof loadClerkBrowser>> & {
@@ -72,11 +89,11 @@ export class CustomerPortalRequestError extends Error {
 }
 
 const PAGE_SIZE = 50;
-const PAGE_BATCH_SIZE = 4;
-const MAX_CATALOG_ITEMS = 10_000;
+const PRICE_BATCH_SIZE = 100;
 const CORE_CART_KEY = "core-cart:v1";
 const CORE_CHECKOUT_DRAFT_KEY = "core-checkout-draft:v1";
-const sharedCatalogByUser = new Map<string, Promise<Product[]>>();
+const sharedCatalogByUser = new Map<string, Promise<CatalogView>>();
+const catalogSyncByUser = new Map<string, Promise<CatalogView>>();
 
 class PrefixedStorage implements KeyValueStorage {
   constructor(private readonly storage: KeyValueStorage, private readonly prefix: string) {}
@@ -84,6 +101,10 @@ class PrefixedStorage implements KeyValueStorage {
   set<T>(key: string, value: T): void { this.storage.set(`${this.prefix}:${key}`, value); }
   remove(key: string): void { this.storage.remove(`${this.prefix}:${key}`); }
 }
+
+const canonicalProductBySku = new Map(
+  MOCK_PRODUCTS.map((product) => [product.sku.trim().toUpperCase(), product] as const),
+);
 
 function cloneProduct(product: Product): Product {
   return { ...product, aliases: [...product.aliases], price: { ...product.price } };
@@ -104,35 +125,6 @@ function sanitizeCoreCart(cart: Partial<Cart> | null): Cart {
     }))
     .filter((line) => Boolean(line.sku) && line.quantity > 0);
   return { lines, updatedAt: typeof cart?.updatedAt === "string" ? cart.updatedAt : new Date().toISOString() };
-}
-
-function legacyGenericProduct(item: PortalCatalogItem): Product {
-  return {
-    sku: item.sku,
-    familySku: item.sku,
-    categoryId: "other",
-    name: item.name || item.variantName || item.sku,
-    aliases: [],
-    brand: "",
-    productType: "",
-    flavor: null,
-    size: item.variantName || "",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: item.unitCode || "đơn vị",
-    unit: item.unitCode || "đơn vị",
-    description: "",
-    availability: "available",
-    price: { ...item.price },
-    visualTone: "wheat",
-  };
-}
-
-function mapLegacyCatalogItem(item: PortalCatalogItem): Product {
-  const metadata = MOCK_PRODUCTS.find((product) => product.sku.toUpperCase() === item.sku.toUpperCase());
-  return metadata
-    ? { ...cloneProduct(metadata), availability: "available", price: { ...item.price } }
-    : legacyGenericProduct(item);
 }
 
 function caseQuantity(item: PortalCatalogItem): number | null {
@@ -158,13 +150,14 @@ function canonicalGenericProduct(item: PortalCatalogItem): Product {
     unit: item.unitCode || "đơn vị",
     description: "",
     availability: "available",
-    price: { ...item.price },
+    price: { ...(item.price ?? { status: "customer_price_pending", amount: null, currency: "VND" }) },
     visualTone: "wheat",
+    ...(item.variantId ? { variantId: item.variantId } : {}),
   };
 }
 
 function mapCanonicalCatalogItem(item: PortalCatalogItem): Product {
-  const metadata = MOCK_PRODUCTS.find((product) => product.sku.toUpperCase() === item.sku.toUpperCase());
+  const metadata = canonicalProductBySku.get(item.sku.trim().toUpperCase());
   if (!metadata) return canonicalGenericProduct(item);
   const fallback = cloneProduct(metadata);
   const purchaseMode = item.purchaseMode ?? fallback.purchaseMode;
@@ -180,7 +173,8 @@ function mapCanonicalCatalogItem(item: PortalCatalogItem): Product {
     packaging: item.unitCode || fallback.packaging,
     unit: item.unitCode || fallback.unit,
     availability: "available",
-    price: { ...item.price },
+    price: { ...(item.price ?? { status: "customer_price_pending", amount: null, currency: "VND" }) },
+    ...(item.variantId ? { variantId: item.variantId } : {}),
   };
 }
 
@@ -245,45 +239,34 @@ async function requestPortal<T>(path: string, init: RequestInit = {}, idempotenc
   return envelope.data;
 }
 
-async function fetchCatalogPage(input: ProductPageInput = {}): Promise<ProductPage> {
-  const limit = Math.max(1, Math.min(PAGE_SIZE, Math.trunc(Number(input.limit) || PAGE_SIZE)));
-  const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));
-  const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-  const search = input.query?.trim();
-  if (search) query.set("search", search);
-  if (input.categoryId) query.set("categoryId", input.categoryId);
-  if (input.purchaseMode) query.set("purchaseMode", input.purchaseMode);
-  if (input.includeCategories === true) query.set("includeCategories", "1");
-  const page = await requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
-  return {
-    products: page.items.map(mapCanonicalCatalogItem),
-    categories: (page.categories ?? []).map((category) => ({ ...category })),
-    hasMore: page.hasMore,
-    limit: page.limit,
-    offset: page.offset,
-  };
+async function fetchCatalogSync(since: string | null): Promise<PortalCatalogSync> {
+  const query = new URLSearchParams();
+  if (since) query.set("since", since);
+  const suffix = since ? `?${query.toString()}` : "";
+  const data = await requestPortal<{ catalog: PortalCatalogSync }>(`/catalog-sync${suffix}`);
+  return data.catalog;
 }
 
-async function fetchCatalogPages(): Promise<Product[]> {
-  const products: Product[] = [];
-  for (let startOffset = 0; startOffset < MAX_CATALOG_ITEMS; startOffset += PAGE_SIZE * PAGE_BATCH_SIZE) {
-    const offsets = Array.from({ length: PAGE_BATCH_SIZE }, (_, index) => startOffset + index * PAGE_SIZE)
-      .filter((offset) => offset < MAX_CATALOG_ITEMS);
-    const pages = await Promise.all(offsets.map(async (offset) => {
-      const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-      return requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
-    }));
-    let reachedEnd = false;
-    for (const page of pages) {
-      products.push(...page.items.map(mapLegacyCatalogItem));
-      if (!page.hasMore || page.items.length < PAGE_SIZE) {
-        reachedEnd = true;
-        break;
-      }
-    }
-    if (reachedEnd) break;
+async function fetchPriceBatches(products: Product[]): Promise<Map<string, Product["price"]>> {
+  const eligible = products.filter((product) => product.variantId?.trim());
+  const byVariant = new Map<string, Product>();
+  for (const product of eligible) byVariant.set(product.variantId!.trim(), product);
+  const variantIds = [...byVariant.keys()];
+  const prices = new Map<string, Product["price"]>();
+  for (let offset = 0; offset < variantIds.length; offset += PRICE_BATCH_SIZE) {
+    const chunk = variantIds.slice(offset, offset + PRICE_BATCH_SIZE);
+    const data = await requestPortal<{ prices: PortalCatalogPrice[] }>(
+      "/catalog/prices",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          items: chunk.map((variantId) => ({ variantId, quantity: "1" })),
+        }),
+      },
+    );
+    for (const result of data.prices) prices.set(result.variantId, { ...result.price });
   }
-  return products;
+  return prices;
 }
 
 export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
@@ -315,19 +298,59 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
   async signOut(): Promise<void> {
     const clerk = await clerkBrowser();
     const userId = clerk.user?.id?.trim();
-    if (userId) sharedCatalogByUser.delete(userId);
+    if (userId) {
+      sharedCatalogByUser.delete(userId);
+      catalogSyncByUser.delete(userId);
+      await clearCatalogForUser(userId);
+    }
     await clerk.signOut();
   }
 
-  async listCategories(): Promise<Category[]> {
-    return MOCK_CATEGORIES.map((category) => ({ ...category }));
+  private async syncCatalog(userId: string, since: string | null): Promise<CatalogView> {
+    let pending = catalogSyncByUser.get(userId);
+    if (!pending) {
+      pending = (async () => {
+        const sync = await fetchCatalogSync(since);
+        const upserts = sync.upserts.map(mapCanonicalCatalogItem);
+        await applyCatalogSync(userId, {
+          cursor: sync.cursor,
+          full: sync.full,
+          upserts,
+          removeVariantIds: sync.removeVariantIds,
+          categories: sync.categories,
+        });
+        const snapshot = await readCatalogSnapshot(userId);
+        return {
+          products: snapshot.products.map(cloneProduct),
+          categories: snapshot.categories.map((category) => ({ ...category })),
+        };
+      })();
+      catalogSyncByUser.set(userId, pending);
+    }
+    try {
+      const view = await pending;
+      sharedCatalogByUser.set(userId, Promise.resolve(view));
+      return view;
+    } finally {
+      if (catalogSyncByUser.get(userId) === pending) catalogSyncByUser.delete(userId);
+    }
   }
 
-  private async loadCatalog(): Promise<Product[]> {
+  private async loadCatalogView(): Promise<CatalogView> {
     const { userId } = await clerkIdentity();
     let promise = sharedCatalogByUser.get(userId);
     if (!promise) {
-      promise = fetchCatalogPages();
+      promise = (async () => {
+        const snapshot = await readCatalogSnapshot(userId);
+        if (snapshot.products.length > 0) {
+          void this.syncCatalog(userId, snapshot.cursor).catch(() => undefined);
+          return {
+            products: snapshot.products.map(cloneProduct),
+            categories: snapshot.categories.map((category) => ({ ...category })),
+          };
+        }
+        return this.syncCatalog(userId, null);
+      })();
       sharedCatalogByUser.set(userId, promise);
     }
     try {
@@ -338,18 +361,59 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
     }
   }
 
+  async listCategories(): Promise<Category[]> {
+    const view = await this.loadCatalogView();
+    return (view.categories.length > 0 ? view.categories : MOCK_CATEGORIES).map((category) => ({ ...category }));
+  }
+
   async listProducts(input: ProductSearchInput = {}): Promise<Product[]> {
-    return filterCatalog((await this.loadCatalog()).map(cloneProduct), input);
+    const view = await this.loadCatalogView();
+    return filterCatalog(view.products.map(cloneProduct), input);
   }
 
   async listProductPage(input: ProductPageInput = {}): Promise<ProductPage> {
-    return fetchCatalogPage(input);
+    const view = await this.loadCatalogView();
+    const allProducts = filterCatalog(view.products.map(cloneProduct), input);
+    const limit = Math.max(1, Math.min(PAGE_SIZE, Math.trunc(Number(input.limit) || PAGE_SIZE)));
+    const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));
+    const products = allProducts.slice(offset, offset + limit);
+    return {
+      products,
+      categories: input.includeCategories === true
+        ? (view.categories.length > 0 ? view.categories : MOCK_CATEGORIES).map((category) => ({ ...category }))
+        : [],
+      hasMore: offset + products.length < allProducts.length,
+      limit,
+      offset,
+    };
+  }
+
+  async refreshProductPrices(products: Product[]): Promise<Product[]> {
+    const { userId } = await clerkIdentity();
+    const prices = await fetchPriceBatches(products);
+    if (prices.size === 0) return products.map(cloneProduct);
+    await updateCatalogPrices(userId, prices);
+    const current = await this.loadCatalogView();
+    const updatedView: CatalogView = {
+      categories: current.categories.map((category) => ({ ...category })),
+      products: current.products.map((product) => {
+        const variantId = product.variantId?.trim();
+        const price = variantId ? prices.get(variantId) : undefined;
+        return price ? { ...cloneProduct(product), price: { ...price } } : cloneProduct(product);
+      }),
+    };
+    sharedCatalogByUser.set(userId, Promise.resolve(updatedView));
+    return products.map((product) => {
+      const variantId = product.variantId?.trim();
+      const price = variantId ? prices.get(variantId) : undefined;
+      return price ? { ...cloneProduct(product), price: { ...price } } : cloneProduct(product);
+    });
   }
 
   async getProductBySku(sku: string): Promise<Product | null> {
     const normalized = sku.trim().toUpperCase();
-    const page = await fetchCatalogPage({ query: normalized, limit: PAGE_SIZE, offset: 0 });
-    const found = page.products.find((product) => product.sku.toUpperCase() === normalized);
+    const view = await this.loadCatalogView();
+    const found = view.products.find((product) => product.sku.toUpperCase() === normalized);
     return found ? cloneProduct(found) : null;
   }
 
@@ -423,7 +487,7 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
   async reorderOrder(orderId: string): Promise<ReorderOrderResult> {
     const order = await this.getOrderById(orderId);
     if (!order) throw new CustomerPortalRequestError("CUSTOMER_PORTAL_ORDER_NOT_FOUND", "Không tìm thấy đơn hàng.", false, 404);
-    const available = new Map((await this.loadCatalog()).map((product) => [product.sku.toUpperCase(), product]));
+    const available = new Map((await this.loadCatalogView()).products.map((product) => [product.sku.toUpperCase(), product]));
     const cart = await this.getCart();
     const quantities = new Map(cart.lines.map((line) => [line.sku.toUpperCase(), { ...line }]));
     let addedLineCount = 0;

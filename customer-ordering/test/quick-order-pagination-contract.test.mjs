@@ -24,7 +24,7 @@ test("Đặt hàng nhanh dùng catalog phân trang thay vì tải toàn bộ s�
   assert.doesNotMatch(quickOrder, /filteredProducts/);
 });
 
-test("tìm kiếm và bộ lọc Đặt hàng nhanh được gửi lên Công Ty trên toàn catalog", async () => {
+test("tìm kiếm và bộ lọc Đặt hàng nhanh chạy trên catalog local đã đồng bộ", async () => {
   const [quickOrder, coreAdapter] = await Promise.all([
     read("components/quick-order.tsx"),
     read("lib/adapters/core/core-customer-ordering-adapter.ts"),
@@ -34,11 +34,11 @@ test("tìm kiếm và bộ lọc Đặt hàng nhanh được gửi lên Công Ty
   assert.match(quickOrder, /categoryId: selectedCategoryId/);
   assert.match(quickOrder, /purchaseMode: selectedPurchaseMode/);
   assert.match(quickOrder, /requestVersionRef/);
-  assert.match(coreAdapter, /query\.set\("search", search\)/);
-  assert.match(coreAdapter, /query\.set\("categoryId", input\.categoryId\)/);
-  assert.match(coreAdapter, /query\.set\("purchaseMode", input\.purchaseMode\)/);
-  assert.match(coreAdapter, /query\.set\("includeCategories", "1"\)/);
+  assert.match(coreAdapter, /function filterCatalog/);
+  assert.match(coreAdapter, /productMatchesQuery\(product, query\)/);
+  assert.match(coreAdapter, /loadCatalogView\(\)/);
   assert.match(coreAdapter, /Math\.min\(PAGE_SIZE/);
+  assert.doesNotMatch(coreAdapter, /query\.set\("search", search\)/);
 });
 
 test("Nhóm sản phẩm và Nhóm hàng dùng cây nhóm canonical thay vì metadata của trang đã tải", async () => {

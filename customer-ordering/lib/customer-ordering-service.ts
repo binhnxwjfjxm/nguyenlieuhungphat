@@ -28,6 +28,7 @@ export class CustomerOrderingService {
   listCategories(): Promise<Category[]> { return this.adapter.listCategories(); }
   listProducts(input?: ProductSearchInput): Promise<Product[]> { return this.adapter.listProducts(input); }
   listProductPage(input?: ProductPageInput): Promise<ProductPage> { return this.adapter.listProductPage(input); }
+  refreshProductPrices(products: Product[]): Promise<Product[]> { return this.adapter.refreshProductPrices(products); }
   getProductBySku(sku: string): Promise<Product | null> { return this.adapter.getProductBySku(sku); }
   getCart(): Promise<Cart> { return this.adapter.getCart(); }
   saveCart(cart: Cart): Promise<void> { return this.adapter.saveCart(cart); }

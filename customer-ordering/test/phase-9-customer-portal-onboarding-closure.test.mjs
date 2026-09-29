@@ -20,8 +20,9 @@ test("Customer Ordering gates commerce on active Core membership without hijacki
   assert.doesNotMatch(gate, /router\.replace|router\.push/);
   assert.doesNotMatch(gate, /catalog|listProducts|listCategories/);
   assert.match(catalogAdapter, /PAGE_SIZE = 50/);
-  assert.match(catalogAdapter, /PAGE_BATCH_SIZE = 4/);
-  assert.match(catalogAdapter, /Promise\.all\(offsets\.map/);
+  assert.match(catalogAdapter, /fetchCatalogSync/);
+  assert.match(catalogAdapter, /readCatalogSnapshot/);
+  assert.doesNotMatch(catalogAdapter, /PAGE_BATCH_SIZE/);
 });
 
 test("Customer Ordering BFF exposes only the canonical registration and profile lifecycle", async () => {
