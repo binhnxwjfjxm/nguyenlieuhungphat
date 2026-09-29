@@ -1,3 +1,11 @@
+export interface CustomerHomeContent {
+  sectionTitle: string;
+  visible: boolean;
+  bannerUrl: string | null;
+  imagePresent: boolean;
+  updatedAt: string | null;
+}
+
 export interface CustomerProfile {
   customerCode: string;
   displayName: string;
@@ -188,6 +196,7 @@ export interface CustomerOrderingAdapter {
   signIn(input: SignInInput): Promise<CustomerSession>;
   getSession(): Promise<CustomerSession | null>;
   signOut(): Promise<void>;
+  getHomeContent(): Promise<CustomerHomeContent>;
   listCategories(): Promise<Category[]>;
   listProducts(input?: ProductSearchInput): Promise<Product[]>;
   listProductPage(input?: ProductPageInput): Promise<ProductPage>;

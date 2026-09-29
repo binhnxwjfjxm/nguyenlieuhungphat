@@ -4,6 +4,7 @@ import type {
   CartLine,
   Category,
   CheckoutDraft,
+  CustomerHomeContent,
   CustomerOrder,
   CustomerOrderLine,
   CustomerOrderingAdapter,
@@ -127,6 +128,16 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
   }
   async getSession(): Promise<CustomerSession | null> { return this.storage.get<CustomerSession>(SESSION_KEY); }
   async signOut(): Promise<void> { this.storage.remove(SESSION_KEY); }
+  async getHomeContent(): Promise<CustomerHomeContent> {
+    return {
+      sectionTitle: "Sự kiện",
+      visible: false,
+      bannerUrl: null,
+      imagePresent: false,
+      updatedAt: null,
+    };
+  }
+
   async listCategories(): Promise<Category[]> { return MOCK_CATEGORIES.map((category) => ({ ...category })); }
   async listProducts(input: ProductSearchInput = {}): Promise<Product[]> { return filterProducts(input); }
   async refreshProductPrices(products: Product[]): Promise<Product[]> {
