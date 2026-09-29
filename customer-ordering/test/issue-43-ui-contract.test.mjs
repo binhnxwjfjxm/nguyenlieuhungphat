@@ -22,7 +22,8 @@ test("issue 43 keeps one category priority and opens Home categories/products co
   }
 
   assert.match(home, /href=\{`\/products\?category=\$\{encodeURIComponent\(category\.id\)\}`\}/);
-  assert.match(home, /href=\{`\/products\/\$\{encodeURIComponent\(product\.sku\)\}`\}/);
+  assert.match(home, /ManagedHomeBanner/);
+  assert.doesNotMatch(home, /encodeURIComponent\(product\.sku\)/);
   assert.match(productsPage, /initialCategoryId=\{initialCategoryId\}/);
   assert.match(catalog, /initialCategoryId = null/);
   assert.match(catalog, /useState<string \| null>\(initialCategoryId\)/);

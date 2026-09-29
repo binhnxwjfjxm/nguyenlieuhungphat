@@ -4,6 +4,7 @@ import type {
   Category,
   CheckoutDraft,
   CustomerOrder,
+  CustomerHomeContent,
   CustomerOrderingAdapter,
   CustomerSession,
   DeliveryAddress,
@@ -25,6 +26,7 @@ export class CustomerOrderingService {
   signIn(input: SignInInput): Promise<CustomerSession> { return this.adapter.signIn(input); }
   getSession(): Promise<CustomerSession | null> { return this.adapter.getSession(); }
   signOut(): Promise<void> { return this.adapter.signOut(); }
+  getHomeContent(): Promise<CustomerHomeContent> { return this.adapter.getHomeContent(); }
   listCategories(): Promise<Category[]> { return this.adapter.listCategories(); }
   listProducts(input?: ProductSearchInput): Promise<Product[]> { return this.adapter.listProducts(input); }
   listProductPage(input?: ProductPageInput): Promise<ProductPage> { return this.adapter.listProductPage(input); }

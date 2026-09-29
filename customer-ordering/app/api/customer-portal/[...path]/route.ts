@@ -19,7 +19,7 @@ function coreBaseUrl(): string {
 }
 
 function allowed(path: string[], method: string): boolean {
-  if (method === "GET" && path.length === 1 && ["me", "addresses", "catalog", "catalog-sync", "orders"].includes(path[0])) return true;
+  if (method === "GET" && path.length === 1 && ["me", "addresses", "home-content", "catalog", "catalog-sync", "orders"].includes(path[0])) return true;
   if (method === "POST" && path.length === 2 && path[0] === "catalog" && path[1] === "prices") return true;
   if (method === "PATCH" && path.length === 1 && path[0] === "me") return true;
   if (method === "GET" && path.length === 2 && path[0] === "registrations" && path[1] === "current") return true;

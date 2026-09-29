@@ -4,6 +4,7 @@ import type {
   CartLine,
   Category,
   CheckoutDraft,
+  CustomerHomeContent,
   CustomerOrder,
   CustomerOrderingAdapter,
   CustomerSession,
@@ -359,6 +360,11 @@ export class CoreCustomerOrderingAdapter implements CustomerOrderingAdapter {
       if (sharedCatalogByUser.get(userId) === promise) sharedCatalogByUser.delete(userId);
       throw error;
     }
+  }
+
+  async getHomeContent(): Promise<CustomerHomeContent> {
+    const data = await requestPortal<{ homeContent: CustomerHomeContent }>("/home-content");
+    return { ...data.homeContent };
   }
 
   async listCategories(): Promise<Category[]> {

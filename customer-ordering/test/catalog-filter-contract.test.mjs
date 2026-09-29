@@ -22,7 +22,8 @@ test("catalog keeps industries, product groups and brands as separate axes", asy
   ]);
   for (const label of ["Trà sữa", "Mỳ cay", "Đông lạnh", "Ăn vặt", "Bao bì"]) assert.match(generator, new RegExp(label));
   assert.match(home, /MOCK_CATEGORIES/);
-  assert.match(home, /MOCK_PRODUCTS/);
+  assert.match(home, /ManagedHomeBanner/);
+  assert.doesNotMatch(home, /MOCK_PRODUCTS/);
   assert.match(catalog, /Nhóm hàng/);
   assert.match(catalog, /Nhãn hàng/);
   assert.match(catalog, /product\.productType === activeProductType/);

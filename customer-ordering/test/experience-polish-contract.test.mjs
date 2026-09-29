@@ -69,8 +69,9 @@ test("shop registration sends canonical Vietnam address fields to Core", async (
 
 test("home uses generated catalog identities and direct R2 hero image", async () => {
   const source = await read("components/home-screen.tsx");
-  assert.match(source, /MOCK_PRODUCTS/);
+  assert.doesNotMatch(source, /MOCK_PRODUCTS/);
   assert.match(source, /MOCK_CATEGORIES/);
+  assert.match(source, /ManagedHomeBanner/);
   assert.match(source, /hero-app-customer\.jpg/);
   assert.match(source, /unoptimized/);
   assert.doesNotMatch(source, /Mock UI/);

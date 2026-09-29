@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Boxes, ChevronRight, ClipboardList, MessageCircleQuestion, PackageSearch, ShoppingBasket } from "lucide-react";
-import { HomeAnnouncementPreview } from "@/components/home-announcement-preview";
-import { ProductVisual } from "@/components/product-visual";
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/adapters/mock/mock-catalog";
+import { ManagedHomeBanner } from "@/components/managed-home-banner";
+import { MOCK_CATEGORIES } from "@/lib/adapters/mock/mock-catalog";
 import { sortCustomerCategories } from "@/lib/category-order";
 import styles from "./home-screen.module.css";
 
@@ -18,14 +17,9 @@ const CATEGORY_ICON_BY_ID: Readonly<Record<string, string>> = {
   "sauce-seasoning": `${R2_IMAGE_BASE}/icon-gia-vi.webp`,
 };
 
-function formatPrice(amount: number | null): string {
-  if (amount === null) return "Chờ giá";
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(amount);
-}
 
 export function HomeScreen() {
   const categories = sortCustomerCategories(MOCK_CATEGORIES);
-  const products = MOCK_PRODUCTS.filter((product) => product.purchaseMode === "retail" && product.availability === "available").slice(0, 4);
 
   return (
     <div className="screen-stack home-depth-stack">
@@ -55,9 +49,7 @@ export function HomeScreen() {
         </Link>;
       })}</div></section>
 
-      <section className="content-section home-product-section"><div className="section-heading"><h2>Sản phẩm</h2><Link href="/products">Xem tất cả <ChevronRight aria-hidden="true" size={16} /></Link></div><div className="home-product-scroller">{products.map((product) => <Link aria-label={`Xem ${product.name}`} className="product-card home-product-card home-product-link" href={`/products/${encodeURIComponent(product.sku)}`} key={product.sku}><ProductVisual compact product={product} /><div className="product-card-body"><span className="product-code">{product.brand || product.productType}</span><h3>{product.name}</h3><strong>{formatPrice(product.price.status === "available" ? product.price.amount : null)}</strong></div></Link>)}</div></section>
-
-      <HomeAnnouncementPreview />
+      <ManagedHomeBanner />
     </div>
   );
 }
