@@ -129,6 +129,9 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
   async signOut(): Promise<void> { this.storage.remove(SESSION_KEY); }
   async listCategories(): Promise<Category[]> { return MOCK_CATEGORIES.map((category) => ({ ...category })); }
   async listProducts(input: ProductSearchInput = {}): Promise<Product[]> { return filterProducts(input); }
+  async refreshProductPrices(products: Product[]): Promise<Product[]> {
+    return products.map((product) => ({ ...product, aliases: [...product.aliases], price: { ...product.price } }));
+  }
   async listProductPage(input: ProductPageInput = {}): Promise<ProductPage> {
     const limit = Math.max(1, Math.min(50, Math.trunc(Number(input.limit) || 50)));
     const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));

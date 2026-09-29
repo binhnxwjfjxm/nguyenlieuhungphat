@@ -35,6 +35,7 @@ export interface ProductPriceView {
 
 export interface Product {
   sku: string;
+  variantId?: string;
   familySku: string;
   categoryId: string;
   canonicalIndustryKey?: string;
@@ -190,6 +191,7 @@ export interface CustomerOrderingAdapter {
   listCategories(): Promise<Category[]>;
   listProducts(input?: ProductSearchInput): Promise<Product[]>;
   listProductPage(input?: ProductPageInput): Promise<ProductPage>;
+  refreshProductPrices(products: Product[]): Promise<Product[]>;
   getProductBySku(sku: string): Promise<Product | null>;
   getCart(): Promise<Cart>;
   saveCart(cart: Cart): Promise<void>;

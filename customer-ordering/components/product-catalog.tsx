@@ -120,6 +120,7 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
   const quickViewDialogRef = useRef<HTMLElement | null>(null);
   const quickViewCloseRef = useRef<HTMLButtonElement | null>(null);
   const quickViewOpenerRef = useRef<HTMLElement | null>(null);
+  const requestedPriceKeysRef = useRef(new Set<string>());
 
   useEffect(() => {
     let cancelled = false;
@@ -241,6 +242,38 @@ export function ProductCatalog({ initialCategoryId = null }: Readonly<{ initialC
     () => productGroups.slice(0, visibleGroupCount),
     [productGroups, visibleGroupCount],
   );
+
+  useEffect(() => {
+    const selected = visibleProductGroups
+      .map(({ groupKey, variants, visibleVariants }) =>
+        chooseGroupPreferred(
+          visibleVariants.length > 0 ? visibleVariants : variants,
+          selectedSkuByGroup[groupKey],
+          purchaseMode,
+        ),
+      )
+      .filter((product) => Boolean(product.variantId));
+    const pending = selected.filter((product) => {
+      const key = product.variantId!;
+      if (requestedPriceKeysRef.current.has(key)) return false;
+      requestedPriceKeysRef.current.add(key);
+      return true;
+    });
+    if (pending.length === 0) return;
+    let cancelled = false;
+    void service.refreshProductPrices(pending)
+      .then((resolved) => {
+        if (cancelled) return;
+        const bySku = new Map(resolved.map((product) => [product.sku, product] as const));
+        setProducts((current) => current.map((product) => bySku.get(product.sku) ?? product));
+      })
+      .catch(() => {
+        for (const product of pending) {
+          if (product.variantId) requestedPriceKeysRef.current.delete(product.variantId);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [purchaseMode, selectedSkuByGroup, service, visibleProductGroups]);
 
   const quickViewProduct = quickViewSku ? products.find((product) => product.sku === quickViewSku) ?? null : null;
   const quickViewGroup = useMemo(() => quickViewProduct ? seriesGroupFor(seriesIndex, quickViewProduct) : null, [quickViewProduct, seriesIndex]);
