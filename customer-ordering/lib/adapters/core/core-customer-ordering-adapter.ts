@@ -52,14 +52,6 @@ interface PortalCatalogItem {
   price?: Product["price"];
 }
 
-interface PortalCatalogPage {
-  items: PortalCatalogItem[];
-  categories?: Category[];
-  hasMore: boolean;
-  limit: number;
-  offset: number;
-}
-
 interface PortalCatalogSync {
   cursor: string;
   full: boolean;
@@ -135,36 +127,6 @@ function sanitizeCoreCart(cart: Partial<Cart> | null): Cart {
   return { lines, updatedAt: typeof cart?.updatedAt === "string" ? cart.updatedAt : new Date().toISOString() };
 }
 
-function legacyGenericProduct(item: PortalCatalogItem): Product {
-  return {
-    sku: item.sku,
-    familySku: item.sku,
-    categoryId: "other",
-    name: item.name || item.variantName || item.sku,
-    aliases: [],
-    brand: "",
-    productType: "",
-    flavor: null,
-    size: item.variantName || "",
-    purchaseMode: "retail",
-    caseQuantity: null,
-    packaging: item.unitCode || "đơn vị",
-    unit: item.unitCode || "đơn vị",
-    description: "",
-    availability: "available",
-    price: { ...(item.price ?? { status: "customer_price_pending", amount: null, currency: "VND" }) },
-    visualTone: "wheat",
-    ...(item.variantId ? { variantId: item.variantId } : {}),
-  };
-}
-
-function mapLegacyCatalogItem(item: PortalCatalogItem): Product {
-  const metadata = canonicalProductBySku.get(item.sku.trim().toUpperCase());
-  return metadata
-    ? { ...cloneProduct(metadata), availability: "available", price: { ...item.price } }
-    : legacyGenericProduct(item);
-}
-
 function caseQuantity(item: PortalCatalogItem): number | null {
   const conversion = Number(item.conversionToBase);
   return item.purchaseMode === "case" && Number.isFinite(conversion) && conversion > 1 ? conversion : null;
@@ -188,8 +150,9 @@ function canonicalGenericProduct(item: PortalCatalogItem): Product {
     unit: item.unitCode || "đơn vị",
     description: "",
     availability: "available",
-    price: { ...item.price },
+    price: { ...(item.price ?? { status: "customer_price_pending", amount: null, currency: "VND" }) },
     visualTone: "wheat",
+    ...(item.variantId ? { variantId: item.variantId } : {}),
   };
 }
 
@@ -276,30 +239,10 @@ async function requestPortal<T>(path: string, init: RequestInit = {}, idempotenc
   return envelope.data;
 }
 
-async function fetchCatalogPage(input: ProductPageInput = {}): Promise<ProductPage> {
-  const limit = Math.max(1, Math.min(PAGE_SIZE, Math.trunc(Number(input.limit) || PAGE_SIZE)));
-  const offset = Math.max(0, Math.trunc(Number(input.offset) || 0));
-  const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-  const search = input.query?.trim();
-  if (search) query.set("search", search);
-  if (input.categoryId) query.set("categoryId", input.categoryId);
-  if (input.purchaseMode) query.set("purchaseMode", input.purchaseMode);
-  if (input.includeCategories === true) query.set("includeCategories", "1");
-  const page = await requestPortal<PortalCatalogPage>(`/catalog?${query.toString()}`);
-  return {
-    products: page.items.map(mapCanonicalCatalogItem),
-    categories: (page.categories ?? []).map((category) => ({ ...category })),
-    hasMore: page.hasMore,
-    limit: page.limit,
-    offset: page.offset,
-  };
-}
-
-
 async function fetchCatalogSync(since: string | null): Promise<PortalCatalogSync> {
   const query = new URLSearchParams();
   if (since) query.set("since", since);
-  const suffix = query.size > 0 ? `?${query.toString()}` : "";
+  const suffix = since ? `?${query.toString()}` : "";
   const data = await requestPortal<{ catalog: PortalCatalogSync }>(`/catalog-sync${suffix}`);
   return data.catalog;
 }

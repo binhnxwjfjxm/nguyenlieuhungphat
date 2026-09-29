@@ -38,12 +38,19 @@ test("Phase 9.2 local UX state is Clerk-user scoped and does not drop Core-only 
   assert.doesNotMatch(adapter, /MOCK_PRODUCTS\.some\(\(product\) => product\.sku === line\.sku\)/);
 });
 
-test("Phase 9.2 catalog cache is user-scoped and fetches pages in bounded parallel batches", async () => {
-  const adapter = await source("lib/adapters/core/core-customer-ordering-adapter.ts");
+test("Phase 9.2 catalog cache is user-scoped and uses local-first delta sync", async () => {
+  const [adapter, indexedDb] = await Promise.all([
+    source("lib/adapters/core/core-customer-ordering-adapter.ts"),
+    source("lib/storage/catalog-indexed-db.ts"),
+  ]);
   assert.match(adapter, /sharedCatalogByUser/);
-  assert.match(adapter, /PAGE_BATCH_SIZE = 4/);
-  assert.match(adapter, /Promise\.all\(offsets\.map/);
+  assert.match(adapter, /readCatalogSnapshot/);
+  assert.match(adapter, /fetchCatalogSync/);
   assert.match(adapter, /sharedCatalogByUser\.get\(userId\)/);
+  assert.doesNotMatch(adapter, /PAGE_BATCH_SIZE/);
+  assert.doesNotMatch(adapter, /fetchCatalogPages/);
+  assert.match(indexedDb, /USER_INDEX/);
+  assert.match(indexedDb, /applyCatalogSync/);
 });
 
 test("Phase 9.2 adapter does not create a second customer/order store", async () => {
