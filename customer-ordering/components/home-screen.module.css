@@ -48,3 +48,56 @@
   height: 100%;
   object-fit: cover;
 }
+
+
+.managedBanner {
+  padding: 0;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.managedBanner:active {
+  transform: scale(.992);
+}
+
+.programDetail {
+  display: grid;
+  gap: 14px;
+}
+
+.programDetailImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3.6 / 1;
+  object-fit: cover;
+  border: 1px solid rgba(215, 225, 217, .9);
+  border-radius: 16px;
+  background: #eef4ef;
+}
+
+.programDetailCopy {
+  display: grid;
+  gap: 11px;
+  padding: 0 2px;
+}
+
+.programDetailCopy p {
+  margin: 0;
+  color: var(--hp-ink);
+  font-size: .82rem;
+  line-height: 1.62;
+  white-space: pre-line;
+}
+
+.programDetailCopy .programDetailEmpty {
+  color: var(--hp-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .managedBanner {
+    transition: none;
+    transform: none;
+  }
+}

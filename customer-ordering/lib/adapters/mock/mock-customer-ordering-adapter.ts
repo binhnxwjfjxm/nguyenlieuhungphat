@@ -131,6 +131,7 @@ export class MockCustomerOrderingAdapter implements CustomerOrderingAdapter {
   async getHomeContent(): Promise<CustomerHomeContent> {
     return {
       sectionTitle: "Sự kiện",
+      programContent: "",
       visible: false,
       bannerUrl: null,
       imagePresent: false,
