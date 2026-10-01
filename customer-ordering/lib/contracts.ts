@@ -1,5 +1,6 @@
 export interface CustomerHomeContent {
   sectionTitle: string;
+  programContent: string;
   visible: boolean;
   bannerUrl: string | null;
   imagePresent: boolean;
