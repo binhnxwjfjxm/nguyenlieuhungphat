@@ -14,6 +14,49 @@ const currentBrandNames = new Set(
 );
 
 const officialBrandLogos: BrandLogo[] = [
+  // Catalog label "Gold" corresponds to Golden Farm product families in the imported data.
+  {
+    name: "Gold",
+    logoSrc: "https://www.google.com/s2/favicons?domain=goldenfarm.com.vn&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://goldenfarm.com.vn/",
+  },
+  {
+    name: "Torani",
+    logoSrc: "https://www.google.com/s2/favicons?domain=torani.com&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://www.torani.com/",
+  },
+  {
+    name: "Luave",
+    logoSrc: "https://www.google.com/s2/favicons?domain=luave.com&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://luave.com/",
+  },
+  {
+    name: "Hùng Chương",
+    logoSrc: "https://www.google.com/s2/favicons?domain=hungchuong.com&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://www.hungchuong.com/",
+  },
+  {
+    name: "BKB",
+    logoSrc: "https://www.google.com/s2/favicons?domain=nguyenlieuphachebkb.com&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://nguyenlieuphachebkb.com/",
+  },
+  {
+    name: "Lộc Phát",
+    logoSrc: "https://theme.hstatic.net/1000403402/1000681347/14/logo.png?v=197",
+    logoTone: "light",
+    sourceUrl: "https://tralocphat.com/",
+  },
+  {
+    name: "Douxian",
+    logoSrc: "https://www.google.com/s2/favicons?domain=dautien.vn&sz=256",
+    logoTone: "light",
+    sourceUrl: "https://dautien.vn/",
+  },
   {
     name: "Berrino",
     logoSrc: "https://www.berrino.vn/wp-content/uploads/2024/11/Group-13.png",
